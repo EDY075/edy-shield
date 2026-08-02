@@ -278,6 +278,35 @@ edyshield hash docs/ARCHITECTURE.md --root docs
 > Saída (digest/OK/FAIL) vai para **stdout**; logs e erros vão para **stderr**.
 > Quando `--root` não é informado, a raiz permitida é o diretório pai do arquivo alvo.
 
+### Batch Hashing (v1.2) — vários arquivos de uma vez
+
+```bash
+# Calcular hashes de todos os arquivos de um diretório
+edyshield hash --batch ./backup
+# a94f8b1c...  config.ini
+# 2cf24dba...  dados.txt
+
+# Incluir subdiretórios
+edyshield hash --batch ./projeto --recursive
+
+# Resumo no stderr; exit 0 = sucesso total, 2 = houve erros
+```
+
+### Checksum Files (v1.2) — criar e verificar
+
+```bash
+# Criar arquivo de checksum do diretório (gera ./backup/SHA256SUMS)
+edyshield checksum create ./backup
+
+# Criar com algoritmo e saída personalizados
+edyshield checksum create ./backup --algorithm MD5 --recursive --output ./md5sums.md5
+
+# Verificar arquivo de checksum (exit 0 ok, 1 mismatch, 2 erro)
+edyshield checksum verify ./backup/SHA256SUMS
+# ok       config.ini
+# ok       dados.txt
+```
+
 ### 1. Hash de texto
 
 ```python

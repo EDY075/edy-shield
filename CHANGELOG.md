@@ -155,6 +155,88 @@ os ADRs 001–005 e prepara a fundação para a v2.0 (plataforma de ferramentas 
 
 ---
 
+## [1.2.0] — 2026-08-02
+
+### Sprint 4 — Batch Hashing, Checksum Files, CLI integrada e testes E2E
+
+Release de **estabilização funcional** da v1.2. Adiciona processamento em lote
+de hashes, criação/verificação de arquivos de checksum (formatos BSD/GNU),
+integração completa na CLI e suíte de testes E2E que executa o comando real
+via subprocess. Mantém o Core 100% stdlib (ADR-001) e as camadas
+unidirecionais (ADR-002).
+
+#### Added
+
+- **Batch Hashing** (`app/core/algorithms/batch.py`):
+  - `hash_files(paths, algorithm)` — lista explícita de arquivos, reutilizando
+    `compute_file` (nenhuma duplicação de lógica de hash).
+  - `hash_directory(directory, algorithm, *, recursive=False)` — varredura
+    determinística de diretórios (nível superior ou recursiva), ignorando
+    diretórios e arquivos especiais.
+  - `BatchResult = (HashResult | None, Exception | None)` — erro em um arquivo
+    não interrompe o lote.
+  - Validação de algoritmo na entrada (whitelist do Core) e `allowed_root`
+    derivado do diretório pai (ARES-QA-028).
+- **Checksum Files** (`app/core/checksums/`):
+  - `create_checksum_file(directory, output, ...)` — gera arquivos de checksum
+    (`.sha256`, `.sha1`, `.md5`), reutilizando `hash_directory`; exclui o
+    próprio arquivo de checksum da varredura.
+  - `parse_checksum_file(path)` — parser determinístico dos formatos BSD e
+    GNU (`digest  file` / `digest *file`), ignora linhas vazias e comentários,
+    rejeita linhas malformadas com `ChecksumError`.
+  - `verify_checksum_file(path, ...)` — verifica cada entrada e reporta
+    `ok` / `mismatch` / `missing` / `invalid`; detecção de algoritmo pelo
+    comprimento do digest (64/40/32 hex).
+  - Anti path traversal via `resolve_safe_path` (raiz padrão = diretório do
+    checksum); comparação em tempo constante (`safe_compare`, ARES-QA-003).
+- **Integração CLI** (`app/cli/hash_cmd.py`):
+  - `edyshield hash --batch <dir> [--recursive]` — digests no stdout, erros e
+    resumo no stderr; exit 0 sucesso total, 2 com erros.
+  - `edyshield checksum create <dir> [--algorithm] [--output] [--recursive]`.
+  - `edyshield checksum verify <file>` — exit 0 tudo ok, 1 mismatch, 2 erro.
+  - Comandos `hash` e `verify` existentes **preservados** (mesmo comportamento
+    e exit codes ARES-QA-029).
+- **Testes E2E** (`tests/e2e/test_cli_e2e.py`) — executa a CLI real via
+  subprocess (`python -m app.cli.hash_cmd`), validando stdout, stderr e exit
+  code; cobre version, help, hash, verify (mismatch exit 1), batch
+  (recursivo/não), checksum create/verify e erro de uso (exit 2).
+- **`MANIFESTO.md`** — manifesto oficial do projeto (missão, visão,
+  princípios, público e compromisso).
+
+#### Changed
+
+- **`app/core/algorithms/__init__.py`** — API pública ampliada com
+  `hash_files`, `hash_directory` e `BatchResult` (os 8 símbolos originais
+  permanecem estáveis).
+- **`app/core/filesystem/opener.py`** — novo helper `open_regular_file`
+  (TOCTOU hardening centralizado, ARES-QA-008), preparado para reuso futuro.
+- **Versão** — `app/__init__.py` e `pyproject.toml` sincronizados em `1.2.0`.
+
+#### Fixed
+
+- **CLI `checksum verify`** — acesso a `args.algorithm` para subparsers que
+  não possuem o atributo (resolvido com `getattr`).
+
+#### Security
+
+- **Path traversal em checksum files** — filenames lidos do arquivo de
+  checksum são validados por `resolve_safe_path`; `..`/absolutos fora da raiz
+  viram entradas `invalid` (nunca lidos).
+- **Comparação em tempo constante** mantida para verificação de digests
+  (`hmac.compare_digest`).
+- **Core 100% stdlib** preservado (ADR-001) — zero novas dependências runtime.
+
+#### Quality
+
+- **Suíte de testes:** 248 passed, 2 skipped (symlink em Windows).
+- **Cobertura:** 90.29% (1164 stmts; gate 90%).
+- **mypy strict:** 0 issues em 42 arquivos.
+- **ruff check:** limpo; **ruff format:** 71 arquivos OK.
+- **CI (GitHub Actions):** pytest → mypy app → ruff check → ruff format
+  --check — todos verdes nos runs #10, #11, #12.
+
+---
+
 ## [Unreleased]
 
 - Nenhuma mudança pendente documentada.

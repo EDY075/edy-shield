@@ -436,3 +436,63 @@ documentação (ADR-001..005, THREAT_MODEL, SECURITY, CHANGELOG, RELEASE_NOTES) 
 sincronizada com o código real. **A Sprint 3 pode ser oficialmente encerrada.**
 
 > Fechamento v1.1: jr (Tech Lead) + ARES · 01/08/2026 — **VEREDITO: APROVADO — SPRINT 3 ENCERRADA**
+
+---
+
+## 12. Sprint 4 / v1.2 — QA & Segurança (Batch Hashing, Checksum Files, CLI, E2E)
+
+| Campo | Valor |
+|---|---|
+| **Escopo** | `app/core/algorithms/batch.py`, `app/core/checksums/`, `app/cli/hash_cmd.py`, `app/core/filesystem/opener.py`, `tests/e2e/` |
+| **Versão do produto** | 1.2.0 |
+| **Analista** | ARES (Cybersecurity Sênior) — revisão da implementação Sprint 4 |
+| **Data** | 02/08/2026 |
+| **Suíte de testes** | 248 passed, 2 skipped (`pytest`, ~13s) |
+| **Cobertura** | 90.29% (1164 stmts, gate 90%) |
+| **mypy strict** | 0 issues em 42 arquivos |
+| **ruff** | check limpo; format 71 arquivos OK |
+| **CI (GitHub Actions)** | runs #10, #11, #12 — success |
+
+### 12.1 Revisão de segurança dos novos módulos
+
+| Área | Avaliação |
+|---|---|
+| Batch Hashing — path safety | ✅ `allowed_root` derivado do diretório pai (ARES-QA-028); `compute_file` reutiliza a fronteira única do Core |
+| Batch Hashing — erros em lote | ✅ Falha individual capturada como `BatchResult = (None, Exception)` — não interrompe o lote; validação de algoritmo na entrada |
+| Checksum Files — parser | ✅ Determinístico; ignora vazias/comentários; rejeita malformadas com `ChecksumError`; valida digest hex e comprimento (64/40/32) |
+| Checksum Files — path traversal | ✅ Filenames validados por `resolve_safe_path` com raiz = diretório do checksum; `../` e absolutos fora da raiz → `invalid` (testado) |
+| Checksum Files — comparação | ✅ `safe_compare` (hmac.compare_digest, tempo constante) |
+| Checksum Files — auto-referência | ✅ Arquivos de checksum excluídos da própria varredura |
+| CLI — exit codes | ✅ 0 sucesso / 1 mismatch / 2 erro (ARES-QA-029), preservados nos comandos existentes |
+| CLI — separação stdout/stderr | ✅ Digests no stdout; erros e resumo no stderr |
+| E2E — comportamento real | ✅ Subprocess `python -m app.cli.hash_cmd` valida stdout, stderr e exit code em todos os fluxos |
+| TOCTOU | ✅ `open_regular_file` centraliza `os.open + O_NOFOLLOW + fstat` (ARES-QA-008) — pronto para reuso |
+
+### 12.2 Achados Sprint 4
+
+| ID | Sev. | Descrição | Status |
+|---|---|---|---|
+| ARES-QA-031 | Info | Cobertura caiu de 92.90% (v1.1) para 90.29% (v1.2) — módulos novos com lógica de apresentação na CLI (subprocess) não são cobertos por unit tests | Aceito — gate 90% mantido; módulos Core novos têm unit tests dedicados |
+| ARES-QA-032 | Info | `create_checksum_file` exclui automaticamente arquivos com sufixos de checksum da varredura (comportamento documentado) | Aceito — evita auto-referência |
+
+### 12.3 Quality Gate (QG-ARES) — Sprint 4
+
+| Item | Status |
+|---|---|
+| OWASP Top 10 verificado | ✅ Passou |
+| SAST/análise estática (mypy strict + ruff) | ✅ Passou |
+| LGPD/GDPR compliance | ✅ Passou (sem dados pessoais) |
+| Path traversal mitigado | ✅ Passou (checksum files + batch) |
+| TOCTOU hardening | ✅ Passou (opener reutilizável) |
+| Comparação em tempo constante | ✅ Passou |
+| Sem critical/high issues abertas | ✅ Passou (0 Critical, 0 High) |
+| Testes de segurança negativos | ✅ Passou (path traversal, malformed, mismatch) |
+
+### Veredito Sprint 4 / v1.2: ✅ **APROVADO — RELEASE READY**
+
+**Motivo:** 0 Critical, 0 High abertos. Batch Hashing e Checksum Files reutilizam o Core
+sem duplicação; fronteira de paths e comparação constante preservadas; testes E2E validam o
+comportamento real da CLI; CI verde nos 3 runs. Suíte evoluiu de 196 → 248 testes com
+cobertura 90.29%, mypy strict 0 issues e ruff limpo.
+
+> Fechamento v1.2: jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — v1.2 RELEASE READY**
