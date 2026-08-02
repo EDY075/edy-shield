@@ -202,3 +202,22 @@ class TestFimCommandE2E:
         assert proc.returncode == EXIT_SUCCESS
         assert "baseline" in proc.stdout
         assert "scan" in proc.stdout
+
+
+class TestHistoryCommandE2E:
+    """Testes E2E do comando ``history`` (v2.1 — SQLite Foundation)."""
+
+    def test_history_help(self) -> None:
+        proc = run_cli("history", "--help")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "limit" in proc.stdout
+
+    def test_history_runs_and_exits_zero(self) -> None:
+        # O comando lista o histórico (vazio ou não) e sempre retorna 0
+        proc = run_cli("history")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "history:" in (proc.stdout + proc.stderr)
+
+    def test_history_limit_flag_accepted(self) -> None:
+        proc = run_cli("history", "--limit", "5")
+        assert proc.returncode == EXIT_SUCCESS

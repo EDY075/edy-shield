@@ -43,6 +43,8 @@ from app.core.fim import (
     scan_snapshot,
 )
 from app.core.logging import get_logger, setup_logging
+from app.core.storage import DEFAULT_DB_PATH
+from app.services.history import HistoryStore
 
 logger = get_logger("cli.hash_cmd")
 
@@ -225,6 +227,18 @@ def _build_parser() -> argparse.ArgumentParser:
         help="não descer recursivamente em subdiretórios",
     )
 
+    history_parser = subparsers.add_parser(
+        "history",
+        help="listar o histórico de varreduras (v2.1 — SQLite)",
+        description="Lista os ScanResults persistidos pelo Console/plugins (backend SQLite).",
+    )
+    history_parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="limitar a quantidade de registros exibidos",
+    )
+
     return parser
 
 
@@ -301,6 +315,8 @@ def main(argv: list[str] | None = None) -> int:
                     algorithm if args.algorithm else None,
                     args.no_recursive,
                 )
+        if args.command == "history":
+            return _cmd_history(args.limit)
     except SystemExit:
         raise
     except EDYShieldError as exc:
@@ -623,6 +639,37 @@ def _cmd_fim_scan(
         file=sys.stderr,
     )
     return EXIT_MISMATCH if diff.changed else EXIT_SUCCESS
+
+
+def _cmd_history(limit: int | None) -> int:
+    """Executar o comando ``history`` (v2.1 — SQLite).
+
+    Lista os ScanResults persistidos pelo Console/plugins. Demonstra o
+    backend SQLite do HistoryStore (M1).
+
+    Args:
+        limit: Quantidade máxima de registros exibidos (``None`` = todos).
+
+    Returns:
+        ``EXIT_SUCCESS`` (0).
+    """
+    history_dir = Path.home() / ".edyshield" / "history"
+    store = HistoryStore(history_dir, db_path=DEFAULT_DB_PATH)
+    entries = store.list()
+    if limit is not None and limit > 0:
+        entries = entries[:limit]
+
+    if not entries:
+        print("history: nenhuma varredura registrada")
+        return EXIT_SUCCESS
+
+    for entry in entries:
+        print(
+            f"{entry['timestamp']}  {entry['plugin_name']} v{entry['plugin_version']}  "
+            f"{entry['max_severity']}  {entry['id']}"
+        )
+    print(f"history: {len(entries)} registro(s)", file=sys.stderr)
+    return EXIT_SUCCESS
 
 
 if __name__ == "__main__":

@@ -565,3 +565,65 @@ funcionais; testes E2E validam comportamento real (baseline → scan → detecç
 Suíte evoluiu de 248 → 361 testes, cobertura 91.92%, mypy strict 0 issues, ruff limpo.
 
 > Fechamento v2.0.0-dev (Sprint 5): jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — SPRINT 5 RELEASE READY**
+
+---
+
+# 14. v2.1 — M1: SQLite Foundation
+
+## 14.1 Escopo
+
+| Campo | Valor |
+|---|---|
+| **Módulo novo** | `app/core/storage/` (SQLiteDb) |
+| **Arquivos alterados** | `services/history.py`, `core/fim/store.py`, `core/fim/baseline.py`, `core/fim/ids.py`, `ui/server.py`, `cli/hash_cmd.py` |
+| **ADR** | ADR-V21-001 (SQLite como backend) |
+| **Versão** | 2.1.0-dev (em desenvolvimento) |
+
+## 14.2 Análise de segurança
+
+| Ameaça | Mitigação | Status |
+|---|---|---|
+| **Path traversal no db_path/id** | `_validate_id` (charset seguro) preservado nos stores | ✅ Mitigado |
+| **Injeção SQL** | Apenas queries parametrizadas (`?`); nunca concatenação | ✅ Mitigado |
+| **Corrupção de payload** | `ScanResult.from_dict`/round-trip validado → `HistoryError`/`BaselineCorruptionError` | ✅ Mitigado |
+| **Perda de dados na migração** | Idempotência + backup (`~/.edyshield/backup/`) + fallback de leitura legada | ✅ Mitigado |
+| **Colisão de baseline_id (ARES-QA-033)** | `build_unique_baseline_id` (fração de microsegundos) | ✅ Resolvido |
+| **Concorrência multithread** | `threading.RLock` + conexão por operação + WAL | ✅ Mitigado |
+| **Dependência externa** | `sqlite3` da stdlib — ADR-001 preservado | ✅ Passou |
+
+## 14.3 Achados
+
+| ID | Sev. | Descrição | Status |
+|---|---|---|---|
+| ARES-QA-035 | Info | SQLite é single-writer — concorrência multi-processo limitada (aceito: produto desktop/CLI single-user) | Aceito |
+| ARES-QA-036 | Info | WAL mode cria arquivos `-wal`/`-shm` no diretório do DB (comportamento normal do SQLite) | Aceito — documentado |
+
+## 14.4 Quality Gate (QG-ARES) — M1
+
+| Item | Status |
+|---|---|
+| OWASP Top 10 verificado | ✅ Passou |
+| SAST (mypy strict + ruff) | ✅ Passou (0 issues, 51 arquivos) |
+| LGPD/GDPR | ✅ Passou (sem dados pessoais; payloads são resultados de scan) |
+| Injeção SQL | ✅ Passou (queries parametrizadas) |
+| Path traversal | ✅ Passou (ids validados; db_path controlado) |
+| Sem critical/high issues | ✅ Passou (0 Critical, 0 High) |
+| Migração segura | ✅ Passou (idempotente + backup + fallback) |
+
+## 14.5 Métricas finais
+
+| Métrica | Valor |
+|---|---|
+| Testes | **388 passed, 2 skipped** |
+| Cobertura | **91.34%** (gate ≥ 90%) |
+| mypy strict | **0 issues** (51 arquivos) |
+| ruff check / format | **limpo / 94 arquivos OK** |
+| Core deps | **0** (100% stdlib — ADR-001) |
+
+### Veredito M1: ✅ **APROVADO**
+
+**Motivo:** 0 Critical/High. SQLite implementado com stdlib, contratos preservados,
+migração idempotente + backup + fallback, ARES-QA-033 resolvido, 388 testes verdes,
+cobertura 91.34%, mypy 0, ruff limpo. Fundação sólida para M2+.
+
+> Fechamento M1: jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — M1 SQLITE FOUNDATION**

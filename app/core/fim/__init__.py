@@ -13,6 +13,7 @@ exceptions, validators) — nunca services/plugins/ui (ADR-002).
 """
 
 from app.core.fim.baseline import create_baseline, load_baseline, save_baseline
+from app.core.fim.ids import build_baseline_id, build_unique_baseline_id
 from app.core.fim.models import Baseline, BaselineEntry, ChangeType, FimDiff, Snapshot
 from app.core.fim.scanner import compare_baseline_snapshot, scan_snapshot
 from app.core.fim.store import DEFAULT_FIM_DIR, FimStore
@@ -25,6 +26,8 @@ __all__ = [
     "FimDiff",
     "FimStore",
     "Snapshot",
+    "build_baseline_id",
+    "build_unique_baseline_id",
     "compare_baseline_snapshot",
     "create_baseline",
     "load_baseline",

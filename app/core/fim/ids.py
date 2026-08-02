@@ -27,3 +27,23 @@ def build_baseline_id(algorithm: str, now: datetime | None = None) -> str:
     """
     stamp = (now or datetime.now(UTC)).astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
     return f"fim_{algorithm.strip().lower()}_{stamp}"
+
+
+def build_unique_baseline_id(algorithm: str, now: datetime | None = None) -> str:
+    """Gerar um baseline_id único (com fração de microsegundos).
+
+    Extensão do formato canônico usada quando duas baselines são criadas no
+    mesmo segundo (ARES-QA-033): anexa a fração UTC ao id, garantindo
+    unicidade sem quebrar a leitura de baselines no formato antigo.
+
+    Args:
+        algorithm: Nome do algoritmo (ex.: ``SHA256``).
+        now: Momento UTC a usar (injetável para testes).
+
+    Returns:
+        Id no formato ``fim_<algo>_<UTC %Y%m%dT%H%M%SZ><micro>``.
+    """
+    stamp = (now or datetime.now(UTC)).astimezone(UTC)
+    base = stamp.strftime("%Y%m%dT%H%M%SZ")
+    micro = f"{stamp.microsecond:06d}"
+    return f"fim_{algorithm.strip().lower()}_{base}{micro}"

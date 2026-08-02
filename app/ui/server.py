@@ -42,13 +42,17 @@ from app.services.report_engine import render
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
-def build_default_manager(fim_dir: Path | None = None) -> PluginManager:
+def build_default_manager(
+    fim_dir: Path | None = None,
+    db_path: Path | None = None,
+) -> PluginManager:
     """Construir o PluginManager padrão com os plugins built-in.
 
     Args:
-        fim_dir: Diretório do FimStore do plugin ``file_integrity``;
-            ``None`` usa o padrão (``~/.edyshield/fim``). Injetável para
-            testes e para evitar tocar o store do usuário.
+        fim_dir: Diretório legado do FimStore do plugin ``file_integrity``;
+            ``None`` usa o padrão (``~/.edyshield/fim``).
+        db_path: Caminho do banco SQLite do FimStore; ``None`` usa o padrão
+            (``~/.edyshield/edy_shield.db``). Injetável para testes.
 
     Returns:
         Manager com ``log_analyzer``, ``hash_checker`` e
@@ -57,7 +61,10 @@ def build_default_manager(fim_dir: Path | None = None) -> PluginManager:
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
     registry.register(HashCheckerPlugin())
-    store = FimStore(fim_dir) if fim_dir is not None else FimStore(DEFAULT_FIM_DIR)
+    store = FimStore(
+        fim_dir if fim_dir is not None else DEFAULT_FIM_DIR,
+        db_path=db_path,
+    )
     registry.register(FileIntegrityPlugin(store))
     return PluginManager(registry)
 

@@ -189,6 +189,9 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 - 🧩 **Plugin oficial `file_integrity`** — registrado no `PluginManager`; severidades por
   mudança (novo=LOW, modificado=MEDIUM, removido=HIGH, symlink=INFO);
 - 🖥️ **CLI** — `edyshield fim baseline criar <dir>` e `edyshield fim scan <dir> --baseline <id|arquivo>`;
+- 🗄️ **Persistência SQLite** (v2.1) — HistoryStore e FimStore com backend relacional
+  (`~/.edyshield/edy_shield.db`), migração automática de JSON legado e
+  `edyshield history` para listar varreduras;
 - 📊 **Relatório Markdown** — novo formato `md` no Report Engine e na view Relatórios;
 - 🎛️ **Console SOC** — nova view FIM com formulário baseline/scan e dropdown de baselines.
 

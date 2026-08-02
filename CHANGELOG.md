@@ -7,6 +7,44 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [Unreleased]
+
+### v2.1 — M1: SQLite Foundation
+
+#### Added
+
+- **Storage SQLite** (`app/core/storage/`) — `SQLiteDb`: conexão thread-safe
+  (`RLock` + conexão por operação), WAL mode, foreign keys, transações atômicas,
+  schema `scans`/`baselines`/`baseline_entries` (100% stdlib — ADR-001 preservado).
+- **HistoryStore em SQLite** — contrato público preservado (`save`/`list`/`get`/`clear`
+  + `base_dir`) com `db_path` opcional; migração automática JSON→SQLite idempotente;
+  fallback de leitura legada.
+- **FimStore em SQLite** — contrato público preservado (`save`/`load`/`list`/`delete`
+  + `base_dir`) com `db_path` opcional; migração e fallback.
+- **ARES-QA-033 resolvido** — colisão de `baseline_id` no mesmo segundo agora gera id
+  único com fração de microsegundos (`build_unique_baseline_id`); regex do round-trip
+  aceita a fração opcional.
+- **CLI `edyshield history`** — lista ScanResults persistidos (demonstra o backend SQLite).
+- **ADR-V21-001** — materializado (SQLite como backend de persistência).
+- **Testes** — `tests/unit/test_storage_sqlite.py` (24 casos: SQLiteDb, migração,
+  fallback, ARES-QA-033, concorrência) + E2E `history`.
+
+#### Changed
+
+- `app/services/history.py` — backend JSON → SQLite (contrato preservado).
+- `app/core/fim/store.py` — backend JSON → SQLite (contrato preservado).
+- `app/core/fim/baseline.py` — regex do `baseline_id` aceita fração opcional.
+- `app/core/fim/ids.py` — novo `build_unique_baseline_id`.
+- `app/ui/server.py` — `build_default_manager` aceita `db_path` (testes).
+- Testes existentes usam `db_path` temporário (sem poluir o banco real).
+
+#### Quality
+
+- **388 passed, 2 skipped** · cobertura **91.34%** (gate ≥ 90%) · mypy strict 0 (51
+  arquivos) · ruff limpo.
+
+---
+
 ## [0.1.0] — 2026-08-01
 
 ### Sprint 2 — Fundação técnica (Core em camadas, CLI real, config & logging)

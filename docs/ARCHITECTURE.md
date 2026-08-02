@@ -67,6 +67,9 @@ EDYShield/
 │   │   ├── logging/                # Logging centralizado (Missão 3)
 │   │   │   ├── __init__.py
 │   │   │   └── logger.py           # setup_logging (idempotente), get_logger
+│   │   ├── storage/                # Persistência SQLite (v2.1 — M1)
+│   │   │   ├── __init__.py         # re-exports (SQLiteDb, DEFAULT_DB_PATH)
+│   │   │   └── sqlite_db.py        # SQLiteDb: conexão thread-safe + schema + transações
 │   │   ├── models/                 # Dataclasses, enums, tipos
 │   │   │   ├── __init__.py
 │   │   │   ├── hashes.py           # HashResult, HashSource

@@ -36,7 +36,9 @@ from app.core.validators import validate_chunk_size
 #: Charset seguro para baseline_id (padrão HistoryStore) — anti path traversal.
 _SAFE_ID_RE = re.compile(r"[^A-Za-z0-9_.-]")
 #: Formato canônico do baseline_id: fim_<algo>_<UTC %Y%m%dT%H%M%SZ>.
-_BASELINE_ID_RE = re.compile(r"^fim_[a-z0-9]+_\d{8}T\d{6}Z$")
+#: Fração de microsegundos opcional (``Z<digits>``) — usada para garantir
+#: unicidade quando duas baselines são criadas no mesmo segundo (ARES-QA-033).
+_BASELINE_ID_RE = re.compile(r"^fim_[a-z0-9]+_\d{8}T\d{6}Z\d*$")
 #: Versão atual do formato de baseline.
 BASELINE_VERSION = 1
 

@@ -151,6 +151,18 @@ Contrato:
 > **Nota (ARES-QA-033):** `baseline_id` tem granularidade de segundos — colisão
 > possível ao criar duas baselines no mesmo segundo. Previsto migrar para SQLite
 > (com ids únicos) na v2.1. Não é uma quebra de contrato — apenas limitação conhecida.
+> **Resolvido na v2.1-M1:** colisão gera id único com fração de microsegundos.
+
+### 2.12 `app.core.storage` - **BETA** (v2.1 — M1)
+
+| Símbolo | Estabilidade |
+|---------|--------------|
+| `app.core.storage.SQLiteDb` | BETA |
+| `app.core.storage.DEFAULT_DB_PATH` | BETA — `~/.edyshield/edy_shield.db` |
+
+> Backend SQLite do `HistoryStore` e `FimStore`. Contratos públicos dos stores
+> preservados (assinaturas + `db_path` opcional). Migração JSON→SQLite automática
+> e idempotente; leitura legada por fallback.
 
 ### 2.12 Áreas RESERVED
 
