@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 627" width="1200" height="627">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/><stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.14"/>
+      <stop offset="50%" stop-color="#22D3EE" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0A0E14" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="627" fill="#0A0E14"/>
+  <rect width="1200" height="627" fill="url(#glow)"/>
+
+  <!-- Escudo -->
+  <g transform="translate(120, 150) scale(1.8)">
+    <path d="M14,8 L14,20 L7,27 L7,37 L18,42 L38,42 L43,37 L43,16 L36,8 Z"
+      fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15,26 L20,31 L31,19" fill="none" stroke="url(#grad)" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="360" y="220" font-family="'Space Grotesk','Inter',sans-serif" font-weight="800"
+    font-size="52" fill="#E6EDF3">EDY SHIELD v2.0</text>
+  <text x="363" y="285" font-family="'Inter',sans-serif" font-weight="500"
+    font-size="26" fill="#8B949E">File Integrity Monitor · Python 3.12 · 100% stdlib</text>
+
+  <!-- Cards de features -->
+  <g transform="translate(120, 360)">
+    <rect x="0" y="0" width="300" height="90" rx="10" fill="#12161F" stroke="#1F2633"/>
+    <text x="150" y="34" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="#00E5A0">Baseline</text>
+    <text x="150" y="62" text-anchor="middle" font-family="'Inter',sans-serif" font-size="16" fill="#8B949E">SHA-256 determinístico</text>
+
+    <rect x="330" y="0" width="300" height="90" rx="10" fill="#12161F" stroke="#1F2633"/>
+    <text x="480" y="34" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="#22D3EE">Scan</text>
+    <text x="480" y="62" text-anchor="middle" font-family="'Inter',sans-serif" font-size="16" fill="#8B949E">novo · modificado · removido</text>
+
+    <rect x="660" y="0" width="300" height="90" rx="10" fill="#12161F" stroke="#1F2633"/>
+    <text x="810" y="34" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="18" fill="#F0B90B">Compare</text>
+    <text x="810" y="62" text-anchor="middle" font-family="'Inter',sans-serif" font-size="16" fill="#8B949E">baselines antes/depois</text>
+  </g>
+
+  <text x="600" y="540" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="600"
+    font-size="20" fill="#22D3EE">Defenda. Verifique. Confie. · github.com/EDY075/edy-shield</text>
+</svg>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EDY Shield v2.0 — File Integrity Monitor</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0A0E14; font-family: 'Inter', system-ui, sans-serif; color: #E6EDF3; }
+    .slide {
+      width: 1280px; height: 720px; margin: 0 auto;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 72px 96px; position: relative; overflow: hidden;
+      page-break-after: always; border-bottom: 1px solid #1F2633;
+    }
+    .slide::before {
+      content: ''; position: absolute; inset: -40% -20% auto; height: 70%;
+      background: radial-gradient(ellipse at center, rgba(0,229,160,0.10), rgba(34,211,238,0.05) 45%, transparent 70%);
+      pointer-events: none;
+    }
+    .kicker {
+      font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 0.16em;
+      text-transform: uppercase; color: #00E5A0; margin-bottom: 18px;
+    }
+    h1 { font-family: 'Space Grotesk', sans-serif; font-size: 56px; line-height: 1.15; margin-bottom: 20px; }
+    h2 { font-family: 'Space Grotesk', sans-serif; font-size: 40px; margin-bottom: 16px; }
+    h3 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; margin-bottom: 12px; }
+    p, li { font-size: 20px; color: #8B949E; line-height: 1.6; }
+    .accent { color: #22D3EE; }
+    .green { color: #00E5A0; }
+    ul { list-style: none; }
+    li { margin-bottom: 12px; padding-left: 24px; position: relative; }
+    li::before { content: '›'; position: absolute; left: 0; color: #00E5A0; font-weight: 700; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
+    .card { background: #12161F; border: 1px solid #1F2633; border-radius: 14px; padding: 28px; }
+    .card h3 { color: #00E5A0; }
+    code, pre {
+      font-family: 'JetBrains Mono', monospace; font-size: 16px; background: #12161F;
+      border: 1px solid #1F2633; border-radius: 10px; padding: 18px 22px; display: block;
+      color: #E6EDF3; line-height: 1.7; margin-top: 16px; white-space: pre-wrap;
+    }
+    .badge {
+      display: inline-block; padding: 4px 14px; border-radius: 999px;
+      background: rgba(0,229,160,0.10); border: 1px solid rgba(0,229,160,0.3);
+      color: #00E5A0; font-family: 'JetBrains Mono', monospace; font-size: 14px; margin-right: 8px;
+    }
+    .logo { position: absolute; top: 40px; left: 64px; display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; }
+    .logo svg { width: 34px; height: 34px; }
+    .footer { position: absolute; bottom: 36px; left: 96px; right: 96px; display: flex; justify-content: space-between; font-size: 13px; color: #6E7681; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid #1F2633; font-size: 18px; }
+    th { color: #22D3EE; font-family: 'JetBrains Mono', monospace; font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .num { font-family: 'JetBrains Mono', monospace; color: #22D3EE; font-size: 18px; }
+    @media print { .slide { border: none; } }
+  </style>
+</head>
+<body>
+
+  <!-- 1. CAPA -->
+  <section class="slide">
+    <div class="logo">
+      <svg viewBox="0 0 128 128"><rect width="128" height="128" rx="20" fill="#0A0E14"/><rect x="2" y="2" width="124" height="124" rx="18" fill="none" stroke="#00E5A0" stroke-width="1.5" opacity="0.4"/><text x="64" y="80" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="56" fill="#00E5A0">E</text></svg>
+      EDY <span style="color:#00E5A0">SHIELD</span>
+    </div>
+    <span class="kicker">Blue Team · Python 3.12 · 100% Stdlib</span>
+    <h1>EDY Shield v2.0<br><span style="color:#00E5A0">File Integrity Monitor</span></h1>
+    <p>Defenda. Verifique. Confie.</p>
+    <div style="margin-top:24px"><span class="badge">v2.0.0</span><span class="badge">361 testes</span><span class="badge">91.92% cov</span></div>
+    <div class="footer"><span>github.com/EDY075/edy-shield</span><span>EDY075</span></div>
+  </section>
+
+  <!-- 2. PROBLEMA -->
+  <section class="slide">
+    <span class="kicker">Por que um FIM?</span>
+    <h2>Integridade de arquivos é a base da defesa</h2>
+    <ul>
+      <li>Detectar <strong>modificações não autorizadas</strong> (malware, tampering)</li>
+      <li>Auditar <strong>instalações e atualizações</strong> (antes/depois)</li>
+      <li>Detectar <strong>arquivos novos</strong> (droppers) e <strong>removidos</strong> (exfiltração)</li>
+      <li>Recomendado por <strong>NIST e CIS Controls</strong></li>
+    </ul>
+    <div class="footer"><span>EDY Shield · v2.0</span><span>02/2026</span></div>
+  </section>
+
+  <!-- 3. SOLUÇÃO -->
+  <section class="slide">
+    <span class="kicker">Solução</span>
+    <h2>Baseline criptográfica + detecção de mudanças</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>Baseline</h3>
+        <p>Fotografia do alvo: path relativo, digest SHA-256, tamanho, mtime e permissões — em JSON determinístico.</p>
+      </div>
+      <div class="card">
+        <h3>Scan</h3>
+        <p>Compara o estado atual contra a baseline e classifica: novo · modificado · removido · inalterado.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Digest = fonte de verdade</span><span>ADR-FIM-002</span></div>
+  </section>
+
+  <!-- 4. ARQUITETURA -->
+  <section class="slide">
+    <span class="kicker">Arquitetura</span>
+    <h2>Camadas unidirecionais, core puro</h2>
+    <code>ui (CLI + Console SOC)
+  → services (PluginManager · ReportEngine json|txt|html|md)
+    → plugins (file_integrity · hash_checker · log_analyzer)
+      → core/fim (models · scanner · baseline · store)  ← NOVO
+      → core (algorithms · filesystem · crypto)</code>
+    <div class="footer"><span>100% stdlib (ADR-001)</span><span>direção única ui→services→core</span></div>
+  </section>
+
+  <!-- 5. DEMO CLI -->
+  <section class="slide">
+    <span class="kicker">Demonstração</span>
+    <h2>Do terminal ao Console</h2>
+    <code>$ edyshield fim baseline criar ./conf
+Baseline criada: 128 entrada(s) — id fim_sha256_20260802T120000Z
+
+$ edyshield fim scan ./conf --baseline baseline.json
+novo       config.tpl
+modificado app.ini
+removido   old.cert
+fim: 3 mudança(s) — 1 novo(s), 1 modificado(s), 1 removido(s)</code>
+    <div class="footer"><span>exit 0 = sem mudanças · 1 = mudanças · 2 = erro</span><span>ARES-QA-029</span></div>
+  </section>
+
+  <!-- 6. SEGURANÇA -->
+  <section class="slide">
+    <span class="kicker">Segurança</span>
+    <h2>Segurança-first em todas as camadas</h2>
+    <table>
+      <tr><th>Ameaça</th><th>Mitigação</th></tr>
+      <tr><td>Path traversal (baseline_id)</td><td>Charset seguro + regex canônica</td></tr>
+      <tr><td>Baseline corrompida</td><td>Round-trip validado → BaselineCorruptionError</td></tr>
+      <tr><td>Symlink escapando a raiz</td><td>Não segue symlinks (ADR-FIM-003)</td></tr>
+      <tr><td>TOCTOU</td><td>compute_file com O_NOFOLLOW + fstat</td></tr>
+      <tr><td>mtime forjado</td><td>Digest é a fonte de verdade (ADR-FIM-002)</td></tr>
+    </table>
+    <div class="footer"><span>0 Critical · 0 High</span><span>Revisão ARES</span></div>
+  </section>
+
+  <!-- 7. QUALIDADE -->
+  <section class="slide">
+    <span class="kicker">Qualidade</span>
+    <h2>Números da v2.0</h2>
+    <table>
+      <tr><th>Métrica</th><th>Valor</th></tr>
+      <tr><td>Testes</td><td>361 passed, 2 skipped</td></tr>
+      <tr><td>Cobertura</td><td>91.92% (gate ≥ 90%)</td></tr>
+      <tr><td>mypy strict</td><td>0 issues (49 arquivos)</td></tr>
+      <tr><td>ruff</td><td>limpo</td></tr>
+      <tr><td>Core deps</td><td>0 (100% stdlib)</td></tr>
+    </table>
+    <div class="footer"><span>CI verde</span><span>GitHub Actions</span></div>
+  </section>
+
+  <!-- 8. ROADMAP -->
+  <section class="slide">
+    <span class="kicker">Roadmap</span>
+    <h2>De toolkit a plataforma SOC</h2>
+    <table>
+      <tr><th>Versão</th><th>Entregas</th><th>Status</th></tr>
+      <tr><td>v2.0</td><td>File Integrity Monitor</td><td class="green">✅ Concluída</td></tr>
+      <tr><td>v2.1</td><td>String · Entropy Analyzer · SQLite</td><td>⬜ Planejada</td></tr>
+      <tr><td>v2.2</td><td>IOC Scanner</td><td>⬜ Planejada</td></tr>
+      <tr><td>v3.0</td><td>SOC Platform</td><td>⬜ Planejada</td></tr>
+    </table>
+    <div class="footer"><span>Próximo: v2.1</span><span>String/Entropy Analyzer</span></div>
+  </section>
+
+  <!-- 9. CTA -->
+  <section class="slide">
+    <span class="kicker">Contribua</span>
+    <h2>Defenda. Verifique. Confie.</h2>
+    <p>Explore o código, leia a documentação e ajude a construir o Blue Team do futuro.</p>
+    <code>git clone https://github.com/EDY075/edy-shield.git
+cd edy-shield && pip install -e .
+edyshield --version   # edyshield 2.0.0</code>
+    <div class="footer"><span>github.com/EDY075/edy-shield</span><span>MIT License</span></div>
+  </section>
+
+</body>
+</html>

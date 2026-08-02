@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1584 396" width="1584" height="396">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/><stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.12"/>
+      <stop offset="50%" stop-color="#22D3EE" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#0A0E14" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0L0 0 0 40" fill="none" stroke="#1F2633" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <rect width="1584" height="396" fill="#0A0E14"/>
+  <rect width="1584" height="396" fill="url(#grid)" opacity="0.5"/>
+  <rect width="1584" height="396" fill="url(#glow)"/>
+
+  <!-- Escudo -->
+  <g transform="translate(120, 78)">
+    <path d="M14,8 L14,20 L7,27 L7,37 L18,42 L38,42 L43,37 L43,16 L36,8 Z"
+      fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15,26 L20,31 L31,19" fill="none" stroke="url(#grad)" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="190" y="150" font-family="'Space Grotesk','Inter',sans-serif" font-weight="800"
+    font-size="58" fill="#E6EDF3" letter-spacing="-0.02">EDY SHIELD</text>
+  <text x="193" y="190" font-family="'Inter',sans-serif" font-weight="500"
+    font-size="20" fill="#22D3EE" letter-spacing="0.14em">MODERN DEFENSIVE SECURITY TOOLKIT</text>
+
+  <!-- Tags -->
+  <g font-family="'JetBrains Mono',monospace" font-size="15">
+    <rect x="193" y="220" width="170" height="34" rx="6" fill="#12161F" stroke="url(#grad)" stroke-width="1" opacity="0.7"/>
+    <text x="278" y="243" text-anchor="middle" fill="#00E5A0">v2.0.0 · FIM</text>
+    <rect x="377" y="220" width="180" height="34" rx="6" fill="#12161F" stroke="url(#grad)" stroke-width="1" opacity="0.7"/>
+    <text x="467" y="243" text-anchor="middle" fill="#E6EDF3">Python 3.12</text>
+    <rect x="571" y="220" width="160" height="34" rx="6" fill="#12161F" stroke="url(#grad)" stroke-width="1" opacity="0.7"/>
+    <text x="651" y="243" text-anchor="middle" fill="#E6EDF3">100% Stdlib</text>
+  </g>
+
+  <!-- CTA -->
+  <rect x="1180" y="120" width="280" height="64" rx="10" fill="url(#grad)"/>
+  <text x="1320" y="160" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="700"
+    font-size="22" fill="#0A0E14">github.com/EDY075</text>
+</svg>

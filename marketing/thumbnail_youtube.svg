@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/><stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.14"/>
+      <stop offset="45%" stop-color="#22D3EE" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0A0E14" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0L0 0 0 40" fill="none" stroke="#1F2633" stroke-width="0.5" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <rect width="1280" height="720" fill="#0A0E14"/>
+  <rect width="1280" height="720" fill="url(#grid)" opacity="0.5"/>
+  <rect width="1280" height="720" fill="url(#glow)"/>
+
+  <!-- Escudo grande -->
+  <g transform="translate(180, 190) scale(1.6)">
+    <path d="M14,8 L14,20 L7,27 L7,37 L18,42 L38,42 L43,37 L43,16 L36,8 Z"
+      fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M15,26 L20,31 L31,19" fill="none" stroke="url(#grad)" stroke-width="3"
+      stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Título -->
+  <text x="640" y="250" text-anchor="middle" font-family="'Space Grotesk','Inter',sans-serif"
+    font-weight="800" font-size="72" fill="#E6EDF3" letter-spacing="-0.02">EDY SHIELD v2.0</text>
+  <text x="640" y="340" text-anchor="middle" font-family="'Space Grotesk','Inter',sans-serif"
+    font-weight="700" font-size="48" fill="url(#grad)">File Integrity Monitor</text>
+  <text x="640" y="400" text-anchor="middle" font-family="'Inter',sans-serif"
+    font-weight="400" font-size="26" fill="#8B949E">Baseline criptográfica · Detecção de mudanças · 100% stdlib</text>
+
+  <!-- Terminal simulado -->
+  <g transform="translate(320, 470)">
+    <rect x="0" y="0" width="640" height="150" rx="12" fill="#12161F" stroke="#1F2633" stroke-width="1"/>
+    <text x="28" y="40" font-family="'JetBrains Mono',monospace" font-size="18" fill="#00E5A0">$ edyshield fim baseline criar ./conf</text>
+    <text x="28" y="74" font-family="'JetBrains Mono',monospace" font-size="18" fill="#8B949E">Baseline: fim_sha256_20260802T120000Z</text>
+    <text x="28" y="108" font-family="'JetBrains Mono',monospace" font-size="18" fill="#F0B90B">MEDIUM  arquivo modificado: app.ini</text>
+    <text x="28" y="138" font-family="'JetBrains Mono',monospace" font-size="18" fill="#FF4D4D">HIGH    arquivo removido: old.cert</text>
+  </g>
+
+  <!-- Barra inferior -->
+  <rect x="0" y="660" width="1280" height="60" fill="#12161F"/>
+  <text x="640" y="698" text-anchor="middle" font-family="'Inter',sans-serif" font-weight="600"
+    font-size="20" fill="#22D3EE">Defenda. Verifique. Confie. · github.com/EDY075/edy-shield</text>
+</svg>
