@@ -1,41 +1,51 @@
-# 🛡️ EDY Shield
+<p align="center">
+  <img src="assets/banner.svg" alt="EDY Shield — Modern Defensive Security Toolkit" width="100%" style="max-width: 960px;">
+</p>
 
-> Plataforma modular de cibersegurança defensiva em **Python 3.12**. Começa com um Hash Checker
-> (SHA-256, SHA-1, MD5) e evolui para um toolkit completo de análise de integridade e forense.
+<h1 align="center">🛡️ EDY Shield</h1>
 
-**Defenda. Verifique. Confie.**
+<p align="center">
+  <b>Modern Defensive Security Toolkit</b> for file integrity, hash analysis and incident investigation.
+</p>
 
-![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.1.0-blue)
-![Tests](https://img.shields.io/badge/tests-196%20passed-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-92.90%25-success)
-![License](https://img.shields.io/badge/license-MIT-yellow)
-![Core](https://img.shields.io/badge/core-100%25%20stdlib-2ea44f)
+<p align="center">
+  Plataforma modular de cibersegurança defensiva em <b>Python 3.12</b> — 100% biblioteca padrão no core.
+  Hash Checker, Log Analyzer e framework de plugins com UI web dark para análise de integridade e forense.
+</p>
+
+<p align="center">
+  <i>Defenda. Verifique. Confie.</i>
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12"></a>
+  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-1.1.0-blue" alt="Version 1.1.0"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License MIT"></a>
+  <a href="https://github.com/EDY075/edy-shield/actions"><img src="https://img.shields.io/github/actions/workflow/status/EDY075/edy-shield/ci.yml?branch=main&amp;label=CI" alt="CI"></a>
+  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/github/v/release/EDY075/edy-shield?label=release" alt="GitHub Release"></a>
+</p>
+
+<p align="center">
+  <a href="#funcionalidades"><img src="https://img.shields.io/badge/tests-196%20passed-brightgreen" alt="Tests 196 passed"></a>
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/coverage-92.90%25-success" alt="Coverage 92.90%"></a>
+  <a href="#arquitetura"><img src="https://img.shields.io/badge/core-100%25%20stdlib-2ea44f" alt="Core 100% stdlib"></a>
+</p>
 
 ---
 
 ## 📑 Índice
 
-<a id="descricao"></a>
-- [Visão geral](#descricao)
-<a id="funcionalidades"></a>
-- [Funcionalidades](#funcionalidades)
-<a id="instalacao"></a>
-- [Instalação](#instalacao)
-<a id="uso-rapido"></a>
-- [Uso rápido](#uso-rapido)
-<a id="screenshots"></a>
-- [Screenshots](#screenshots)
-<a id="roadmap"></a>
-- [Roadmap](#roadmap)
-<a id="estrutura"></a>
-- [Estrutura de pastas](#estrutura)
-<a id="contribuicao"></a>
-- [Contribuição](#contribuicao)
-<a id="licenca"></a>
-- [Licença](#licenca)
-<a id="seguranca"></a>
-- [Aviso de segurança](#seguranca)
+<div align="center">
+
+| | | |
+|---|---|---|
+| [👁️ Visão geral](#visão-geral) | [🏗️ Arquitetura](#arquitetura) | [✨ Funcionalidades](#funcionalidades) |
+| [📦 Instalação](#instalação) | [🚀 Uso rápido](#uso-rápido) | [📸 Screenshots](#screenshots) |
+| [🎬 Demo](#demo) | [✅ Quality Gates](#quality-gates) | [🗺️ Roadmap](#roadmap) |
+| [📁 Estrutura de pastas](#estrutura-de-pastas) | [🤝 Contribuição](#contribuição) | [📄 Licença](#licença) |
+| [⚠️ Aviso de segurança](#aviso-de-segurança) | | |
+
+</div>
 
 ---
 
@@ -125,7 +135,7 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 - 📋 **Logging centralizado** — logger `edy_shield` em stderr (nunca loga conteúdo de arquivo);
 - 🪶 **Zero dependências** no core — só stdlib (`hashlib`, `hmac`, `dataclasses`, `enum`,
   `pathlib`, `argparse`, `logging`);
-- 🧪 Suite de testes: **196 passed, 2 skipped** · cobertura **93.6%** · mypy strict 0 issues.
+- 🧪 Suite de testes: **196 passed, 2 skipped** · cobertura **92.90%** · mypy strict 0 issues.
 
 ### Plugin Framework (Sprint 3)
 
@@ -179,8 +189,8 @@ Como o core é 100% stdlib, basta clonar e executar a partir da raiz do projeto:
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/usuario/edyshield.git
-cd EDYShield
+git clone https://github.com/EDY075/edy-shield.git
+cd edy-shield
 
 # 2. (Opcional, mas recomendado) crie um ambiente virtual
 python -m venv .venv
@@ -297,7 +307,7 @@ print(result.path)  # None (source != "file")
 
 O dispatcher decide automaticamente a origem: `bytes` → hash direto, `Path` → hash de arquivo,
 `str` → arquivo se o caminho existir, senão texto (strings que parecem path e não existem
-levantam `FileNotFoundError` — sem fallback silencioso).
+lançam `FileNotFoundError` — sem fallback silencioso).
 
 ### 5. Algoritmos suportados
 
@@ -325,7 +335,25 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 
 ## 📸 Screenshots
 
-> Em breve — capturas da interface web dark (painel SOC).
+> Pré-visualização da interface web dark (painel SOC). As imagens abaixo são placeholders elegantes
+> do layout — substitua por capturas reais em `assets/screenshots/` (PNG recomendado, 1280×800).
+
+| | |
+|---|---|
+| <img src="assets/screenshots/dashboard.svg" alt="Dashboard" width="100%"> | <img src="assets/screenshots/hash-checker.svg" alt="Hash Checker" width="100%"> |
+| <img src="assets/screenshots/log-analyzer.svg" alt="Log Analyzer" width="100%"> | <img src="assets/screenshots/plugins.svg" alt="Plugins" width="100%"> |
+
+---
+
+## 🎬 Demo
+
+> Em breve — GIF demonstrativo do EDY Shield Console (dashboard, hash checker, log analyzer e
+> relatórios). Coloque o arquivo em `assets/demo.gif` e referencie-o abaixo.
+
+<!--
+  Coloque aqui o GIF após criá-lo:
+  <img src="assets/demo.gif" alt="EDY Shield demo" width="100%">
+-->
 
 ---
 
@@ -350,14 +378,14 @@ GitHub Actions + local):
 
 ## 🗺️ Roadmap
 
-| Versão | Escopo | Status |
-|--------|--------|--------|
-| **v0.1.0** | Fundação técnica — Core em camadas, CLI real (`edyshield`), config `EDY_*`, logging, hierarquia de exceções, path safety no core, CI completo | ✅ Concluído (Sprint 2) |
-| **v1.1.0** | **Release oficial** — TOCTOU hardening, exit codes 0/1/2, ADRs 001-008, dev deps pinadas, JR Memory Engine | ✅ **RELEASE** (Sprint 3) |
-| **v1.2** | Estabilização — Hash Checker batch, checksum files (`.sha256sum`), E2E via CLI | ⬜ Planejado |
-| **v2.0** | Plataforma — File Integrity Monitor, String Analyzer, dashboard Streamlit, relatórios JSON/Markdown, plugins externos | ⬜ Planejado |
-| **v2.1** | Inteligência — baseline SQLite, alertas, análise contra blacklist pública (opt-in) | ⬜ Planejado |
-| **v3.0** | Plataforma completa — Console web unificado, scanner em lote, API REST (FastAPI), modo agente, `pip install edy-shield` | ⬜ Planejado |
+| Versão | Status | Objetivo | Previsão |
+|--------|--------|----------|----------|
+| **v0.1.0** | ✅ Concluído | Fundação técnica — Core em camadas, CLI real, config `EDY_*`, path safety | Sprint 2 |
+| **v1.1.0** | 🚀 **Release** | TOCTOU hardening, exit codes 0/1/2, ADRs 001-008, dev deps pinadas | Sprint 3 |
+| **v1.2** | ⬜ Planejado | Estabilização — Hash Checker batch, checksum files, E2E via CLI | Próxima |
+| **v2.0** | ⬜ Planejado | Plataforma — File Integrity Monitor, String Analyzer, dashboard Streamlit | Futuro |
+| **v2.1** | ⬜ Planejado | Inteligência — baseline SQLite, alertas, blacklist pública (opt-in) | Futuro |
+| **v3.0** | ⬜ Planejado | Plataforma completa — Console web unificado, API REST, `pip install edy-shield` | Futuro |
 
 ### v0.1.0 — Fundação técnica ✅ (Sprint 2)
 
@@ -464,7 +492,15 @@ EDYShield/
 
 Contribuições são bem-vindas! Veja o guia completo em [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
-Resumo do fluxo:
+<div align="center">
+
+| 🍴 Fork | 🧪 Testes | 🚀 Pull Request |
+|---------|-----------|-----------------|
+| Crie uma branch a partir de `main` | Todo código novo com cobertura unitária | Descreva a mudança e o impacto |
+
+</div>
+
+Fluxo resumido:
 
 1. **Fork** o repositório e crie uma branch a partir de `main`:
    ```bash
@@ -523,8 +559,14 @@ Distribuído sob a licença **MIT**. Veja o arquivo [`LICENSE`](LICENSE) para ma
 
 <div align="center">
 
-**EDY Shield — Defenda. Verifique. Confie.** 🛡️
+**EDY Shield** — Defenda. Verifique. Confie. 🛡️
 
-*Plataforma modular de cibersegurança · Python 3.12 · 100% stdlib no core*
+*Plataforma modular de cibersegurança defensiva · Python 3.12 · 100% stdlib no core*
+
+---
+
+**[🔗 GitHub Repository](https://github.com/EDY075/edy-shield) · [📖 Documentação](docs/ARCHITECTURE.md) · [🛡️ Reportar vulnerabilidade](SECURITY.md)**
+
+Built with **Python 3.12** · **MIT License** · Made with ❤️ by [EDY075](https://github.com/EDY075)
 
 </div>

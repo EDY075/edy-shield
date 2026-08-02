@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" font-family="Inter, -apple-system, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#0a0e14"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="800" fill="url(#bg)"/>
+  <!-- Sidebar -->
+  <rect x="0" y="0" width="240" height="800" fill="#12161f"/>
+  <rect x="16" y="20" width="208" height="28" rx="6" fill="#1f2633"/>
+  <circle cx="34" cy="34" r="6" fill="#22d3ee"/>
+  <rect x="20" y="80" width="200" height="12" rx="6" fill="#1f2633"/>
+  <rect x="20" y="110" width="200" height="12" rx="6" fill="#2a3441"/>
+  <!-- File panel -->
+  <rect x="270" y="96" width="420" height="620" rx="10" fill="#12161f" stroke="#1f2633"/>
+  <rect x="300" y="126" width="180" height="16" rx="8" fill="#2a3441"/>
+  <rect x="300" y="170" width="360" height="12" rx="6" fill="#1f2633"/>
+  <rect x="300" y="196" width="360" height="12" rx="6" fill="#1f2633"/>
+  <rect x="300" y="222" width="360" height="12" rx="6" fill="#1f2633"/>
+  <rect x="300" y="248" width="360" height="12" rx="6" fill="#1f2633"/>
+  <rect x="300" y="274" width="360" height="12" rx="6" fill="#1f2633"/>
+  <rect x="300" y="300" width="360" height="12" rx="6" fill="#1f2633"/>
+  <!-- Stats -->
+  <rect x="720" y="96" width="520" height="620" rx="10" fill="#12161f" stroke="#1f2633"/>
+  <rect x="750" y="126" width="160" height="16" rx="8" fill="#2a3441"/>
+  <!-- Stat bars with severity colors -->
+  <rect x="750" y="180" width="440" height="14" rx="7" fill="#ff4d4d" opacity="0.75"/>
+  <rect x="750" y="212" width="440" height="14" rx="7" fill="#f0b90b" opacity="0.6"/>
+  <rect x="750" y="244" width="440" height="14" rx="7" fill="#22d3ee" opacity="0.5"/>
+  <rect x="750" y="276" width="440" height="14" rx="7" fill="#1f2633"/>
+  <rect x="750" y="308" width="440" height="14" rx="7" fill="#1f2633"/>
+  <!-- Findings list -->
+  <rect x="750" y="360" width="460" height="64" rx="8" fill="#1f2633"/>
+  <circle cx="780" cy="392" r="8" fill="#ff4d4d"/>
+  <rect x="800" y="378" width="380" height="12" rx="6" fill="#2a3441"/>
+  <rect x="800" y="398" width="300" height="10" rx="5" fill="#1f2633"/>
+  <rect x="750" y="440" width="460" height="64" rx="8" fill="#1f2633"/>
+  <circle cx="780" cy="472" r="8" fill="#f0b90b"/>
+  <rect x="800" y="458" width="380" height="12" rx="6" fill="#2a3441"/>
+  <rect x="800" y="478" width="300" height="10" rx="5" fill="#1f2633"/>
+  <!-- Label -->
+  <text x="270" y="780" fill="#8b949e" font-size="15" letter-spacing="2">LOG ANALYZER — PLACEHOLDER</text>
+</svg>

@@ -73,8 +73,11 @@
     Defenda. Verifique. Confie.
   </text>
 
-  <!-- Shield emoji after tagline -->
-  <text x="430" y="122" fill="#8b949e" font-size="15" opacity="0.7" font-family="inherit">🛡️</text>
+  <!-- Mini shield glyph after tagline (pure SVG, no emoji dependency) -->
+  <g transform="translate(424, 108)" opacity="0.7">
+    <path d="M0-9 L8-6.5 L8,1 C8,5.5 5.5,8.5 0,10 C-5.5,8.5 -8,5.5 -8,1 L-8,-6.5 Z"
+          fill="none" stroke="#8b949e" stroke-width="1.4" stroke-linejoin="round"/>
+  </g>
 
   <!-- ===== BADGES (right side) ===== -->
 
