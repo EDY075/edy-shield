@@ -79,15 +79,15 @@ ruff check .
 ruff format --check .
 ```
 
-**Estado atual de referência (Sprint 2):**
+**Estado atual de referência (v2.0 — Sprint 5):**
 
 | Check | Referência |
 |-------|------------|
-| `pytest` | ✅ 101 passed, 2 skipped (symlink Windows), 7 warnings (DeprecationWarning MD5/SHA1 esperados) |
-| Cobertura | ✅ **92.90%** (gate 90%) |
-| `mypy app` | ✅ 0 issues em 25 arquivos |
+| `pytest` | ✅ 361 passed, 2 skipped (symlink Windows), 16 warnings (DeprecationWarning MD5/SHA1 esperados) |
+| Cobertura | ✅ **91.87%** (gate 90%) |
+| `mypy app` | ✅ 0 issues em 49 arquivos |
 | `ruff check .` | ✅ limpo |
-| `ruff format --check .` | ✅ 36 arquivos OK |
+| `ruff format --check .` | ✅ 90 arquivos OK |
 
 > ⚠️ Os 7 warnings de `DeprecationWarning` (MD5/SHA1) são **esperados e intencionais**
 > (ARES-QA-004) — não os remova.

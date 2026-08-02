@@ -35,7 +35,7 @@ minimalista dark, e uma arquitetura que cresce de **módulo único → toolkit �
 ```text
 EDYShield/
 ├── app/
-│   ├── __init__.py                 # __version__ = "2.0.0.dev0"
+│   ├── __init__.py                 # __version__ = "2.0.0"
 │   ├── cli/                        # INTERFACE CLI (argparse, stdlib — ADR-007)
 │   │   ├── __init__.py
 │   │   └── hash_cmd.py             # Comandos hash|verify (entrypoint `edyshield`)
@@ -52,10 +52,18 @@ EDYShield/
 │   │   │   └── hashing.py          # HashAlgorithm, normalize_algorithm, new_hasher
 │   │   ├── exceptions/             # Hierarquia de erros de domínio (ADR-005)
 │   │   │   ├── __init__.py
-│   │   │   └── domain.py           # EDYShieldError → HashError/ValidationError/FilesystemError
+│   │   │   └── domain.py           # EDYShieldError → HashError/ValidationError/FilesystemError/FimError
 │   │   ├── filesystem/             # Fronteira única de segurança de paths
 │   │   │   ├── __init__.py
-│   │   │   └── safe_path.py        # resolve_safe_path, ensure_regular_file
+│   │   │   ├── safe_path.py        # resolve_safe_path, ensure_regular_file
+│   │   │   └── opener.py           # open_regular_file (TOCTOU hardening — v1.2)
+│   │   ├── fim/                    # File Integrity Monitor (Sprint 5 — v2.0)
+│   │   │   ├── __init__.py         # re-exports públicos do FIM
+│   │   │   ├── models.py           # Baseline, BaselineEntry, Snapshot, FimDiff, ChangeType
+│   │   │   ├── ids.py              # build_baseline_id
+│   │   │   ├── scanner.py          # scan_snapshot, compare_baseline_snapshot
+│   │   │   ├── baseline.py         # create_baseline, load_baseline, save_baseline
+│   │   │   └── store.py            # FimStore (~/.edyshield/fim)
 │   │   ├── logging/                # Logging centralizado (Missão 3)
 │   │   │   ├── __init__.py
 │   │   │   └── logger.py           # setup_logging (idempotente), get_logger
@@ -299,17 +307,18 @@ Texto/bytes ──▶ hashlib.new(algo) ──▶ update(bytes) ──▶ hexdig
 - [ ] TOCTOU hardening na camada de serviço (open → `fstat` no handle; `O_NOFOLLOW`)
 - [ ] Pinning/lockfile de dev deps (ARES-QA-022)
 
-### 📊 v2.0 — Plataforma de Ferramentas
-- [ ] Módulo **File Integrity Monitor** (baseline + detecção de mudanças)
-- [ ] Módulo **String Analyzer / Entropy** (detecção de strings suspeitas)
-- [ ] Dashboard **Streamlit** integrando os módulos
-- [ ] Relatórios exportáveis (JSON/Markdown)
-- [ ] Arquitetura de plugins (register/decorator)
+### 📊 v2.0 — Plataforma de Ferramentas ✅ (Sprint 5)
+- [x] Módulo **File Integrity Monitor** (baseline + scan + compare) — `app/core/fim/`
+- [x] Relatórios exportáveis (JSON/TXT/HTML/**Markdown**)
+- [x] View **FIM** no Console SOC + endpoints `/api/fim/baselines`
+- [x] CLI `edyshield fim baseline criar | scan`
+- [ ] Módulo **String Analyzer / Entropy** (detecção de strings suspeitas) — *movido p/ v2.1*
 
 ### 🧠 v2.1 — Inteligência
-- [ ] Baseline de diretórios monitorados (banco local SQLite)
-- [ ] Alertas (console/notificação)
-- [ ] Módulo de análise de hash contra blacklist pública (opt-in)
+- [ ] **String Analyzer** (detecção de strings suspeitas)
+- [ ] **Entropy Analyzer** (detecção de alta entropia)
+- [ ] Baseline de diretórios monitorados (banco local **SQLite**)
+- [ ] **Alertas** (console/notificação)
 
 ### 🏆 v3.0 — Plataforma Completa
 - [ ] **EDY Shield Console** — UI web dark unificada (Hash, Monitor, Scanner)

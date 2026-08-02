@@ -135,7 +135,24 @@ Contrato:
 > **Regra:** shims não acumulam lógica nova. Eles só re-exportam da fonte canônica no Core.
 > A remoção de um shim só ocorre em major, após depreciação e migração dos consumidores.
 
-### 2.11 Áreas RESERVED
+### 2.11 `app.core.fim` - **BETA** (Sprint 5 — v2.0)
+
+| Símbolo | Estabilidade |
+|---------|--------------|
+| `app.core.fim.create_baseline` | BETA |
+| `app.core.fim.load_baseline` | BETA |
+| `app.core.fim.save_baseline` | BETA |
+| `app.core.fim.scan_snapshot` | BETA |
+| `app.core.fim.compare_baseline_snapshot` | BETA |
+| `app.core.fim.FimStore` | BETA |
+| `app.core.fim.Baseline` / `BaselineEntry` / `Snapshot` / `FimDiff` / `ChangeType` | BETA |
+| Plugin `file_integrity` | BETA — ações `baseline`/`scan`/`compare` |
+
+> **Nota (ARES-QA-033):** `baseline_id` tem granularidade de segundos — colisão
+> possível ao criar duas baselines no mesmo segundo. Previsto migrar para SQLite
+> (com ids únicos) na v2.1. Não é uma quebra de contrato — apenas limitação conhecida.
+
+### 2.12 Áreas RESERVED
 
 | Área | Status |
 |------|--------|

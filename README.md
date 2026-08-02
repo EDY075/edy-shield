@@ -21,13 +21,13 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12"></a>
   <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-2.0.0-blue" alt="Version 2.0.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License MIT"></a>
-  <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (190+ tests)"></a>
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (360+ tests)"></a>
   <img src="https://img.shields.io/badge/release-v2.0.0-blue" alt="Release v2.0.0">
 </p>
 
 <p align="center">
-  <a href="#funcionalidades"><img src="https://img.shields.io/badge/tests-196%20passed-brightgreen" alt="Tests 196 passed"></a>
-  <a href="#quality-gates"><img src="https://img.shields.io/badge/coverage-92.90%25-success" alt="Coverage 92.90%"></a>
+  <a href="#funcionalidades"><img src="https://img.shields.io/badge/tests-361%20passed-brightgreen" alt="Tests 361 passed"></a>
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/coverage-91.87%25-success" alt="Coverage 91.87%"></a>
   <a href="#arquitetura"><img src="https://img.shields.io/badge/core-100%25%20stdlib-2ea44f" alt="Core 100% stdlib"></a>
 </p>
 
@@ -156,7 +156,7 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 - 📋 **Logging centralizado** — logger `edy_shield` em stderr (nunca loga conteúdo de arquivo);
 - 🪶 **Zero dependências** no core — só stdlib (`hashlib`, `hmac`, `dataclasses`, `enum`,
   `pathlib`, `argparse`, `logging`);
-- 🧪 Suite de testes: **196 passed, 2 skipped** · cobertura **92.90%** · mypy strict 0 issues.
+- 🧪 Suite de testes: **361 passed, 2 skipped** · cobertura **91.87%** · mypy strict 0 issues.
 
 ### Plugin Framework (Sprint 3)
 
@@ -466,7 +466,7 @@ GitHub Actions + local):
 | **v0.1.0** | ✅ Concluído | Fundação técnica — Core em camadas, CLI real, config `EDY_*`, path safety | Sprint 2 |
 | **v1.1.0** | ✅ Concluído | TOCTOU hardening, exit codes 0/1/2, ADRs 001-008, dev deps pinadas | Sprint 3 |
 | **v1.2** | ✅ Concluído | Batch Hashing, checksum files, E2E via CLI | Sprint 4 |
-| **v2.0** | 🚀 **Em dev** | File Integrity Monitor (baseline + scan + compare), relatório Markdown, view FIM no Console | Sprint 5 |
+| **v2.0** | ✅ **Concluído** | File Integrity Monitor (baseline + scan + compare), relatório Markdown, view FIM no Console | Sprint 5 |
 | **v2.1** | ⬜ Planejado | Inteligência — String Analyzer, Entropy Analyzer, SQLite (baselines) | Futuro |
 | **v2.2** | ⬜ Planejado | IOC Scanner — indicadores de comprometimento | Futuro |
 | **v3.0** | ⬜ Planejado | Plataforma completa — Console web unificado, API REST, `pip install edy-shield` | Futuro |

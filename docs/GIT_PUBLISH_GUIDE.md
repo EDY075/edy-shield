@@ -44,7 +44,7 @@ Após o push da tag, no GitHub:
 1. Acesse **Releases** → **Draft a new release**
 2. **Tag:** `v1.1.0`
 3. **Title:** `v1.1.0 — Primeira Release Oficial`
-4. **Body:** use o conteúdo de [`docs/GITHUB_RELEASE_TEXT_v1.1.0.md`](docs/GITHUB_RELEASE_TEXT_v1.1.0.md)
+4. **Body:** use o conteúdo de [`GITHUB_RELEASE_TEXT_v1.1.0.md`](GITHUB_RELEASE_TEXT_v1.1.0.md)
 5. Publicar
 
 ---

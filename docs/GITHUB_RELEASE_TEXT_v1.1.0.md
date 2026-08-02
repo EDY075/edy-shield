@@ -71,18 +71,18 @@ EDYShield/
 
 ## 📄 Documentação
 
-- [Release Notes](docs/RELEASE_NOTES_v1.1.md)
-- [Arquitetura](docs/ARCHITECTURE.md)
-- [Modelo de Ameaças](docs/THREAT_MODEL.md)
-- [QA Report](docs/QA_REPORT.md)
-- [API Stability](docs/API_STABILITY.md)
+- [Release Notes](RELEASE_NOTES_v1.1.md)
+- [Arquitetura](ARCHITECTURE.md)
+- [Modelo de Ameaças](THREAT_MODEL.md)
+- [QA Report](QA_REPORT.md)
+- [API Stability](API_STABILITY.md)
 
 ## 📜 Licença
 
-[MIT](LICENSE)
+[MIT](../LICENSE)
 
 ---
 
-**Full Changelog:** [CHANGELOG.md](CHANGELOG.md) · **Release Summary:** [docs/RELEASE_SUMMARY_v1.1.0.md](docs/RELEASE_SUMMARY_v1.1.0.md)
+**Full Changelog:** [CHANGELOG.md](../CHANGELOG.md) · **Release Summary:** [RELEASE_SUMMARY_v1.1.0.md](RELEASE_SUMMARY_v1.1.0.md)
 
 > EDY Shield — Defenda. Verifique. Confie. 🛡️
