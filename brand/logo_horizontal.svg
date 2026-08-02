@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 160" width="540" height="160">
+  <defs>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/>
+      <stop offset="50%" stop-color="#0DD8A8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="shield-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.06"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ============ SÍMBOLO: ESCUDO VERIFICADO ============ -->
+  <g transform="translate(10, 10)">
+    <g transform="scale(0.7) translate(0,0)">
+      <path id="shield"
+        d="M58,32 L58,80 L30,110 L30,148 L72,172 L155,172 L170,148 L170,60 L142,32 Z"
+        fill="none" stroke="url(#shield-grad)" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M58,32 L58,80 L30,110 L30,148 L72,172 L155,172 L170,148 L170,100 L170,32 Z"
+        fill="url(#shield-glow)"/>
+      <path d="M62,104 L82,124 L130,76"
+        fill="none" stroke="url(#shield-grad)" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="50" y1="136" x2="125" y2="136"
+        stroke="url(#shield-grad)" stroke-width="2"
+        stroke-linecap="round" opacity="0.5"/>
+      <circle cx="145" cy="42" r="3" fill="#22D3EE" opacity="0.8"/>
+    </g>
+  </g>
+
+  <!-- ============ WORDMARK ============ -->
+  <g transform="translate(175, 48)">
+    <!-- EDY -->
+    <text x="0" y="52"
+          font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
+          font-weight="700" font-size="44"
+          letter-spacing="0.05"
+          fill="#E6EDF3">
+      EDY
+    </text>
+
+    <!-- SHIELD -->
+    <text x="0" y="82"
+          font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
+          font-weight="500" font-size="30"
+          letter-spacing="0.15em"
+          fill="url(#shield-grad)">
+      SHIELD
+    </text>
+  </g>
+
+  <!-- Tagline -->
+  <text x="192" y="125"
+        font-family="'Inter', system-ui, sans-serif"
+        font-weight="400" font-size="10.5"
+        letter-spacing="0.08em"
+        fill="#8B949E">
+    SICHERHEITSTOOLKIT FÉR VERIFIZIERUNG • INTEGRITET
+  </text>
+</svg>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Documentação do EDY Shield — plataforma modular de cibersegurança defensiva em Python 3.12.">
+  <meta name="robots" content="index, follow">
+  <meta property="og:title" content="EDY Shield — Documentação">
+  <meta property="og:description" content="Arquitetura, API, instalação e guia de uso do EDY Shield.">
+  <meta property="og:type" content="website">
+  <title>Documentação — EDY Shield</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <style>
+    .docs-nav { max-width: 800px; margin: 0 auto; padding: 56px 24px 80px; }
+    .docs-nav h1 { margin-bottom: 8px; }
+    .docs-nav > p { color: var(--text-secondary); margin-bottom: 36px; }
+    .docs-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+    .docs-list a {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--bg-surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 18px 22px;
+      color: var(--text); font-weight: 600; text-decoration: none;
+      transition: border-color var(--transition);
+    }
+    .docs-list a:hover { border-color: var(--accent-cyan); text-decoration: none; }
+    .docs-list .doc-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary); font-weight: 400; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <nav class="navbar__inner container">
+      <a class="navbar__brand" href="../">
+        <img src="../assets/img/icon.svg" alt="" width="34" height="34" class="navbar__logo">
+        <span class="navbar__wordmark">EDY <strong>SHIELD</strong></span>
+      </a>
+      <div class="navbar__actions">
+        <a class="btn btn--ghost btn--sm" href="../">← Voltar</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="docs-nav">
+      <p class="section__eyebrow">Documentação</p>
+      <h1 class="section__title">Guia do EDY Shield</h1>
+      <p>Documentação oficial mantida no repositório GitHub.</p>
+
+      <ul class="docs-list">
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/README.md" target="_blank" rel="noopener">README — visão geral<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Arquitetura de Referência<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/docs/API_STABILITY.md" target="_blank" rel="noopener">Estabilidade da API<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/docs/THREAT_MODEL.md" target="_blank" rel="noopener">Modelo de Ameaças<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/docs/FIM_ARCHITECTURE.md" target="_blank" rel="noopener">Arquitetura do File Integrity Monitor<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/SECURITY.md" target="_blank" rel="noopener">Política de Segurança<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Guia de Contribuição<span class="doc-meta">md</span></a></li>
+        <li><a href="https://github.com/EDY075/edy-shield/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog / Releases<span class="doc-meta">md</span></a></li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__copy">© 2026 EDY075 · MIT License · EDY Shield</p>
+    </div>
+  </footer>
+</body>
+</html>

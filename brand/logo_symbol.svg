@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <!-- Gradiente principal verde-teal → ciano -->
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/>
+      <stop offset="50%" stop-color="#0DD8A8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <!-- Brilho sutil sobre o escudo -->
+    <linearGradient id="shield-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.06"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo opcional: não obrigatório (transparente) -->
+
+  <!-- 
+    ESCUDO ASSIMÉTRICO (side-shield)
+    Desenhado com dois lados:
+    - lado esquerdo (aberto/fino)
+    - lado direito (completo/forte)
+    Ângulos de 45° para dar movimento e modernidade.
+  -->
+  <path id="shield-shape"
+    d="
+      M 58 32
+      L 58 80
+      L 30 110
+      L 30 148
+      L 72 172
+      L 155 172
+      L 170 148
+      L 170 60
+      L 142 32
+      Z
+    "
+    fill="none"
+    stroke="url(#shield-grad)"
+    stroke-width="4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Brilho interno -->
+  <path d="M58,32 L58,80 L30,110 L30,148 L72,172 L155,172 L170,148 L170,100 L170,32 Z"
+    fill="url(#shield-glow)"/>
+
+  <!-- CHECK DE VERIFICAÇÃO (fonte de verdade - integridade) -->
+  <path d="M 62 104 L 82 124 L 130 76"
+    fill="none"
+    stroke="url(#shield-grad)"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Linha de segurança (base) -->
+  <line x1="50" y1="136" x2="125" y2="136"
+    stroke="url(#shield-grad)"
+    stroke-width="2"
+    stroke-linecap="round"
+    opacity="0.5"
+  />
+
+  <!-- Indicador de status (online/ativo) -->
+  <circle cx="145" cy="42" r="4"
+    fill="#22D3EE" opacity="0.7"/>
+</svg>

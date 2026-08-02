@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260" width="220" height="260">
+  <defs>
+    <linearGradient id="shield-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0"/>
+      <stop offset="50%" stop-color="#0DD8A8"/>
+      <stop offset="100%" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="shield-glow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5A0" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#22D3EE" stop-opacity="0.06"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ============ SÍMBOLO ============ -->
+  <g transform="translate(10, 15)">
+    <g transform="scale(1.0) translate(-10,-10)">
+      <path d="M58,32 L58,80 L30,110 L30,148 L72,172 L155,172 L170,148 L170,60 L142,32 Z"
+        fill="none" stroke="url(#shield-grad)" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M58,32 L58,80 L30,110 L30,148 L72,172 L155,172 L170,148 L170,100 L170,32 Z"
+        fill="url(#shield-glow)"/>
+      <path d="M62,104 L82,124 L130,76"
+        fill="none" stroke="url(#shield-grad)" stroke-width="6"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- EDY -->
+  <text x="110" y="190" text-anchor="middle"
+        font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
+        font-weight="700" font-size="28"
+        letter-spacing="0.03"
+        fill="#E6EDF3">
+    EDY
+  </text>
+
+  <!-- SHIELD -->
+  <text x="110" y="214" text-anchor="middle"
+        font-family="'Space Grotesk', 'Inter', system-ui, sans-serif"
+        font-weight="500" font-size="16"
+        letter-spacing="0.18em"
+        fill="url(#shield-grad)">
+    SHIELD
+  </text>
+</svg>

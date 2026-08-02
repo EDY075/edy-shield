@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EDY Shield — Plataforma modular de cibersegurança defensiva em Python 3.12. Hash Checker, Log Analyzer e File Integrity Monitor com core 100% stdlib.">
+  <meta name="keywords" content="cibersegurança, blue team, python, hash, integridade, file integrity monitor, SOC, segurança defensiva">
+  <meta name="author" content="EDY075">
+  <meta name="theme-color" content="#0A0E14">
+  <meta name="robots" content="index, follow">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="EDY Shield — Modern Defensive Security Toolkit">
+  <meta property="og:description" content="Plataforma modular de cibersegurança defensiva em Python 3.12. Core 100% stdlib. Defenda. Verifique. Confie.">
+  <meta property="og:url" content="https://EDY075.github.io/edy-shield/">
+  <meta property="og:image" content="https://EDY075.github.io/edy-shield/assets/img/og-image.png">
+  <meta property="og:site_name" content="EDY Shield">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="EDY Shield — Modern Defensive Security Toolkit">
+  <meta name="twitter:description" content="Plataforma modular de cibersegurança defensiva em Python 3.12. Core 100% stdlib.">
+  <meta name="twitter:image" content="https://EDY075.github.io/edy-shield/assets/img/og-image.png">
+
+  <link rel="icon" type="image/svg+xml" href="assets/img/icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="canonical" href="https://EDY075.github.io/edy-shield/">
+
+  <title>EDY Shield — Modern Defensive Security Toolkit</title>
+
+  <!-- Structured data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "EDY Shield",
+    "applicationCategory": "SecurityApplication",
+    "operatingSystem": "Windows, Linux, macOS",
+    "description": "Plataforma modular de cibersegurança defensiva em Python 3.12 com core 100% stdlib.",
+    "softwareVersion": "2.0.0-dev",
+    "url": "https://EDY075.github.io/edy-shield/",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "EDY075", "url": "https://github.com/EDY075" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo principal</a>
+
+  <!-- ═══════════════════ NAVBAR ═══════════════════ -->
+  <header class="navbar" id="navbar">
+    <nav class="navbar__inner container" aria-label="Navegação principal">
+      <a class="navbar__brand" href="#" aria-label="EDY Shield — início">
+        <img src="assets/img/icon.svg" alt="" width="34" height="34" class="navbar__logo">
+        <span class="navbar__wordmark">EDY <strong>SHIELD</strong></span>
+      </a>
+
+      <ul class="navbar__links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#architecture">Arquitetura</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="docs/" class="navbar__docs">Docs</a></li>
+      </ul>
+
+      <div class="navbar__actions">
+        <a class="btn btn--ghost btn--sm" href="https://github.com/EDY075/edy-shield" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.66.41.36.78 1.05.78 2.12 0 1.53-.01 2.76-.01 3.14 0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          GitHub
+        </a>
+        <a class="btn btn--primary btn--sm" href="#installation">Get Started</a>
+      </div>
+
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mobile-menu">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </nav>
+
+    <div class="mobile-menu" id="mobile-menu" hidden>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#architecture">Arquitetura</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="https://github.com/EDY075/edy-shield" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ═══════════════════ HERO ═══════════════════ -->
+    <section class="hero" aria-label="Apresentação">
+      <div class="hero__glow" aria-hidden="true"></div>
+      <div class="container hero__inner">
+        <span class="hero__badge">
+          <span class="hero__dot" aria-hidden="true"></span>
+          v2.0.0-dev · Blue Team Toolkit
+        </span>
+        <h1 class="hero__title">Defenda. Verifique.<br><span class="hero__title-accent">Confie.</span></h1>
+        <p class="hero__subtitle">
+          Plataforma modular de cibersegurança defensiva em <strong>Python 3.12</strong>.
+          Hash Checker, Log Analyzer e File Integrity Monitor — com o core <strong>100% stdlib</strong>,
+          zero dependências externas e arquitetura em camadas unidirecionais.
+        </p>
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#installation">
+            Get Started
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="https://github.com/EDY075/edy-shield" target="_blank" rel="noopener">
+            Ver no GitHub
+          </a>
+        </div>
+
+        <div class="hero__terminal" aria-label="Demonstração do terminal EDY Shield">
+          <div class="terminal__bar">
+            <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="terminal__title">edyshield — zsh</span>
+          </div>
+          <pre class="terminal__body"><code><span class="tok-prompt">$</span> <span class="tok-cmd">edyshield</span> hash backup.tar.gz --algorithm SHA256
+<span class="tok-out">7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1f...</span>
+
+<span class="tok-prompt">$</span> <span class="tok-cmd">edyshield</span> fim baseline criar ./conf
+<span class="tok-out">Baseline criada: 128 arquivo(s) registrado(s).</span>
+<span class="tok-out">Baseline: fim_sha256_20260802T120000Z</span>
+
+<span class="tok-prompt">$</span> <span class="tok-cmd">edyshield</span> checksum verify ./backup/SHA256SUMS
+<span class="tok-ok">ok       config.ini</span>
+<span class="tok-ok">ok       dados.txt</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ TECH STRIP ═══════════════════ -->
+    <section class="strip" aria-label="Tecnologias">
+      <div class="container strip__inner">
+        <span>Python 3.12</span><i aria-hidden="true"></i>
+        <span>100% Stdlib</span><i aria-hidden="true"></i>
+        <span>MIT License</span><i aria-hidden="true"></i>
+        <span>CI Green</span><i aria-hidden="true"></i>
+        <span>Zero Dependencies</span>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ FEATURES ═══════════════════ -->
+    <section class="section" id="features" aria-labelledby="features-title">
+      <div class="container">
+        <div class="section__head">
+          <p class="section__eyebrow">Features</p>
+          <h2 class="section__title" id="features-title">Ferramentas defensivas, modulares e tipadas</h2>
+          <p class="section__sub">Cada módulo é um plugin cidadão executado via PluginManager — a mesma via para todos.</p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h3"/></svg>
+            </div>
+            <h3>Hash Checker</h3>
+            <p>SHA-256, SHA-1 e MD5 de texto, bytes ou arquivo — com whitelist de algoritmos e comparação em tempo constante.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>
+            </div>
+            <h3>Log Analyzer</h3>
+            <p>Detecta falhas de login, erros, avisos e eventos críticos em arquivos .log/.txt com estatísticas por severidade.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8V3.8l8-2 8 2v7.2c0 7.3-8 11.8-8 11.8z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <h3>File Integrity Monitor</h3>
+            <p>Baseline criptográfica + detecção de arquivos novos, modificados e removidos — digest como fonte de verdade.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18l-4-4M12 18l4-4"/></svg>
+            </div>
+            <h3>Checksum Files</h3>
+            <p>Criação e verificação de SHA256SUMS, SHA1SUMS e MD5SUMS — com exit codes 0/1/2 para automação.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+            </div>
+            <h3>Batch Hashing</h3>
+            <p>Hashes de múltiplos arquivos e diretórios com varredura recursiva, ordenação determinística e tratamento individual de erros.</p>
+          </article>
+
+          <article class="feature-card">
+            <div class="feature-card__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+            </div>
+            <h3>Console SOC</h3>
+            <p>UI web dark com Dashboard, Histórico e Relatórios (JSON/TXT/HTML) — servida por HTTP 100% stdlib.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ DEMO ═══════════════════ -->
+    <section class="section section--alt" id="demo" aria-labelledby="demo-title">
+      <div class="container">
+        <div class="section__head">
+          <p class="section__eyebrow">Demo</p>
+          <h2 class="section__title" id="demo-title">Do terminal ao Console</h2>
+          <p class="section__sub">Verifique integridade, analise logs e monitore arquivos — tudo com a mesma interface de plugin.</p>
+        </div>
+
+        <div class="demo-grid">
+          <div class="terminal terminal--demo">
+            <div class="terminal__bar">
+              <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="terminal__title">Integridade — Python</span>
+            </div>
+            <pre class="terminal__body"><code><span class="tok-prompt">&gt;&gt;&gt;</span> <span class="tok-cmd">from</span> app.core.algorithms <span class="tok-cmd">import</span> compute_file
+<span class="tok-prompt">&gt;&gt;&gt;</span> digest = <span class="tok-cmd">compute_file</span>(<span class="tok-str">"relatorio.pdf"</span>, <span class="tok-str">"sha256"</span>)
+<span class="tok-prompt">&gt;&gt;&gt;</span> <span class="tok-cmd">verify_file</span>(<span class="tok-str">"relatorio.pdf"</span>, digest)
+<span class="tok-ok">True</span></code></pre>
+          </div>
+
+          <div class="terminal terminal--demo">
+            <div class="terminal__bar">
+              <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="terminal__title">FIM — Baseline &amp; Scan</span>
+            </div>
+            <pre class="terminal__body"><code><span class="tok-prompt">$</span> <span class="tok-cmd">edyshield</span> fim baseline criar ./conf
+<span class="tok-out">Baseline: fim_sha256_20260802T120000Z</span>
+<span class="tok-out">128 arquivo(s) registrado(s).</span>
+
+<span class="tok-prompt">$</span> <span class="tok-cmd">edyshield</span> fim scan ./conf --baseline fim_sha256_...
+<span class="tok-warn">MEDIUM  arquivo modificado: app.ini</span>
+<span class="tok-warn">HIGH    arquivo removido: old.cert</span>
+<span class="tok-out">2 mudança(s) detectada(s).</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ ARCHITECTURE ═══════════════════ -->
+    <section class="section" id="architecture" aria-labelledby="arch-title">
+      <div class="container">
+        <div class="section__head">
+          <p class="section__eyebrow">Arquitetura</p>
+          <h2 class="section__title" id="arch-title">Camadas unidirecionais, core puro</h2>
+          <p class="section__sub">Direção única <code>ui → services → plugins → core</code>. O domínio nunca depende da interface.</p>
+        </div>
+
+        <div class="arch-diagram" role="img" aria-label="Diagrama de arquitetura em camadas: UI, Services, Plugins, Core">
+          <div class="arch-layer">
+            <span class="arch-layer__tag">UI</span>
+            <div class="arch-layer__boxes">
+              <span>CLI</span><span>Console Web</span><span>Dashboard</span>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true">▼</div>
+          <div class="arch-layer">
+            <span class="arch-layer__tag">Services</span>
+            <div class="arch-layer__boxes">
+              <span>PluginManager</span><span>Report Engine</span><span>HistoryStore</span>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true">▼</div>
+          <div class="arch-layer">
+            <span class="arch-layer__tag">Plugins</span>
+            <div class="arch-layer__boxes">
+              <span>hash_checker</span><span>log_analyzer</span><span>file_integrity</span>
+            </div>
+          </div>
+          <div class="arch-arrow" aria-hidden="true">▼</div>
+          <div class="arch-layer">
+            <span class="arch-layer__tag">Core</span>
+            <div class="arch-layer__boxes">
+              <span>algorithms</span><span>crypto</span><span>filesystem</span><span>validators</span><span>exceptions</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="arch-principles">
+          <div class="arch-principle">
+            <span class="arch-principle__num">01</span>
+            <h3>100% Stdlib</h3>
+            <p>Zero dependências no core — menor superfície de ataque por supply chain (ADR-001).</p>
+          </div>
+          <div class="arch-principle">
+            <span class="arch-principle__num">02</span>
+            <h3>Segurança-first</h3>
+            <p>Fronteira única de paths, comparação em tempo constante, erros de domínio sem vazamento.</p>
+          </div>
+          <div class="arch-principle">
+            <span class="arch-principle__num">03</span>
+            <h3>Tipagem estrita</h3>
+            <p>mypy strict, dataclasses frozen + slots, contratos tipados entre todas as camadas.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ ROADMAP ═══════════════════ -->
+    <section class="section section--alt" id="roadmap" aria-labelledby="roadmap-title">
+      <div class="container">
+        <div class="section__head">
+          <p class="section__eyebrow">Roadmap</p>
+          <h2 class="section__title" id="roadmap-title">De toolkit a plataforma SOC</h2>
+          <p class="section__sub">Evolução planejada com prioridades claras e dependências mapeadas.</p>
+        </div>
+
+        <div class="roadmap">
+          <div class="roadmap__item">
+            <span class="roadmap__version">v2.0</span>
+            <span class="roadmap__status roadmap__status--dev">em dev</span>
+            <p>File Integrity Monitor — baseline + scan + relatórios (JSON/TXT/HTML/Markdown)</p>
+          </div>
+          <div class="roadmap__item">
+            <span class="roadmap__version">v2.1</span>
+            <span class="roadmap__status">planejado</span>
+            <p>String Analyzer · Entropy Analyzer</p>
+          </div>
+          <div class="roadmap__item">
+            <span class="roadmap__version">v2.2</span>
+            <span class="roadmap__status">planejado</span>
+            <p>IOC Scanner — indicadores de comprometimento</p>
+          </div>
+          <div class="roadmap__item">
+            <span class="roadmap__version">v2.3</span>
+            <span class="roadmap__status">planejado</span>
+            <p>Threat Intelligence</p>
+          </div>
+          <div class="roadmap__item">
+            <span class="roadmap__version">v3.0</span>
+            <span class="roadmap__status">planejado</span>
+            <p>SOC Platform — console integrado</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ INSTALLATION ═══════════════════ -->
+    <section class="section" id="installation" aria-labelledby="install-title">
+      <div class="container container--narrow">
+        <div class="section__head">
+          <p class="section__eyebrow">Instalação</p>
+          <h2 class="section__title" id="install-title">Comece em segundos</h2>
+          <p class="section__sub">Core 100% stdlib — sem pacotes de terceiros.</p>
+        </div>
+
+        <div class="install-tabs" role="tablist" aria-label="Métodos de instalação">
+          <button class="install-tab is-active" id="tab-repo" role="tab" aria-selected="true" aria-controls="panel-repo">Repositório</button>
+          <button class="install-tab" id="tab-pip" role="tab" aria-selected="false" aria-controls="panel-pip" tabindex="-1">Editable</button>
+        </div>
+
+        <div class="terminal" id="panel-repo" role="tabpanel" aria-labelledby="tab-repo">
+          <div class="terminal__bar">
+            <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="terminal__title">bash</span>
+          </div>
+          <pre class="terminal__body"><code><span class="tok-prompt">$</span> git clone https://github.com/EDY075/edy-shield.git
+<span class="tok-prompt">$</span> cd edy-shield
+<span class="tok-prompt">$</span> python -m venv .venv
+<span class="tok-prompt">$</span> source .venv/bin/activate  <span class="tok-cmt"># Windows: .venv\Scripts\activate</span>
+<span class="tok-prompt">$</span> pip install -r requirements-dev.txt
+<span class="tok-prompt">$</span> edyshield --version</code></pre>
+        </div>
+
+        <div class="terminal" id="panel-pip" role="tabpanel" aria-labelledby="tab-pip" hidden>
+          <div class="terminal__bar">
+            <span class="terminal__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="terminal__title">bash</span>
+          </div>
+          <pre class="terminal__body"><code><span class="tok-prompt">$</span> pip install -e .
+<span class="tok-prompt">$</span> edyshield --help
+<span class="tok-out">uso: edyshield [-h] [--version] {hash,verify,checksum,fim} ...</span></code></pre>
+        </div>
+
+        <p class="install-note">📚 Documentação completa em <a href="https://github.com/EDY075/edy-shield/blob/main/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a>.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ FAQ ═══════════════════ -->
+    <section class="section section--alt" id="faq" aria-labelledby="faq-title">
+      <div class="container container--narrow">
+        <div class="section__head">
+          <p class="section__eyebrow">FAQ</p>
+          <h2 class="section__title" id="faq-title">Perguntas frequentes</h2>
+        </div>
+
+        <div class="faq">
+          <details class="faq__item">
+            <summary>O EDY Shield é 100% biblioteca padrão mesmo?</summary>
+            <p>Sim. O core (app/core) usa apenas a stdlib do Python 3.12 (hashlib, hmac, pathlib, dataclasses, argparse, http.server). Nenhuma dependência de terceiros no runtime (ADR-001). As dev dependencies (pytest, mypy, ruff) ficam pinadas e são apenas para desenvolvimento.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Posso usar em produção?</summary>
+            <p>O projeto está em desenvolvimento ativo (v2.0.0-dev). Para verificações de integridade em sistemas próprios ou autorizados, sim. Consulte SECURITY.md e THREAT_MODEL.md antes de dependências críticas.</p>
+          </details>
+          <details class="faq__item">
+            <summary>O que é o File Integrity Monitor?</summary>
+            <p>É o módulo v2.0: cria uma baseline criptográfica de um diretório (hashes + metadados) e, em varreduras posteriores, detecta arquivos novos, modificados e removidos — com relatórios em JSON, TXT, HTML e Markdown.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Como reportar uma vulnerabilidade?</summary>
+            <p>Divulgação responsável: reporte de forma privada conforme SECURITY.md — sem disclosure público antes do fix. O projeto mantém um modelo de ameaças em THREAT_MODEL.md.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Onde posso contribuir?</summary>
+            <p>Veja CONTRIBUTING.md. Todo código novo precisa de testes com cobertura ≥ 90%, mypy strict 0 issues, ruff limpo e sem dependências de terceiros no core.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════ CTA FINAL ═══════════════════ -->
+    <section class="cta" aria-label="Chamada para ação">
+      <div class="container cta__inner">
+        <h2>Pronto para defender seus dados?</h2>
+        <p>Explore o repositório, leia a documentação e contribua com o projeto.</p>
+        <div class="cta__actions">
+          <a class="btn btn--primary" href="https://github.com/EDY075/edy-shield" target="_blank" rel="noopener">Ver no GitHub</a>
+          <a class="btn btn--ghost" href="https://github.com/EDY075/edy-shield/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Documentação</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="assets/img/icon.svg" alt="" width="30" height="30">
+        <span>EDY <strong>SHIELD</strong></span>
+      </div>
+      <p class="footer__tagline">Defenda. Verifique. Confie.</p>
+      <nav class="footer__links" aria-label="Links do rodapé">
+        <a href="https://github.com/EDY075/edy-shield" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/EDY075/edy-shield/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Documentação</a>
+        <a href="https://github.com/EDY075/edy-shield/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a>
+        <a href="https://github.com/EDY075/edy-shield/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Releases</a>
+      </nav>
+      <p class="footer__copy">© 2026 EDY075 · MIT License · Python 3.12 · Feito com <span aria-hidden="true">♥</span> para o Blue Team</p>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
