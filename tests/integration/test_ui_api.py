@@ -15,6 +15,7 @@ A UI **nunca** toca o Core — todo o fluxo passa pelo servidor → PluginManage
 
 from __future__ import annotations
 
+import contextlib
 import json
 import threading
 import urllib.error
@@ -28,11 +29,18 @@ from app.services.history import HistoryStore
 from app.ui.server import build_default_manager, create_server
 
 
+def _close_resources(manager, history) -> None:
+    """Fechar conexões SQLite ao fim de cada teste (isolamento)."""
+    history.close()
+    with contextlib.suppress(Exception):
+        manager.registry.get("file_integrity").store.close()  # type: ignore[attr-defined]
+
+
 @pytest.fixture
 def api(tmp_path: Path):
     """Levantar o servidor HTTP e expor o cliente de testes."""
-    manager = build_default_manager()
-    history = HistoryStore(tmp_path / "history")
+    manager = build_default_manager(fim_dir=tmp_path / "fim", db_path=tmp_path / "test.db")
+    history = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
     server = create_server(manager=manager, history=history)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -66,6 +74,7 @@ def api(tmp_path: Path):
     server.shutdown()
     server.server_close()
     thread.join(timeout=5)
+    _close_resources(manager, history)
 
 
 class TestPluginsEndpoint:
@@ -231,8 +240,8 @@ class TestStaticAssets:
 @pytest.fixture
 def fim_api(tmp_path: Path):
     """Servidor HTTP com FimStore temporário (FIM — Sprint 5)."""
-    manager = build_default_manager(fim_dir=tmp_path / "fim")
-    history = HistoryStore(tmp_path / "history")
+    manager = build_default_manager(fim_dir=tmp_path / "fim", db_path=tmp_path / "test.db")
+    history = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
     server = create_server(manager=manager, history=history)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -266,6 +275,7 @@ def fim_api(tmp_path: Path):
     server.shutdown()
     server.server_close()
     thread.join(timeout=5)
+    _close_resources(manager, history)
 
 
 def _make_target(tmp_path: Path) -> Path:
@@ -439,8 +449,8 @@ class TestServerEdgeEndpoints:
 @pytest.fixture
 def raw_api(tmp_path: Path):
     """Servidor com cliente que aceita corpo bruto (teste de JSON inválido)."""
-    manager = build_default_manager(fim_dir=tmp_path / "fim")
-    history = HistoryStore(tmp_path / "history")
+    manager = build_default_manager(fim_dir=tmp_path / "fim", db_path=tmp_path / "test.db")
+    history = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
     server = create_server(manager=manager, history=history)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
@@ -462,6 +472,7 @@ def raw_api(tmp_path: Path):
     server.shutdown()
     server.server_close()
     thread.join(timeout=5)
+    _close_resources(manager, history)
 
 
 class TestRawJsonParsing:
