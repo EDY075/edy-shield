@@ -1,7 +1,7 @@
 # 🛡️ EDY SHIELD — Arquitetura de Referência
 
 > **Tech Lead:** jr (CyberShield AI) · **Arquiteto:** ATLAS
-> **Versão:** 1.0.0 (rascunho arquitetural) · **Status:** IMPLEMENTADO (v0.1.0 — Sprint 2)
+> **Versão:** 1.1.0 · **Status:** RELEASE (v1.1.0 — Sprint 3)
 > **Data:** 01/08/2026 · *Última atualização da seção 2/3/7: 01/08/2026 (NOVA, Missão 4)*
 
 ---
@@ -35,7 +35,7 @@ minimalista dark, e uma arquitetura que cresce de **módulo único → toolkit �
 ```text
 EDYShield/
 ├── app/
-│   ├── __init__.py                 # __version__ = "0.1.0"
+│   ├── __init__.py                 # __version__ = "1.1.0"
 │   ├── cli/                        # INTERFACE CLI (argparse, stdlib — ADR-007)
 │   │   ├── __init__.py
 │   │   └── hash_cmd.py             # Comandos hash|verify (entrypoint `edyshield`)
@@ -99,8 +99,8 @@ EDYShield/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                  # ✅ CI: pytest → mypy → ruff check → ruff format --check
-├── scripts/                        # (vazio — sem scripts de bootstrap na v0.1.0)
-├── pyproject.toml                  # ✅ Build PEP 621 + tooling (pytest/mypy/ruff) — v0.1.0
+├── scripts/                        # (vazio — sem scripts de bootstrap)
+├── pyproject.toml                  # ✅ Build PEP 621 + tooling (pytest/mypy/ruff) — v1.1.0
 ├── requirements-dev.txt            # ✅ pytest, pytest-cov, mypy, ruff
 ├── SECURITY.md                     # Política de segurança
 ├── CONTRIBUTING.md                 # Guia de contribuição

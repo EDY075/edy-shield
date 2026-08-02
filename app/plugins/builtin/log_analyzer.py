@@ -60,7 +60,7 @@ class LogAnalyzer(Plugin):
     """
 
     name = "log_analyzer"
-    version = "0.1.0"
+    version = "1.1.0"
     description = (
         "Analisa arquivos de log e detecta falhas de login, erros, avisos e eventos críticos."
     )

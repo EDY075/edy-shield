@@ -26,7 +26,7 @@ class TestScanResultFromDict:
     def test_roundtrip(self) -> None:
         original = ScanResult(
             plugin_name="log_analyzer",
-            plugin_version="0.1.0",
+            plugin_version="1.1.0",
             timestamp=datetime(2026, 8, 1, 12, 0, 0, tzinfo=UTC),
             summary="sum",
             findings=(Evidence(severity=Severity.CRITICAL, message="x", source="linha 1"),),

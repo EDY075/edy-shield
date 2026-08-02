@@ -2,7 +2,7 @@
 
 > **Arquivo gerado por: jr (CyberShield AI / CEO do TITAN AI SQUAD)**
 > **Data: 01/08/2026**
-> **Versão: 0.1.0**
+> **Versão: 1.1.0**
 > **Propósito: Transferência de contexto para análise por outra LLM**
 
 ---
@@ -29,7 +29,7 @@
 ### Métricas Atuais:
 | Métrica | Valor |
 |---------|-------|
-| Versão | `0.1.0` |
+| Versão | `1.1.0` |
 | Testes passando | 196+ |
 | Cobertura de código | 93.6% |
 | mypy strict | 0 issues (25+ arquivos) |
@@ -61,7 +61,7 @@ ui (CLI + HTML server)  →  services (file_utils, report_engine, history)  → 
 ```
 EDYShield/
 ├── app/
-│   ├── __init__.py                  # __version__ = "0.1.0"
+│   ├── __init__.py                  # __version__ = "1.1.0"
 │   ├── cli/                         # INTERFACE CLI (argparse, stdlib)
 │   │   ├── __init__.py
 │   │   └── hash_cmd.py              # Comandos hash|verify, entrypoint `edyshield`

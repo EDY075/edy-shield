@@ -135,4 +135,4 @@ class TestLogAnalyzerViaManager:
         manager.register(LogAnalyzer())
         metadata = manager.list_plugins()
         assert metadata[0]["name"] == "log_analyzer"
-        assert metadata[0]["version"] == "0.1.0"
+        assert metadata[0]["version"] == "1.1.0"

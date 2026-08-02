@@ -4,7 +4,7 @@
 |---|---|
 | **Módulo analisado** | `app/core/algorithms/hash_checker.py` (Hash Checker v1) |
 | **Arquivos no escopo** | `hash_checker.py`, `models/hashes.py`, `models/common.py`, `__init__.py` (algorithms/models/app), `tests/unit/test_hash_checker.py`, `tests/conftest.py`, `docs/ARCHITECTURE.md` |
-| **Versão do produto** | 0.1.0 (`app/__init__.py`) |
+| **Versão do produto** | 1.1.0 (release oficial — `app/__init__.py`) |
 | **Analista** | ARES (Cybersecurity Sênior + QA) — TITAN AI SQUAD |
 | **Data** | 01/08/2026 |
 | **Runtime de validação** | Python 3.12 (C:\Users\edmil\AppData\Local\Programs\Python\Python312\python.exe) |

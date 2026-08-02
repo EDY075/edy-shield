@@ -406,7 +406,7 @@ GitHub Actions + local):
 ```text
 EDYShield/
 ├── app/
-│   ├── __init__.py                # __version__ = "0.1.0"
+│   ├── __init__.py                # __version__ = "1.1.0"
 │   ├── cli/                       # INTERFACE CLI (argparse, stdlib)
 │   │   └── hash_cmd.py            # edyshield hash|verify (entrypoint main)
 │   ├── core/                      # DOMÍNIO PURO — 100% stdlib, sem UI
@@ -446,7 +446,7 @@ EDYShield/
 │   └── adr/                       # Architecture Decision Records (ADR-006..008)
 ├── .github/
 │   └── workflows/ci.yml           # CI: pytest → mypy → ruff check → ruff format --check
-├── pyproject.toml                 # PEP 621 + setuptools (v0.1.0)
+├── pyproject.toml                 # PEP 621 + setuptools (v1.1.0)
 ├── requirements-dev.txt           # pytest, pytest-cov, mypy, ruff
 ├── SECURITY.md                    # Política de segurança
 ├── CONTRIBUTING.md                # Guia de contribuição

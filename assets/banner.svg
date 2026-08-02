@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" width="100%" style="max-height:200px; font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <!-- Grid pattern subtle -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1f2633" stroke-width="0.5" opacity="0.15"/>
+    </pattern>
+
+    <!-- Glow filter for shield -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Soft glow ambient -->
+    <filter id="ambientGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12"/>
+    </filter>
+
+    <!-- Green-teal gradient for shield -->
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00e5a0"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+
+    <!-- Subtle line gradient -->
+    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f2633" stop-opacity="0"/>
+      <stop offset="40%" stop-color="#00e5a0" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#1f2633" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Badge border gradient -->
+    <linearGradient id="badgeBorder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00e5a0" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="200" fill="#0a0e14"/>
+  <rect width="960" height="200" fill="url(#grid)"/>
+
+  <!-- Ambient background glow behind shield -->
+  <ellipse cx="100" cy="100" rx="90" ry="70" fill="#00e5a0" opacity="0.03" filter="url(#ambientGlow)"/>
+
+  <!-- Decorative horizontal line -->
+  <line x1="220" y1="100" x2="590" y2="100" stroke="url(#lineGrad)" stroke-width="1"/>
+
+  <!-- SHIELD ICON — geometric, minimal shield outline -->
+  <g transform="translate(100, 100)" filter="url(#glow)">
+    <!-- Shield shape: minimal geometric -->
+    <path d="M0-48 L42-36 L42,12 C42,36 26,48 0,56 C-26,48 -42,36 -42,12 L-42,-36 Z"
+          fill="none" stroke="url(#shieldGrad)" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Inner checkmark (Verifique) -->
+    <path d="M-14,0 L-5,9 L14,-10"
+          fill="none" stroke="#00e5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+
+    <!-- Small dot accent -->
+    <circle cx="0" cy="-56" r="2" fill="#22d3ee" opacity="0.6"/>
+  </g>
+
+  <!-- TITLE: EDY SHIELD -->
+  <text x="178" y="90" fill="#e6edf3" font-size="34" font-weight="700" letter-spacing="4" font-family="inherit">
+    EDY SHIELD
+  </text>
+
+  <!-- TAGLINE -->
+  <text x="182" y="122" fill="#8b949e" font-size="15" font-weight="400" letter-spacing="2.5" font-family="inherit">
+    Defenda. Verifique. Confie.
+  </text>
+
+  <!-- Shield emoji after tagline -->
+  <text x="430" y="122" fill="#8b949e" font-size="15" opacity="0.7" font-family="inherit">🛡️</text>
+
+  <!-- ===== BADGES (right side) ===== -->
+
+  <!-- Badge 1: Python 3.12 -->
+  <g transform="translate(580, 82)">
+    <rect x="0" y="0" width="100" height="34" rx="6" fill="#12161f" stroke="url(#badgeBorder)" stroke-width="1"/>
+    <text x="50" y="22" fill="#8b949e" font-size="11.5" font-weight="500" text-anchor="middle" letter-spacing="0.5" font-family="inter, sans-serif">Python 3.12</text>
+  </g>
+
+  <!-- Badge 2: 100% Stdlib -->
+  <g transform="translate(694, 82)">
+    <rect x="0" y="0" width="100" height="34" rx="6" fill="#12161f" stroke="#1f2633" stroke-width="1"/>
+    <text x="50" y="22" fill="#5c6670" font-size="11.5" font-weight="500" text-anchor="middle" letter-spacing="0.5" font-family="inter, sans-serif">100% Stdlib</text>
+  </g>
+
+  <!-- Badge 3: v1.1.0 -->
+  <g transform="translate(808, 82)">
+    <rect x="0" y="0" width="68" height="34" rx="6" fill="#12161f" stroke="#1f2633" stroke-width="1"/>
+    <text x="34" y="22" fill="#5a5a5a" font-size="11.5" font-weight="500" text-anchor="middle" letter-spacing="0.5" font-family="inter, sans-serif">v1.1.0</text>
+  </g>
+
+  <!-- Corner accents (top-right glow dot) -->
+  <circle cx="940" cy="12" r="4" fill="#00e5a0" opacity="0.08"/>
+  <circle cx="940" cy="12" r="2" fill="#00e5a0" opacity="0.15"/>
+
+  <!-- Bottom subtle separator -->
+  <line x1="20" y1="197" x2="940" y2="197" stroke="#1f2633" stroke-width="0.5" opacity="0.3"/>
+</svg>
