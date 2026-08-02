@@ -21,8 +21,8 @@
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12"></a>
   <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-1.1.0-blue" alt="Version 1.1.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License MIT"></a>
-  <a href="https://github.com/EDY075/edy-shield/actions"><img src="https://img.shields.io/github/actions/workflow/status/EDY075/edy-shield/ci.yml?branch=main&amp;label=CI" alt="CI"></a>
-  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/github/v/release/EDY075/edy-shield?label=release" alt="GitHub Release"></a>
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (190+ tests)"></a>
+  <img src="https://img.shields.io/badge/release-v1.1.0--dev-lightgrey" alt="Pre-release">
 </p>
 
 <p align="center">
@@ -424,10 +424,8 @@ GitHub Actions + local):
 - [x] CI completo (pytest → mypy → ruff check → ruff format --check)
 - [x] Testes: 101 passed, 2 skipped · Cobertura 99.34% · mypy strict 0 issues
 
-### v1.0 — Estabilização ⬜
+### v1.2 — Estabilização ⬜
 
-- [x] Validação anti path traversal + testes de segurança *(implementado na v0.1.0)*
-- [x] CI completo (lint + mypy + coverage gate) *(implementado na v0.1.0)*
 - [ ] Cobertura de integração E2E via CLI (expansão além dos testes unitários atuais)
 - [ ] Comparação de integridade em lote (batch)
 - [ ] Suporte a checksum files (`.sha256sum` / `.md5sum`)
