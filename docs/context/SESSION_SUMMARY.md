@@ -1,47 +1,55 @@
-# Session Summary — 01/08/2026 (Sprint 3 CLOSE — v1.1 RELEASE)
+# Session Summary — 02/08/2026 (Sprint 5 CLOSE — v2.0.0-dev FIM)
 
 ## Objetivo
-Fechar oficialmente a Sprint 3 e preparar a Release v1.1.
+Entregar a **Sprint 5** — File Integrity Monitor (baseline + scan + compare),
+integrado a plugins, CLI, Console SOC e Report Engine (Markdown).
 
-## Arquivos lidos
-- hash_checker.py (trechos: imports, TOCTOU)
-- test_cli.py (exit codes: linhas 48-197)
-- CHANGELOG.md (completo)
-- QA_REPORT.md (final, linhas 366-373)
-- pyproject.toml (ruff config)
-- docs/context/* (5 arquivos de memória)
+## Contexto da sessão
+- Frente de apresentação pública: **Fase 1 (Branding)** aprovada e consolidada;
+  **Fase 2 (Website)** aprovada e criada (`website/`); Fases 3–4 congeladas.
+- **Sprint 5 (FIM)** retomada: Core reativado de `archive/core_fim_frozen/`.
+
+## Arquivos criados
+1. `app/core/fim/{__init__,models,ids,scanner,baseline,store}.py`
+2. `app/plugins/builtin/file_integrity_plugin.py`
+3. `tests/unit/test_fim_core.py` · `test_fim_plugin.py` · `test_fim_report.py` · `test_opener.py` · `test_server.py`
+4. `docs/RELEASE_NOTES_v2.0.md`
+5. `brand/*` (6 assets) · `website/*` (landing + docs + SEO + workflow Pages)
 
 ## Arquivos modificados
-1. `app/core/algorithms/hash_checker.py` — import `HashError` adicionado (bug corrigido)
-2. `tests/unit/test_cli.py` — 6 testes atualizados: exit 1 → 2 para erros de domínio
-3. `app/core/filesystem/safe_path.py` — reformatado (ruff)
-4. `pyproject.toml` — EDY_SHIELD_COMPLETO.md excluído do ruff
-5. `CHANGELOG.md` — entrada v1.1.0 adicionada
-6. `docs/QA_REPORT.md` — §11 fechamento Sprint 3 adicionada
-7. `docs/RELEASE_NOTES_v1.1.md` — criado
-8. `docs/context/PROJECT_STATE.md` — atualizado
-9. `docs/context/JR_MEMORY.md` — atualizado
+- `app/core/exceptions/{domain,__init__}.py` — FimError + Baseline*Errors
+- `app/core/filesystem/opener.py` — encoding/errors no modo texto
+- `app/services/report_engine.py` — to_markdown + render("md")
+- `app/ui/server.py` — plugin FIM + endpoints /api/fim/* + fmt=md + remoção `_REPORT_FORMATS`
+- `app/cli/hash_cmd.py` — subcomando `fim` (baseline criar | scan)
+- `app/ui/static/{index.html,app.js}` — view FIM + dropdown + export MD + identidade
+- `app/__init__.py` · `pyproject.toml` — versão 2.0.0.dev0
+- `README.md` · `CHANGELOG.md` · `docs/QA_REPORT.md` · `docs/ARCHITECTURE.md`
+- `docs/context/{JR_MEMORY,SESSION_SUMMARY,PROJECT_STATE}.md`
 
 ## Decisões
-- D-003: Exit code 2 para erros de domínio; 1 para MISMATCH apenas (ARES-QA-029 confirmado)
-- D-004: EDY_SHIELD_COMPLETO.md é artefato de transferência — fora do ruff
+- D-005: `baseline_id` com granularidade de segundos (spec FIM); colisão aceita e
+  documentada (ARES-QA-033); SQLite na v2.1.
+- D-006: Cobertura de `server.py` elevada com **endpoints reais** (sem mocks para
+  inflar); código morto removido (`_REPORT_FORMATS`, args não usados).
+- D-007: Plugin `file_integrity` version 2.0.0 (acompanha release).
 
 ## Testes executados
-- pytest: 196 passed, 2 skipped, 7 warnings
-- coverage: 92.90% (gate 90%)
-- mypy strict: 0 issues (38 arquivos)
-- ruff check: All checks passed
-- ruff format: 57 files already formatted
+- pytest: **361 passed, 2 skipped**
+- coverage: **91.92%** (gate 90%) — `server.py` 80% → 94%
+- mypy strict: **0 issues (49 arquivos)**
+- ruff check: All checks passed · ruff format: 86 files OK
 
 ## Resultado
-✅ **SPRINT 3 ENCERRADA — v1.1.0 APROVADA**
+✅ **SPRINT 5 ENCERRADA — v2.0.0-dev RELEASE READY** (FIM completo)
 
 ## Riscos
-- Nenhum bloqueante. Warnings de DeprecationWarning (MD5/SHA1) são esperados e documentados.
+- Nenhum bloqueante. ARES-QA-033/034 (Info) aceitos e documentados.
+- Cobertura 91.92% — margem de 1.92% sobre o gate (aceitável).
 
-## Pendências
-- Nenhuma para v1.1.
-- Próximos (aguardando aprovação): git init, v1.2, v2.0 (File Integrity Monitor, String Analyzer, Dashboard).
+## Pendências (aprovadas para depois)
+- Fase 3 (Screenshots) · Fase 4 (Divulgação) · GitHub Pages público · Release v2.0 · v2.1
 
 ## Próximo passo recomendado
-Aguardar aprovação do EDY para iniciar qualquer feature nova. O projeto está estável e release-ready.
+Aguardar aprovação do EDY para: publicar GitHub Pages, gerar screenshots oficiais
+(Fase 3) ou iniciar v2.1 (String/Entropy Analyzer).

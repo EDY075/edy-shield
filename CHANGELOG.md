@@ -237,9 +237,65 @@ unidirecionais (ADR-002).
 
 ---
 
-## [Unreleased]
+## [2.0.0] — 2026-08-02
 
-- Nenhuma mudança pendente documentada.
+### Sprint 5 — File Integrity Monitor (FIM v2.0.0)
+
+#### Added
+
+- **Core FIM** (`app/core/fim/`) — módulo puro 100% stdlib:
+  - `models.py` — `Baseline`, `BaselineEntry`, `Snapshot`, `FimDiff`, `ChangeType`
+    (dataclasses frozen + slots, `to_dict`/`from_dict`).
+  - `baseline.py` — `create_baseline`, `load_baseline`, `save_baseline` com
+    **round-trip validado** (JSON corrompido é rejeitado com `BaselineCorruptionError`).
+  - `scanner.py` — `scan_snapshot` (varredura determinística, não segue symlinks) e
+    `compare_baseline_snapshot` (digest como fonte de verdade — ADR-FIM-002).
+  - `store.py` — `FimStore` (persistência em `~/.edyshield/fim/`, IDs seguros,
+    listagem e deleção).
+  - `ids.py` — `build_baseline_id` (formato `fim_<algo>_<UTC %Y%m%dT%H%M%SZ>`).
+- **Erros de domínio FIM** — `FimError`, `BaselineCorruptionError`,
+  `BaselineNotFoundError` (hierarquia `EDYShieldError`).
+- **Plugin oficial `file_integrity`** — ações `baseline`, `scan` e `compare`,
+  registrado no `PluginManager` padrão; evidências com severidade por mudança
+  (novo=LOW, modificado=MEDIUM, removido=HIGH, symlink=INFO).
+- **CLI** — `edyshield fim baseline criar <dir>` e `edyshield fim scan <dir>
+  --baseline <id|arquivo>`; exit codes 0 (sem mudanças), 1 (mudanças), 2 (erro).
+- **Report Engine — Markdown** — novo formato `md`/`markdown` no `render` e via
+  `GET /api/report/{id}?fmt=md`; exportação também na view Relatórios da UI.
+- **UI Console SOC** — nova view **FIM** com formulário baseline/scan, dropdown
+  de baselines (`GET /api/fim/baselines`) e resultados; view registrada na
+  sidebar e no mapa de módulos.
+- **Server** — endpoints `GET /api/fim/baselines` e
+  `GET /api/fim/baselines/{baseline_id}`; plugin registrado no
+  `build_default_manager` (com `FimStore` injetável).
+- **Testes** — `test_fim_core.py`, `test_fim_plugin.py`, `test_fim_report.py`,
+  `test_opener.py` (novo, cobre `open_regular_file`), `test_server.py`
+  (serve/_default_history_dir), casos FIM em `test_ui_api.py` e `test_cli_e2e.py`.
+
+#### Changed
+
+- **`app/core/filesystem/opener.py`** — aceita `encoding`/`errors` no modo texto
+  (cumpre a promessa da docstring).
+- **`app/ui/server.py`** — removido código morto `_REPORT_FORMATS`;
+  `_fim_store()` tipado com `cast`.
+- **`app/core/fim/scanner.py`** — removido parâmetro não usado `allowed_root` de
+  `_walk_target`; **`file_integrity_plugin.py`** — removido argumento não usado
+  `algorithm` de `_execute_scan`.
+- **Versão** — `app/__init__.py` e `pyproject.toml` → **2.0.0.dev0**.
+
+#### Fixed
+
+- **Cobertura de `app/ui/server.py`** elevada de 80% → **94%** com testes de
+  endpoints reais (borda: id ausente, histórico corrompido, JSON não-objeto,
+  asset inexistente, KeyboardInterrupt no `serve`).
+- **Abertura de texto** no `open_regular_file` não respeitava encoding (agora
+  aceita `encoding`/`errors`).
+
+#### Quality
+
+- **Suíte de testes:** 361 passed, 2 skipped · cobertura **91.92%** (gate ≥ 90%)
+- **mypy strict:** 0 issues (49 arquivos)
+- **ruff check:** limpo · **ruff format:** 86 arquivos OK
 
 ---
 

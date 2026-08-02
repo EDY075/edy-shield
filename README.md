@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.svg" alt="EDY Shield — Modern Defensive Security Toolkit" width="100%" style="max-width: 960px;">
+  <img src="brand/banner_github.svg" alt="EDY Shield — Modern Defensive Security Toolkit" width="100%" style="max-width: 960px;">
 </p>
 
 <h1 align="center">🛡️ EDY Shield</h1>
@@ -19,10 +19,10 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12"></a>
-  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-1.1.0-blue" alt="Version 1.1.0"></a>
+  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-2.0.0-blue" alt="Version 2.0.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License MIT"></a>
   <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (190+ tests)"></a>
-  <img src="https://img.shields.io/badge/release-v1.1.0--dev-lightgrey" alt="Pre-release">
+  <img src="https://img.shields.io/badge/release-v2.0.0-blue" alt="Release v2.0.0">
 </p>
 
 <p align="center">
@@ -131,9 +131,9 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 
 <div align="center">
 
-| 🧮 Hash Checker | 🧩 Plugins | 📊 Reports | 🖥️ Console |
-|-----------------|------------|------------|-------------|
-| SHA-256 · SHA-1 · MD5 | Contratos tipados + Manager | JSON · TXT · HTML | UI web dark (SOC) |
+| 🧮 Hash Checker | 🧩 Plugins | 📊 Reports | 🖥️ Console | 🛡️ FIM |
+|-----------------|------------|------------|-------------|--------|
+| SHA-256 · SHA-1 · MD5 | Contratos tipados + Manager | JSON · TXT · HTML · MD | UI web dark (SOC) | Baseline + Scan |
 
 </div>
 
@@ -176,6 +176,21 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 - 📊 **Relatórios** em JSON, TXT e HTML (com escaping anti-XSS via `html.escape`);
 - 💾 **HistoryStore** — persistência de varreduras em disco (`~/.edyshield/history`),
   listagem ordenada e proteção contra path traversal no id.
+
+### File Integrity Monitor — FIM (Sprint 5)
+
+- 🛡️ **Core 100% stdlib** (`app/core/fim/`) — `Baseline`, `Snapshot`, `FimDiff`, `FimStore`;
+- 📸 **Baseline** — fotografia criptográfica de um diretório/arquivo (path relativo POSIX,
+  digest, tamanho, mtime e permissões) com **JSON determinístico** e **round-trip validado**
+  (baseline corrompida é rejeitada, nunca retornada parcial);
+- 🔍 **Scan** — detecta arquivos **novos**, **modificados** e **removidos**, com o digest
+  criptográfico como fonte de verdade (ADR-FIM-002);
+- 🔬 **Compare** — compara duas baselines persistidas (antes/depois) sem re-varrer o disco;
+- 🧩 **Plugin oficial `file_integrity`** — registrado no `PluginManager`; severidades por
+  mudança (novo=LOW, modificado=MEDIUM, removido=HIGH, symlink=INFO);
+- 🖥️ **CLI** — `edyshield fim baseline criar <dir>` e `edyshield fim scan <dir> --baseline <id|arquivo>`;
+- 📊 **Relatório Markdown** — novo formato `md` no Report Engine e na view Relatórios;
+- 🎛️ **Console SOC** — nova view FIM com formulário baseline/scan e dropdown de baselines.
 
 ### UI Web — EDY Shield Console (Sprint 3)
 
@@ -243,7 +258,7 @@ O empacotamento está configurado (`pyproject.toml`, PEP 621 + setuptools) e o e
 
 ```bash
 pip install -e .
-edyshield --version      # edyshield 1.1.0
+edyshield --version      # edyshield 2.0.0
 edyshield --help
 ```
 
@@ -307,6 +322,22 @@ edyshield checksum verify ./backup/SHA256SUMS
 # ok       dados.txt
 ```
 
+### File Integrity Monitor (v2.0) — baseline e detecção de mudanças
+
+```bash
+# Criar uma baseline de integridade do diretório (gera ./baseline.json + registra no FimStore)
+edyshield fim baseline criar ./conf
+
+# Varrer novamente e comparar contra a baseline (exit 0 = sem mudanças, 1 = mudanças)
+edyshield fim scan ./conf --baseline ./baseline.json
+
+# Usar uma baseline do FimStore pelo id (exibido ao criar)
+edyshield fim scan ./conf --baseline fim_sha256_20260802T120000Z
+# novo       config.tpl
+# modificado app.ini
+# removido   old.cert
+```
+
 ### 1. Hash de texto
 
 ```python
@@ -348,9 +379,7 @@ else:
     print("✘ MISMATCH — arquivo modificado ou corrompido")
 ```
 
-### 4. Dispatcher estruturado (`compute`)
-
-```python
+### 4. Dispatcher estruturado (`compute`)```python
 from app.core.algorithms import HashAlgorithm, compute
 from app.core.models import HashResult
 
@@ -415,13 +444,13 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 Todo código do EDY Shield passa obrigatoriamente pelos seguintes gates antes de merge (CI
 GitHub Actions + local):
 
-| Gate | Comando | Requisito | Status v1.1.0 |
+| Gate | Comando | Requisito | Status v2.0.0 |
 |------|---------|-----------|---------------|
-| 🧪 **Testes** | `pytest` | 100% passando | ✅ 196 passed, 2 skipped |
-| 📊 **Cobertura** | `pytest --cov=app` | ≥ 90% | ✅ 92.90% |
-| 🔍 **Tipos** | `mypy app --strict` | 0 issues | ✅ 0 issues (38 arquivos) |
+| 🧪 **Testes** | `pytest` | 100% passando | ✅ 361 passed, 2 skipped |
+| 📊 **Cobertura** | `pytest --cov=app` | ≥ 90% | ✅ 91.92% |
+| 🔍 **Tipos** | `mypy app --strict` | 0 issues | ✅ 0 issues (49 arquivos) |
 | 🧹 **Lint** | `ruff check .` | All checks passed | ✅ Pass |
-| 🎨 **Formatação** | `ruff format --check .` | 100% formatado | ✅ 57 files OK |
+| 🎨 **Formatação** | `ruff format --check .` | 100% formatado | ✅ 86 files OK |
 | 🔒 **Segurança** | Revisão ARES (QA_REPORT) | 0 Critical/High | ✅ 0 abertos |
 
 > Cobertura medida em `app/` (gate `--cov-fail-under=90` no `pyproject.toml`).
@@ -434,10 +463,11 @@ GitHub Actions + local):
 | Versão | Status | Objetivo | Previsão |
 |--------|--------|----------|----------|
 | **v0.1.0** | ✅ Concluído | Fundação técnica — Core em camadas, CLI real, config `EDY_*`, path safety | Sprint 2 |
-| **v1.1.0** | 🚀 **Release** | TOCTOU hardening, exit codes 0/1/2, ADRs 001-008, dev deps pinadas | Sprint 3 |
-| **v1.2** | ⬜ Planejado | Estabilização — Hash Checker batch, checksum files, E2E via CLI | Próxima |
-| **v2.0** | ⬜ Planejado | Plataforma — File Integrity Monitor, String Analyzer, dashboard Streamlit | Futuro |
-| **v2.1** | ⬜ Planejado | Inteligência — baseline SQLite, alertas, blacklist pública (opt-in) | Futuro |
+| **v1.1.0** | ✅ Concluído | TOCTOU hardening, exit codes 0/1/2, ADRs 001-008, dev deps pinadas | Sprint 3 |
+| **v1.2** | ✅ Concluído | Batch Hashing, checksum files, E2E via CLI | Sprint 4 |
+| **v2.0** | 🚀 **Em dev** | File Integrity Monitor (baseline + scan + compare), relatório Markdown, view FIM no Console | Sprint 5 |
+| **v2.1** | ⬜ Planejado | Inteligência — String Analyzer, Entropy Analyzer, SQLite (baselines) | Futuro |
+| **v2.2** | ⬜ Planejado | IOC Scanner — indicadores de comprometimento | Futuro |
 | **v3.0** | ⬜ Planejado | Plataforma completa — Console web unificado, API REST, `pip install edy-shield` | Futuro |
 
 ### v0.1.0 — Fundação técnica ✅ (Sprint 2)
@@ -461,13 +491,13 @@ GitHub Actions + local):
 - [ ] TOCTOU hardening na camada de serviço (`os.open` + `O_NOFOLLOW` + `fstat`)
 - [ ] Pinning/lockfile de dev deps (ARES-QA-022)
 
-### v2.0 — Plataforma de Ferramentas ⬜
+### v2.0 — Plataforma de Ferramentas 🚀 (Sprint 5)
 
-- [ ] Módulo **File Integrity Monitor** (baseline + detecção de mudanças)
-- [ ] Módulo **String Analyzer / Entropy** (detecção de strings suspeitas)
-- [ ] Dashboard **Streamlit** integrando os módulos
-- [ ] Relatórios exportáveis (JSON/Markdown) — `app/core/report/` (reservado)
-- [ ] Arquitetura de plugins (register/decorator)
+- [x] Módulo **File Integrity Monitor** (baseline + detecção de mudanças)
+- [x] Relatórios exportáveis (JSON/TXT/HTML/**Markdown**)
+- [x] View FIM no **EDY Shield Console** (baseline/scan + dropdown de baselines)
+- [x] CLI `edyshield fim baseline criar|scan`
+- [ ] Módulo **String Analyzer / Entropy** (detecção de strings suspeitas) — *v2.1*
 
 ### v3.0 — Plataforma Completa ⬜
 
@@ -485,7 +515,7 @@ GitHub Actions + local):
 ```text
 EDYShield/
 ├── app/
-│   ├── __init__.py                # __version__ = "1.1.0"
+│   ├── __init__.py                # __version__ = "2.0.0"
 │   ├── cli/                       # INTERFACE CLI (argparse, stdlib)
 │   │   └── hash_cmd.py            # edyshield hash|verify (entrypoint main)
 │   ├── core/                      # DOMÍNIO PURO — 100% stdlib, sem UI
@@ -525,7 +555,7 @@ EDYShield/
 │   └── adr/                       # Architecture Decision Records (ADR-006..008)
 ├── .github/
 │   └── workflows/ci.yml           # CI: pytest → mypy → ruff check → ruff format --check
-├── pyproject.toml                 # PEP 621 + setuptools (v1.1.0)
+├── pyproject.toml                 # PEP 621 + setuptools (v2.0.0)
 ├── requirements-dev.txt           # pytest, pytest-cov, mypy, ruff
 ├── SECURITY.md                    # Política de segurança
 ├── CONTRIBUTING.md                # Guia de contribuição

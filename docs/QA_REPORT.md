@@ -496,3 +496,72 @@ comportamento real da CLI; CI verde nos 3 runs. Suíte evoluiu de 196 → 248 te
 cobertura 90.29%, mypy strict 0 issues e ruff limpo.
 
 > Fechamento v1.2: jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — v1.2 RELEASE READY**
+
+---
+
+# 13. Sprint 5 — File Integrity Monitor (FIM v2.0.0)
+
+## 13.1 Escopo
+
+| Campo | Valor |
+|---|---|
+| **Módulo** | `app/core/fim/` + plugin `file_integrity` + CLI + Report MD + UI FIM |
+| **Arquivos novos** | `core/fim/{models,ids,scanner,baseline,store}.py`, `plugins/builtin/file_integrity_plugin.py` |
+| **Arquivos modificados** | `core/exceptions/{domain,__init__}.py`, `filesystem/opener.py`, `services/report_engine.py`, `ui/server.py`, `cli/hash_cmd.py`, `ui/static/{index.html,app.js}` |
+| **Testes novos** | `test_fim_core.py`, `test_fim_plugin.py`, `test_fim_report.py`, `test_opener.py`, `test_server.py` + casos FIM em UI/E2E |
+| **Versão do produto** | 2.0.0 (`app/__init__.py` + `pyproject.toml`) |
+
+## 13.2 Achados Sprint 5
+
+| ID | Sev. | Descrição | Status |
+|---|---|---|---|
+| ARES-QA-033 | Info | `baseline_id` tem granularidade de segundos — duas baselines criadas no mesmo segundo colidem no `FimStore` (a segunda sobrescreve a primeira) | Aceito — formato definido pela spec FIM; teste `compare` aguarda 1s; anotado para v2.1 (SQLite) |
+| ARES-QA-034 | Info | `_walk_target` não segue symlinks (ADR-FIM-003) — registrados como `ignored` e reportados como INFO na UI | Aceito — comportamento determinístico e seguro |
+
+## 13.3 Análise de segurança do FIM
+
+| Ameaça | Mitigação | Status |
+|---|---|---|
+| Path traversal no `baseline_id` | Charset seguro `[A-Za-z0-9_.-]` + regex canônica (`FimStore._path_for`) | ✅ Mitigado |
+| Baseline corrompida/temperada | Round-trip validado na leitura → `BaselineCorruptionError` (nunca baseline parcial) | ✅ Mitigado |
+| Symlink escapando da raiz | `os.scandir` + `entry.is_symlink()` não-follow; `O_NOFOLLOW` no `compute_file` | ✅ Mitigado |
+| TOCTOU na varredura | Reutiliza `compute_file` (O_NOFOLLOW + fstat) e `resolve_safe_path` | ✅ Mitigado |
+| Digest como fonte de verdade | `compare_baseline_snapshot` compara apenas `hexdigest` (ADR-FIM-002) | ✅ Mitigado |
+| Raiz/algoritmo divergentes | `compare_baseline_snapshot` levanta `FimError` em mismatch de root/algo | ✅ Mitigado |
+| Vazamento de paths em erros | Mensagens usam `path.name` (ARES-QA-005) | ✅ Mitigado |
+| XSS em relatório Markdown | Saída Markdown sem HTML cru; demais formatos escapados | ✅ Mitigado |
+
+## 13.4 Quality Gate (QG-ARES) — Sprint 5
+
+| Item | Status |
+|---|---|
+| OWASP Top 10 verificado | ✅ Passou |
+| SAST/análise estática (mypy strict + ruff) | ✅ Passou (0 issues, 49 arquivos) |
+| LGPD/GDPR compliance | ✅ Passou (sem dados pessoais) |
+| Path traversal mitigado | ✅ Passou (baseline_id + paths relativos validados) |
+| TOCTOU hardening | ✅ Passou (compute_file reutilizado) |
+| Comparação em tempo constante | ✅ Passou (digest via `safe_compare`/hashlib) |
+| Sem critical/high issues abertas | ✅ Passou (0 Critical, 0 High) |
+| Testes de segurança negativos | ✅ Passou (corrupção, traversal no id, mismatch root/algo, digest inválido) |
+| Código morto removido | ✅ `_REPORT_FORMATS` (server), `allowed_root` (scanner), `algorithm` (plugin) |
+
+## 13.5 Métricas finais
+
+| Métrica | Valor |
+|---|---|
+| Testes | **361 passed, 2 skipped** |
+| Cobertura global | **91.92%** (gate ≥ 90%) |
+| `app/ui/server.py` | 80% → **94%** (endpoints reais) |
+| mypy strict | **0 issues** (49 arquivos) |
+| ruff check / format | **limpo / 86 arquivos OK** |
+| Core deps | **0** (100% stdlib) |
+
+### Veredito Sprint 5 / v2.0.0-dev: ✅ **APROVADO — RELEASE READY**
+
+**Motivo:** 0 Critical, 0 High abertos. FIM reutiliza o Core existente (compute_file,
+resolve_safe_path, Report Engine, PluginManager) sem duplicação; round-trip validado,
+fronteira de paths e TOCTOU preservados; CLI + Console SOC + 4 formatos de relatório
+funcionais; testes E2E validam comportamento real (baseline → scan → detecção de mudanças).
+Suíte evoluiu de 248 → 361 testes, cobertura 91.92%, mypy strict 0 issues, ruff limpo.
+
+> Fechamento v2.0.0-dev (Sprint 5): jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — SPRINT 5 RELEASE READY**

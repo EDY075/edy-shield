@@ -1,8 +1,8 @@
 # 🛡️ EDY SHIELD — Arquitetura de Referência
 
 > **Tech Lead:** jr (CyberShield AI) · **Arquiteto:** ATLAS
-> **Versão:** 1.1.0 · **Status:** RELEASE (v1.1.0 — Sprint 3)
-> **Data:** 01/08/2026 · *Última atualização da seção 2/3/7: 01/08/2026 (NOVA, Missão 4)*
+> **Versão:** 2.0.0-dev (identidade visual v1.0) · **Status:** EM DESENVOLVIMENTO
+> **Data:** 02/08/2026 · *Identidade visual oficial: `brand/` (Escudo Verificado + Monograma E+Hash)*
 
 ---
 
@@ -35,7 +35,7 @@ minimalista dark, e uma arquitetura que cresce de **módulo único → toolkit �
 ```text
 EDYShield/
 ├── app/
-│   ├── __init__.py                 # __version__ = "1.1.0"
+│   ├── __init__.py                 # __version__ = "2.0.0.dev0"
 │   ├── cli/                        # INTERFACE CLI (argparse, stdlib — ADR-007)
 │   │   ├── __init__.py
 │   │   └── hash_cmd.py             # Comandos hash|verify (entrypoint `edyshield`)
