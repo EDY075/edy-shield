@@ -333,3 +333,7 @@ def _make_handler(
             )
 
     return EdyShieldHandler
+
+
+if __name__ == "__main__":
+    raise SystemExit(serve())

@@ -64,6 +64,11 @@
     document.querySelector('.content').scrollTop = 0;
     window.scrollTo(0, 0);
 
+    // Deep-linking: mantém a view atual na URL (#fim, #hash-checker, ...)
+    if (history.replaceState && window.location.hash !== '#' + name) {
+      history.replaceState(null, '', '#' + name);
+    }
+
     // Carregar dados sob demanda
     if (name === 'dashboard') loadDashboard();
     if (name === 'history') loadHistory();
@@ -427,7 +432,9 @@
     tick();
     setInterval(tick, 1000);
 
-    showView('dashboard');
+    // View inicial: respeita o hash da URL (#fim, #hash-checker, ...)
+    var initial = (window.location.hash || '').replace('#', '');
+    showView(VIEW_TITLES[initial] ? initial : 'dashboard');
   }
 
   document.addEventListener('DOMContentLoaded', init);

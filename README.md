@@ -428,12 +428,13 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 |---|---|
 | <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%"> | <img src="assets/screenshots/hash-checker.png" alt="Hash Checker" width="100%"> |
 | <img src="assets/screenshots/log-analyzer.png" alt="Log Analyzer" width="100%"> | <img src="assets/screenshots/plugins.png" alt="Plugins" width="100%"> |
+| <img src="assets/screenshots/file-integrity-monitor.png" alt="File Integrity Monitor" width="100%"> | <img src="assets/screenshots/history.png" alt="Histórico" width="100%"> |
 
 ---
 
 ## 🎬 Demo
 
-> GIF demonstrativo do EDY Shield Console — navegação entre Dashboard, Hash Checker, Log Analyzer, Histórico, Relatórios e Módulos.
+> GIF demonstrativo do EDY Shield Console — navegação entre Dashboard, Hash Checker, Log Analyzer, File Integrity Monitor e Módulos.
 
 <img src="assets/demo.gif" alt="EDY Shield Demo" width="100%" style="max-width: 1280px;">
 
