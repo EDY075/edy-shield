@@ -83,6 +83,17 @@ O EDY Shield segue uma **arquitetura em camadas unidirecionais** (ADR-002), do d
 para a interface — o Core é **100% stdlib** (ADR-001), testável e independente de qualquer
 infraestrutura:
 
+<div align="center">
+
+| Camada | Componentes |
+|--------|-------------|
+| 🖥️ **UI** | `cli/hash_cmd.py` · `ui/server.py` · `ui/static/` |
+| ⚙️ **Services** | `file_utils.py` (shim) · `report_engine.py` · `history.py` |
+| 🧩 **Plugins** | `contracts.py` · `plugin_base.py` · `plugin_manager.py` · `plugin_registry.py` · `builtin/{log_analyzer, hash_checker_plugin}` |
+| 🧠 **Core** | `algorithms/` · `crypto/` · `filesystem/` · `validators/` · `exceptions/` · `config/` · `logging/` · `models/` |
+
+</div>
+
 ```
 UI Layer      → cli/hash_cmd.py · ui/server.py · ui/static/
                   ↓
@@ -115,6 +126,14 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 ---
 
 ## ✨ Funcionalidades
+
+<div align="center">
+
+| 🧮 Hash Checker | 🧩 Plugins | 📊 Reports | 🖥️ Console |
+|-----------------|------------|------------|-------------|
+| SHA-256 · SHA-1 · MD5 | Contratos tipados + Manager | JSON · TXT · HTML | UI web dark (SOC) |
+
+</div>
 
 ### Hash Checker (v1)
 
@@ -174,6 +193,14 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 ---
 
 ## 📦 Instalação
+
+<div align="center">
+
+![Windows](https://img.shields.io/badge/Windows-0078D6?logo=windows&amp;logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&amp;logoColor=black)
+![macOS](https://img.shields.io/badge/macOS-000000?logo=apple&amp;logoColor=white)
+
+</div>
 
 ### Requisitos
 
@@ -544,6 +571,14 @@ Distribuído sob a licença **MIT**. Veja o arquivo [`LICENSE`](LICENSE) para ma
 > **Uso educacional e autorizado.** O EDY Shield é uma ferramenta **defensiva** de cibersegurança
 > destinada a fins educacionais, de pesquisa e de análise de integridade em sistemas **próprios ou
 > com autorização expressa** do proprietário.
+
+<div align="center">
+
+| 🔓 Algoritmos legados | 🛡️ Recomendado | 🚨 Vulnerabilidades | 🚫 Responsabilidade |
+|-----------------------|-----------------|---------------------|---------------------|
+| MD5/SHA-1: compatibilidade legada | SHA-256: padrão | Reporte privado | Uso exclusivo do responsável |
+
+</div>
 
 - 🔓 **MD5 e SHA-1 não são criptograficamente seguros** para resistência a colisões. Eles são
   fornecidos apenas para **compatibilidade legada** e devem ser usados **exclusivamente em
