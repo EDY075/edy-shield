@@ -160,10 +160,14 @@ def _compute_file_impl(
 
     # TOCTOU hardening (ARES-QA-008): open with O_NOFOLLOW (reject symlink
     # swaps) and fstat after open to confirm we still have a regular file.
-    # Linux: O_NOFOLLOW is well-supported. Windows: O_NOFOLLOW may not be
-    # defined; fall back to regular open (TOCTOU risk accepted on Windows).
+    # Multi-platform feature detection (no `platform` branching):
+    # - O_BINARY only exists on Windows (forces binary mode on open);
+    #   on POSIX it is a no-op and absent, so it defaults to 0.
+    # - O_NOFOLLOW is well-supported on Linux/macOS but may not be defined
+    #   on Windows; fall back to 0 (regular open; TOCTOU risk accepted).
+    _O_BINARY = getattr(os, "O_BINARY", 0)
     _O_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
-    fd = os.open(target, os.O_RDONLY | os.O_BINARY | _O_NOFOLLOW)
+    fd = os.open(target, os.O_RDONLY | _O_BINARY | _O_NOFOLLOW)
     try:
         # fstat on the open fd — the file we opened is the one we hash.
         st = os.fstat(fd)
