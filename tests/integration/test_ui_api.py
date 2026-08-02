@@ -493,3 +493,112 @@ class TestFimBaselineEdge:
         status, data = fim_api("GET", "/api/fim/baselines/")
         assert status == 400
         assert "baseline_id ausente" in data["error"]
+
+
+class TestAnalyzeApi:
+    """Endpoints da M2.3 — análise integrada (String + Entropy)."""
+
+    def test_analyze_string(self, api, tmp_path) -> None:
+        f = tmp_path / "s.txt"
+        f.write_text("the quick brown fox.\nhttp://evil.example.com/x\n", encoding="utf-8")
+        status, data = api("POST", "/api/analyze/string", {"target": str(f), "persist": True})
+        assert status == 201
+        assert data["plugin_name"] == "string_analyzer"
+        assert len(data["outcomes"]) == 1
+
+    def test_analyze_entropy(self, api, tmp_path) -> None:
+        f = tmp_path / "e.txt"
+        f.write_text("plain text line here\n", encoding="utf-8")
+        status, data = api("POST", "/api/analyze/entropy", {"target": str(f), "persist": True})
+        assert status == 201
+        assert data["plugin_name"] == "entropy_analyzer"
+
+    def test_analyze_combined(self, api, tmp_path) -> None:
+        f = tmp_path / "c.txt"
+        f.write_text("hello world\nhttps://example.com/x\n", encoding="utf-8")
+        status, data = api(
+            "POST",
+            "/api/analyze",
+            {"target": str(f), "plugins": ["string_analyzer", "entropy_analyzer"]},
+        )
+        assert status == 201
+        assert data["outcomes"][0]["plugin_name"] == "combined"
+
+    def test_analyze_history(self, api, tmp_path) -> None:
+        f = tmp_path / "h.txt"
+        f.write_text("sample\n", encoding="utf-8")
+        api("POST", "/api/analyze/string", {"target": str(f), "persist": True})
+        status, data = api("GET", "/api/analyze/history?limit=50")
+        assert status == 200
+        assert any(e["plugin_name"] == "string_analyzer" for e in data["entries"])
+
+    def test_analyze_history_without_query(self, api, tmp_path) -> None:
+        f = tmp_path / "hq.txt"
+        f.write_text("sample\n", encoding="utf-8")
+        api("POST", "/api/analyze/string", {"target": str(f), "persist": True})
+        # Sem querystring → _query_params retorna {} e usa limites padrão.
+        status, data = api("GET", "/api/analyze/history")
+        assert status == 200
+        assert isinstance(data["entries"], list)
+
+    def test_analyze_missing_target_400(self, api) -> None:
+        status, data = api("POST", "/api/analyze/string", {"target": ""})
+        assert status == 400
+        assert "target" in data["error"]
+
+    def test_get_analyze_by_id(self, api, tmp_path) -> None:
+        f = tmp_path / "g.txt"
+        f.write_text("plain sample\n", encoding="utf-8")
+        _, _ = api("POST", "/api/analyze/string", {"target": str(f), "persist": True})
+        target_id = None
+        # Recupera via histórico para obter um id persistido.
+        _, hist = api("GET", "/api/analyze/history?limit=100")
+        for entry in hist["entries"]:
+            if entry["plugin_name"] == "string_analyzer":
+                target_id = entry["analysis_id"]
+                break
+        assert target_id is not None
+        status, data = api("GET", f"/api/analyze/{target_id}")
+        assert status == 200
+        assert data["plugin_name"] == "string_analyzer"
+
+    def test_get_analyze_nonexistent_404(self, api) -> None:
+        status, _ = api("GET", "/api/analyze/ana_nao_existe")
+        assert status == 404
+
+    def test_get_analyze_empty_id_400(self, api) -> None:
+        # Rota /api/analyze/{id} sem id → id ausente → 400
+        status, data = api("GET", "/api/analyze/")
+        assert status == 400
+        assert "id ausente" in data["error"]
+
+    def test_analyze_payload_missing_target_400(self, api) -> None:
+        status, _ = api("POST", "/api/analyze", {})
+        assert status == 400
+
+    def test_analyze_combined_severity_option(self, api, tmp_path) -> None:
+        f = tmp_path / "low.txt"
+        f.write_text("the quick brown fox jumps over the lazy dog. " * 20, encoding="utf-8")
+        status, data = api(
+            "POST",
+            "/api/analyze",
+            {"target": str(f), "severity": "CRITICAL"},
+        )
+        assert status == 201
+        assert data["outcomes"][0]["result"]["findings"] == []
+
+    def test_analyze_bad_json_400(self, raw_api) -> None:
+        status, data = raw_api("POST", "/api/analyze/string", b"{not json")
+        assert status == 400
+        assert "JSON inválido" in data["error"]
+
+    def test_analyze_combined_bad_json_400(self, raw_api) -> None:
+        status, data = raw_api("POST", "/api/analyze", b"{not json")
+        assert status == 400
+        assert "JSON inválido" in data["error"]
+
+    def test_analyze_invalid_plugin_400(self, api, tmp_path) -> None:
+        f = tmp_path / "z.txt"
+        f.write_text("x\n", encoding="utf-8")
+        status, _ = api("POST", "/api/analyze", {"target": str(f), "plugins": ["nao_existe"]})
+        assert status == 400

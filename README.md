@@ -201,12 +201,16 @@ Todos os **8 ADRs** estão documentados em [`docs/adr/`](docs/adr/) — do Core 
 - 🎛️ **Painel dark (SOC)** com views: Dashboard, Hash Checker, Log Analyzer, Histórico,
   Relatórios e Módulos;
 - 🔌 **API JSON** consumida pelo frontend (`/api/plugins`, `/api/scan`, `/api/history`,
-  `/api/report`) — a UI **não** contém lógica de negócio.
+  `/api/report`, `/api/analyze`) — a UI **não** contém lógica de negócio.
 
 ### Roadmap de módulos
 
 - 📊 **File Integrity Monitor** (baseline + detecção de mudanças) — *planejado (v2)*;
-- 🔍 **String Analyzer / Entropy** (detecção de strings suspeitas) — *planejado (v2)*;
+- 🔍 **String Analyzer / Entropy** (detecção de strings suspeitas) — *implementado na
+  v2.1*: plugins `string_analyzer` e `entropy_analyzer`, comando CLI
+  `edyshield analyze <file|dir>` com flags (`--string`, `--entropy`, `--recursive`,
+  `--categories`, `--severity`, `--json`, `--output`), endpoints API `/api/analyze*`
+  e persistência das análises em SQLite;
 - 📈 **Dashboard Streamlit** integrando os módulos — *planejado (v2)*;
 - 🖥️ **EDY Shield Console** — UI web unificada (Hash, Monitor, Scanner) — *entregue na Sprint 3*.
 

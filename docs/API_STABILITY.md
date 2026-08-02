@@ -164,6 +164,36 @@ Contrato:
 > preservados (assinaturas + `db_path` opcional). Migração JSON→SQLite automática
 > e idempotente; leitura legada por fallback.
 
+### 2.13 `app.services` / API de análise — **BETA** (v2.1 — M2.3)
+
+| Símbolo | Estabilidade |
+|---------|--------------|
+| `app.services.AnalysisService` | BETA — orquestração isolada/combinada dos analisadores |
+| `app.services.AnalysisStore` | BETA — persistência SQLite (tabela `analyses`) |
+| `app.services.AnalysisRecord` | BETA — registro de uma análise |
+| Plugin `string_analyzer` | BETA — detecção de strings suspeitas |
+| Plugin `entropy_analyzer` | BETA — detecção de alta entropia |
+
+> Camada de casos de uso que orquestra os analisadores String e Entropy (execução
+> isolada ou combinada, merge/dedup, ordenação por severidade e filtros por
+> plugins/categorias/severidade). Analisa alvos e registra os resultados no SQLite.
+
+**Endpoints HTTP (M2.3):**
+
+| Método | Caminho | Descrição | Corpo da requisição |
+|--------|---------|-----------|---------------------|
+| POST | `/api/analyze` | Análise combinada (String + Entropy) | JSON com `target` + filtros opcionais (`plugins`, `categories`, `severity`) |
+| POST | `/api/analyze/string` | Análise isolada com o plugin `string_analyzer` | JSON com `target` + filtros opcionais |
+| POST | `/api/analyze/entropy` | Análise isolada com o plugin `entropy_analyzer` | JSON com `target` + filtros opcionais |
+| GET | `/api/analyze/history?limit=` | Histórico de análises persistidas | `limit` (query string) |
+| GET | `/api/analyze/{id}` | Recupera uma análise por `analysis_id` | — |
+
+**CLI:**
+```text
+edyshield analyze <file|dir> [--string|--entropy] [--recursive] [--categories X] [--severity X] [--json] [--output FILE]
+```
+Executa análise isolada/combinada e **persiste o resultado no SQLite** (tabela `analyses`).
+
 ### 2.12 Áreas RESERVED
 
 | Área | Status |

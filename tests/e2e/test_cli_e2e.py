@@ -221,3 +221,38 @@ class TestHistoryCommandE2E:
     def test_history_limit_flag_accepted(self) -> None:
         proc = run_cli("history", "--limit", "5")
         assert proc.returncode == EXIT_SUCCESS
+
+
+class TestAnalyzeCommandE2E:
+    """Testes E2E do comando ``analyze`` (v2.1 — M2.3 integração)."""
+
+    def test_analyze_help(self) -> None:
+        proc = run_cli("analyze", "--help")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "target" in proc.stdout
+
+    def test_analyze_string_file(self, tmp_path: Path) -> None:
+        f = tmp_path / "s.txt"
+        f.write_text("hello world\nhttp://evil.example.com/x\n", encoding="utf-8")
+        proc = run_cli("analyze", str(f), "--string")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "string_analyzer" in (proc.stdout + proc.stderr)
+        assert "persistido no SQLite" in (proc.stderr)
+
+    def test_analyze_entropy_file(self, tmp_path: Path) -> None:
+        f = tmp_path / "e.txt"
+        f.write_text("the quick brown fox jumps. " * 30, encoding="utf-8")
+        proc = run_cli("analyze", str(f), "--entropy")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "entropy_analyzer" in (proc.stdout + proc.stderr)
+
+    def test_analyze_json_output(self, tmp_path: Path) -> None:
+        f = tmp_path / "j.txt"
+        f.write_text("pure plain text content here.\n", encoding="utf-8")
+        proc = run_cli("analyze", str(f), "--string", "--json")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "plugin_name" in (proc.stdout + proc.stderr)
+
+    def test_analyze_missing_file_exit_2(self, tmp_path: Path) -> None:
+        proc = run_cli("analyze", str(tmp_path / "nope.txt"))
+        assert proc.returncode == EXIT_ERROR

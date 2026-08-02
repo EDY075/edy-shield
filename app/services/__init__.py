@@ -11,11 +11,16 @@ Dependências: ``services → core`` e ``services → plugins`` (direção únic
 ver ARCHITECTURE.md §5.4).
 """
 
+from app.services.analysis_service import AnalysisService
+from app.services.analysis_store import AnalysisRecord, AnalysisStore
 from app.services.file_utils import resolve_safe_path, validate_allowed_root
 from app.services.history import HistoryStore
 from app.services.report_engine import render, to_html, to_json, to_txt
 
 __all__ = [
+    "AnalysisRecord",
+    "AnalysisService",
+    "AnalysisStore",
     "HistoryStore",
     "render",
     "resolve_safe_path",

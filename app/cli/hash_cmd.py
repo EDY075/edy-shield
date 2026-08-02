@@ -24,6 +24,7 @@ Exit codes (ARES-QA-029):
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -44,6 +45,9 @@ from app.core.fim import (
 )
 from app.core.logging import get_logger, setup_logging
 from app.core.storage import DEFAULT_DB_PATH
+from app.plugins import PluginManager, ScanContext
+from app.plugins.builtin import StringAnalyzerPlugin
+from app.services.analysis_service import AnalysisService
 from app.services.history import HistoryStore
 
 logger = get_logger("cli.hash_cmd")
@@ -239,6 +243,86 @@ def _build_parser() -> argparse.ArgumentParser:
         help="limitar a quantidade de registros exibidos",
     )
 
+    string_parser = subparsers.add_parser(
+        "string",
+        help="String Analyzer — detecta indicadores suspeitos em texto",
+        description="Analisa arquivos de texto/scripts/logs e identifica URLs, IPs, hashes, tokens, comandos e credenciais.",
+    )
+    string_sub = string_parser.add_subparsers(dest="string_command", required=True)
+
+    analyze_parser = string_sub.add_parser(
+        "analyze",
+        help="analisar um arquivo ou diretório",
+        description="Executa o String Analyzer (via PluginManager) sobre o alvo.",
+    )
+    analyze_parser.add_argument("target", help="arquivo ou diretório a analisar")
+    analyze_parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="descer recursivamente em subdiretórios (quando target é diretório)",
+    )
+    analyze_parser.add_argument(
+        "--categories",
+        default=None,
+        help="categorias separadas por vírgula (ex.: url,email,api_key); padrão: todas",
+    )
+    analyze_parser.add_argument(
+        "--min-token-length",
+        type=int,
+        default=256,
+        help="comprimento mínimo para classificar token como long_token (padrão: 256)",
+    )
+    analyze_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="saída em JSON estruturado (por arquivo)",
+    )
+
+    analyze_cmd_parser = subparsers.add_parser(
+        "analyze",
+        help="String + Entropy Analyzer — análise integrada",
+        description=(
+            "Executa o String Analyzer e/ou Entropy Analyzer sobre arquivo ou "
+            "diretório, persiste no SQLite e gere relatório JSON."
+        ),
+    )
+    analyze_cmd_parser.add_argument("target", help="arquivo ou diretório a analisar")
+    analyze_cmd_parser.add_argument(
+        "--string",
+        action="store_true",
+        help="executar o String Analyzer",
+    )
+    analyze_cmd_parser.add_argument(
+        "--entropy",
+        action="store_true",
+        help="executar o Entropy Analyzer",
+    )
+    analyze_cmd_parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="descer recursivamente em subdiretórios",
+    )
+    analyze_cmd_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="saída em JSON estruturado",
+    )
+    analyze_cmd_parser.add_argument(
+        "--output",
+        default=None,
+        help="arquivo de saída para gravar o relatório (JSON)",
+    )
+    analyze_cmd_parser.add_argument(
+        "--severity",
+        default=None,
+        help="limiar mínimo de severidade (ex.: HIGH)",
+    )
+    analyze_cmd_parser.add_argument(
+        "--category",
+        default=None,
+        help="filtrar por categoria (ex.: url, api_key)",
+    )
+
     return parser
 
 
@@ -317,6 +401,25 @@ def main(argv: list[str] | None = None) -> int:
                 )
         if args.command == "history":
             return _cmd_history(args.limit)
+        if args.command == "string" and args.string_command == "analyze":
+            return _cmd_string_analyze(
+                args.target,
+                args.recursive,
+                args.categories,
+                args.min_token_length,
+                args.json,
+            )
+        if args.command == "analyze":
+            return _cmd_analyze(
+                args.target,
+                args.recursive,
+                args.string,
+                args.entropy,
+                args.json,
+                args.output,
+                args.severity,
+                args.category,
+            )
     except SystemExit:
         raise
     except EDYShieldError as exc:
@@ -669,6 +772,211 @@ def _cmd_history(limit: int | None) -> int:
             f"{entry['max_severity']}  {entry['id']}"
         )
     print(f"history: {len(entries)} registro(s)", file=sys.stderr)
+    return EXIT_SUCCESS
+
+
+def _cmd_string_analyze(
+    target: str,
+    recursive: bool,
+    categories: str | None,
+    min_token_length: int,
+    as_json: bool,
+) -> int:
+    """Executar o comando ``string analyze`` (v2.1 — M2.1).
+
+    Analisa um arquivo ou diretório (opcionalmente recursivo) via
+    :class:`StringAnalyzerPlugin` (PluginManager). Resultados em stdout;
+    erros por arquivo em stderr — falhas individuais não interrompem o lote.
+
+    Args:
+        target: Arquivo ou diretório a analisar.
+        recursive: Descer recursivamente em subdiretórios.
+        categories: Categorias separadas por vírgula (``None`` = todas).
+        min_token_length: Limite para ``long_token``.
+        as_json: Quando ``True``, imprime JSON estruturado por arquivo.
+
+    Returns:
+        ``EXIT_SUCCESS`` (0) ou ``EXIT_ERROR`` (2) em falha de uso/leitura.
+    """
+    path = Path(target)
+    if not path.exists():
+        print(f"erro: alvo não encontrado: {target}", file=sys.stderr)
+        return EXIT_ERROR
+
+    options: dict[str, object] = {"min_token_length": min_token_length}
+    if categories:
+        options["categories"] = [c.strip() for c in categories.split(",") if c.strip()]
+
+    files = _collect_text_files(path, recursive)
+    manager = PluginManager()
+    manager.register(StringAnalyzerPlugin())
+
+    results: list[dict[str, object]] = []
+    errors = 0
+    for file_path in files:
+        try:
+            result = manager.run("string_analyzer", ScanContext(target=file_path, options=options))
+        except Exception as exc:
+            errors += 1
+            print(f"erro: {file_path}: {exc}", file=sys.stderr)
+            continue
+
+        if as_json:
+            results.append({"file": str(file_path), "result": result.as_dict()})
+            continue
+
+        print(f"=== {file_path} ===")
+        if not result.findings:
+            print("  (nenhum achado)")
+            continue
+        for finding in result.findings:
+            source = f"{finding.source}: " if finding.source else ""
+            metadata = finding.metadata
+            print(
+                f"  {source}[{finding.severity.value}] {metadata.get('type', '?')} "
+                f"({metadata.get('category', '?')}, conf={metadata.get('confidence', '?')}): "
+                f"{finding.message}"
+            )
+
+    if as_json:
+        print(json.dumps(results, indent=2, ensure_ascii=False))
+
+    print(
+        f"string: {len(files)} arquivo(s), {errors} erro(s)",
+        file=sys.stderr,
+    )
+    return EXIT_SUCCESS if errors == 0 else EXIT_ERROR
+
+
+def _collect_text_files(path: Path, recursive: bool) -> list[Path]:
+    """Coletar arquivos a analisar (arquivo único ou diretório).
+
+    Em diretórios, considera arquivos regulares com extensões de texto/script
+    comuns (``.txt``, ``.log``, ``.sh``, ``.ps1``, ``.bat``, ``.cmd``, ``.py``,
+    ``.json``, ``.yml``, ``.yaml``, ``.xml``, ``.conf``, ``.ini``, ``.md``,
+    ``.csv``, ``.env``) — ou todos quando ``--recursive``.
+    """
+    if path.is_file():
+        return [path]
+
+    _TEXT_SUFFIXES = frozenset(
+        {
+            ".txt",
+            ".log",
+            ".sh",
+            ".ps1",
+            ".bat",
+            ".cmd",
+            ".py",
+            ".json",
+            ".yml",
+            ".yaml",
+            ".xml",
+            ".conf",
+            ".ini",
+            ".md",
+            ".csv",
+            ".env",
+        }
+    )
+    pattern = "**/*" if recursive else "*"
+    return sorted(
+        p
+        for p in path.glob(pattern)
+        if p.is_file() and (p.suffix.lower() in _TEXT_SUFFIXES or not p.suffix)
+    )
+
+
+def _cmd_analyze(
+    target: str,
+    recursive: bool,
+    use_string: bool,
+    use_entropy: bool,
+    as_json: bool,
+    output: str | None,
+    severity: str | None,
+    category: str | None,
+) -> int:
+    """Executar o comando ``analyze`` (v2.1 — M2.3).
+
+    Análise integrada do String Analyzer e/ou Entropy Analyzer via
+    :class:`AnalysisService`. Persiste no SQLite (AnalysisStore) e imprime
+    resumo legível (ou JSON com ``--json``). Erros por arquivo vão para
+    stderr — falhas individuais não interrompem o lote.
+
+    Args:
+        target: Arquivo ou diretório a analisar.
+        recursive: Descer recursivamente em subdiretórios.
+        use_string: Executar o String Analyzer.
+        use_entropy: Executar o Entropy Analyzer.
+        as_json: Imprimir saída JSON estruturada.
+        output: Caminho de arquivo para gravar o relatório JSON.
+        severity: Limiar mínimo de severidade (ex.: ``HIGH``).
+        category: Filtrar por categoria (ex.: ``url``).
+
+    Returns:
+        ``EXIT_SUCCESS`` (0) ou ``EXIT_ERROR`` (2) em falha grave.
+    """
+    if not use_string and not use_entropy:
+        use_string = use_entropy = True
+
+    if not Path(target).exists():
+        print(f"erro: alvo não encontrado: {target}", file=sys.stderr)
+        return EXIT_ERROR
+
+    plugins: list[str] = []
+    if use_string:
+        plugins.append("string_analyzer")
+    if use_entropy:
+        plugins.append("entropy_analyzer")
+
+    categories = [c.strip() for c in category.split(",")] if category else None
+    service = AnalysisService()
+    try:
+        outcomes = service.analyze(
+            target,
+            plugins=plugins,
+            recursive=recursive,
+            categories=categories,
+            severity=severity,
+        )
+    except Exception as exc:
+        print(f"erro: {exc}", file=sys.stderr)
+        return EXIT_ERROR
+
+    results: list[dict[str, object]] = []
+    for out in outcomes:
+        if as_json:
+            results.append(
+                {
+                    "plugin_name": out.plugin_name,
+                    "target": out.target,
+                    "duration_ms": out.duration_ms,
+                    "result": out.result.as_dict(),
+                }
+            )
+            continue
+        result = out.result
+        print(f"=== {out.target} [{out.plugin_name}] ===")
+        print(f"  resumo: {result.summary}")
+        print(f"  severidade: {result.max_severity().value} | duration: {out.duration_ms:.1f}ms")
+        total = result.stats.get("total_combined", 0)
+        print(f"  achados: {len(result.findings)} (stats total={total})")
+        for finding in result.findings[:20]:
+            source = f"{finding.source}: " if finding.source else ""
+            print(f"    [{finding.severity.value}]{source} {finding.message}")
+
+    if as_json:
+        payload = json.dumps(results, indent=2, ensure_ascii=False)
+        print(payload)
+        if output:
+            with open(output, "w", encoding="utf-8") as fh:
+                fh.write(payload)
+
+    print(
+        f"analyze: {len(outcomes)} execução(ões), persistido no SQLite",
+        file=sys.stderr,
+    )
     return EXIT_SUCCESS
 
 

@@ -43,6 +43,94 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - **388 passed, 2 skipped** · cobertura **91.34%** (gate ≥ 90%) · mypy strict 0 (51
   arquivos) · ruff limpo.
 
+### v2.1 — M2.2: Entropy Analyzer
+
+#### Added
+
+- **Core puro `app/core/entropy/`** (100% stdlib — ADR-001/002):
+  - `calculate_entropy(...)` — entropia de Shannon (bits/caractere), re-exportada.
+  - `analyze_entropy(...)` — análise completa de texto: **total**, **por linha** e
+    **por bloco**, com limiares e tamanho mínimo configuráveis.
+  - `analyze_file_entropy(...)` — análise de arquivo com **tratamento seguro de
+    arquivos grandes** (leitura em blocos/streaming, memória constante, sem carregar
+    tudo em memória).
+  - Classificação **LOW / MEDIUM / HIGH**, **score numérico (0–100)** e
+    **justificativa textual** da classificação.
+  - Limiares default calibrados à escala real (`LOW < 4.5`, `HIGH ≥ 6.0` bits).
+- **Core de path seguro** — responde `resolve_safe_path` + `ensure_regular_file`
+  (contenção ARES-QA-001/028, rejeição de diretórios/arquivos especiais).
+- **Plugin oficial `app/plugins/builtin/entropy_analyzer_plugin.py`** — registrado no
+  PluginManager (nome `entropy_analyzer`, v1.0.0); traduz `EntropyLevel`
+  LOW/MEDIUM/HIGH → `Severity` e gera evidências por total/bloco.
+- **Testes** — `tests/unit/test_entropy_core.py` (16 casos) + `test_entropy_plugin.py`
+  (7 casos): string repetitiva, texto comum, base64, hex, conteúdo aleatório, arquivo
+  vazio, Unicode, limiares configuráveis, arquivo grande, determinismo, validação de
+  fórmula, PluginManager, mapeamento de severidade e erros.
+
+#### Quality
+
+- Cobertura dos módulos novos: `entropy/analyzer.py` **95%**, modelos **100%**,
+  plugin **98%** (todas ≥ 90%). Suíte global **423 passed, 2 skipped** (zero
+  regressões). `mypy --strict` limpo nos arquivos novos. `ruff check` e
+  `ruff format --check` limpos.
+
+### v2.1 — M2.3: Integração dos Analisadores (String + Entropy)
+
+#### Added
+
+- **Camada de serviços** `app/services/analysis_service.py` — `AnalysisService` +
+  `AnalysisOutcome`: execução **isolada ou combinada** (String + Entropy), `merge` e
+  `dedup` de resultados, **ordenação por severidade**, filtros (`plugins`, `categories`,
+  `severity`), medição de duração, persistência SQLite opcional e `history()`/`get()`.
+- **Persistência** `app/services/analysis_store.py` — `AnalysisRecord`/`AnalysisStore`:
+  SQLite na tabela `analyses` (`target`, `timestamp`, `plugin_name`, `category`,
+  `severity`, `score`, `evidence_count`, `duration_ms`, `payload`), com `analysis_id`
+  único e índices. **Cobertura 100%.**
+- **Schema SQLite** — nova tabela `analyses` + índices em
+  `app/core/storage/sqlite_db.py`.
+- **CLI `edyshield analyze`** — novo subcomando com flags
+  `--string --entropy --recursive --categories --severity --json --output <FILE>`;
+  executa análise isolada/combinada e **persiste no SQLite**.
+- **API de análise** — `POST /api/analyze` (combinada), `POST /api/analyze/string`,
+  `POST /api/analyze/entropy`; `GET /api/analyze/history?limit=` e
+  `GET /api/analyze/{id}`.
+- **Testes novos** (~40 testes) — `tests/unit/test_analysis_service.py` (31 casos:
+  store, serviço isolado/combinado, filtros, dedup, ordering, merge, recorder),
+  `TestAnalyzeApi` em `tests/integration/test_ui_api.py` (erros 400/404),
+  `TestAnalyzeCommandE2E` em `tests/e2e/test_cli_e2e.py` (5 casos) e +2 casos
+  `ALLOWED_ROOT` em `tests/unit/test_entropy_plugin.py`.
+
+#### Changed
+
+- `app/services/__init__.py` — exporta `AnalysisService`, `AnalysisStore`,
+  `AnalysisRecord`.
+- `app/plugins/builtin/__init__.py` — registrado `EntropyAnalyzerPlugin`.
+- `app/ui/server.py` — rotas/handlers `/api/analyze*`; corrigidos
+  `_get_fim_baselines` (plural) e duplicata `_get_report`;
+  `EntropyAnalyzerPlugin` registrado no `build_default_manager`.
+- `app/cli/hash_cmd.py` — subcomando `analyze`; corrigida `_collect_text_files`.
+- `app/plugins/builtin/string_analyzer_plugin.py` — tech debt mypy corrigido
+  (`cast` + `Iterable` em `_resolve_categories`); versão **2.0.0**.
+- `app/plugins/builtin/entropy_analyzer_plugin.py` — versão alinhada a **2.0.0**
+  (plugins built-in acompanham a release); stats agora inclui `score`.
+
+#### Fixed
+
+- **`_blank_result` não definido** — NameError latente corrigido.
+- **`PluginExecutionError` não importado** em `analysis_service` (NameError).
+- **Variável `key` reutilizada** causava erro de tipo no mypy.
+- **Tradução de newlines corrompia `total_size`** — `_stream_entropy`/`_stream_block_metrics`
+  (entropy) abriam em modo texto com `newline=None`; universal newline translation do
+  Windows `\r\n`/`\r` → `\n` encolhia a contagem em dados binários/latin1 (flaky em
+  arquivos grandes). Corrigido com `newline=""` (desabilita a tradução, consistente em
+  todos os SO).
+
+#### Quality
+
+- Suíte global **474 passed, 2 skipped** (zero regressões). Cobertura global **90.21%**
+  (gate >= 90%): `analysis_service.py` e `analysis_store.py` em **100%**. `mypy --strict`
+  0 (63 arquivos). `ruff check` e `ruff format --check` limpos.
+
 ---
 
 ## [0.1.0] — 2026-08-01

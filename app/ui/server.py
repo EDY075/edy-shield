@@ -33,9 +33,16 @@ from typing import Any, cast
 from app import __version__
 from app.core.fim import DEFAULT_FIM_DIR, FimStore
 from app.plugins import PluginManager, PluginRegistry, ScanContext
-from app.plugins.builtin import FileIntegrityPlugin, HashCheckerPlugin, LogAnalyzer
+from app.plugins.builtin import (
+    EntropyAnalyzerPlugin,
+    FileIntegrityPlugin,
+    HashCheckerPlugin,
+    LogAnalyzer,
+    StringAnalyzerPlugin,
+)
 from app.plugins.plugin_errors import PluginError
 from app.services import HistoryStore
+from app.services.analysis_service import AnalysisService
 from app.services.report_engine import render
 
 #: Diretório com os assets estáticos da UI.
@@ -55,12 +62,15 @@ def build_default_manager(
             (``~/.edyshield/edy_shield.db``). Injetável para testes.
 
     Returns:
-        Manager com ``log_analyzer``, ``hash_checker`` e
-        ``file_integrity`` registrados.
+        Manager com ``log_analyzer``, ``hash_checker``,
+        ``file_integrity``, ``string_analyzer`` e ``entropy_analyzer``
+        registrados.
     """
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
     registry.register(HashCheckerPlugin())
+    registry.register(StringAnalyzerPlugin())
+    registry.register(EntropyAnalyzerPlugin())
     store = FimStore(
         fim_dir if fim_dir is not None else DEFAULT_FIM_DIR,
         db_path=db_path,
@@ -120,6 +130,13 @@ def _default_history_dir() -> Path:
     return Path.home() / ".edyshield" / "history"
 
 
+def _default_db_path() -> Path:
+    """Caminho padrão do banco SQLite único."""
+    from app.core.storage import DEFAULT_DB_PATH
+
+    return DEFAULT_DB_PATH
+
+
 def _make_handler(
     manager: PluginManager | None,
     history: HistoryStore | None,
@@ -129,6 +146,7 @@ def _make_handler(
 
     app_manager = manager if manager is not None else build_default_manager()
     app_history = history if history is not None else HistoryStore(_default_history_dir())
+    app_analysis = AnalysisService(manager=app_manager)
     assets = static_dir
 
     class EdyShieldHandler(BaseHTTPRequestHandler):
@@ -157,6 +175,10 @@ def _make_handler(
                 self._send_json({"entries": app_history.list()})
             elif path.startswith("/api/history/"):
                 self._get_history_entry(path)
+            elif path == "/api/analyze/history":
+                self._get_analyze_history()
+            elif path.startswith("/api/analyze/"):
+                self._get_analyze_entry(path)
             elif path == "/api/fim/baselines":
                 self._get_fim_baselines()
             elif path.startswith("/api/fim/baselines/"):
@@ -171,6 +193,12 @@ def _make_handler(
             path = self.path.split("?", 1)[0]
             if path == "/api/scan":
                 self._post_scan()
+            elif path == "/api/analyze":
+                self._post_analyze()
+            elif path == "/api/analyze/string":
+                self._post_analyze_plugin("string_analyzer")
+            elif path == "/api/analyze/entropy":
+                self._post_analyze_plugin("entropy_analyzer")
             else:
                 self._send_error(HTTPStatus.NOT_FOUND, "endpoint não encontrado")
 
@@ -225,6 +253,142 @@ def _make_handler(
                 self._send_error(HTTPStatus.NOT_FOUND, "registro não encontrado")
                 return
             self._send_json(result.as_dict())
+
+        def _get_analyze_history(self) -> None:
+            """Listar análises persistidas com filtros via querystring."""
+            params = self._query_params()
+            plugin = params.get("plugin")
+            severity = params.get("severity")
+            category = params.get("category")
+            since = params.get("since")
+            limit = int(params.get("limit", "100"))
+            entries = app_analysis.history(
+                plugin=plugin,
+                severity=severity,
+                category=category,
+                since=since,
+                limit=limit,
+            )
+            self._send_json({"entries": entries})
+
+        def _get_analyze_entry(self, path: str) -> None:
+            """Carregar uma análise completa pelo id."""
+            analysis_id = path.removeprefix("/api/analyze/").split("/", 1)[0]
+            if not analysis_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "id ausente")
+                return
+            try:
+                record = app_analysis.get(analysis_id)
+            except Exception as exc:
+                self._send_error(HTTPStatus.INTERNAL_SERVER_ERROR, str(exc))
+                return
+            if record is None:
+                self._send_error(HTTPStatus.NOT_FOUND, "análise não encontrada")
+                return
+            self._send_json(record)
+
+        def _post_analyze(self) -> None:
+            """Executar análise (String e/ou Entropy) com o payload JSON."""
+            payload = self._read_analyze_payload()
+            if isinstance(payload, dict) and "error" in payload:
+                self._send_error(HTTPStatus.BAD_REQUEST, str(payload["error"]))
+                return
+            assert isinstance(payload, dict)
+
+            target = payload.get("target")
+            if not target:
+                self._send_error(HTTPStatus.BAD_REQUEST, "campo 'target' obrigatório")
+                return
+            plugins: list[str] = payload.get("plugins") or ["string_analyzer", "entropy_analyzer"]
+            recursive = bool(payload.get("recursive", False))
+            categories = payload.get("categories")
+            severity = payload.get("severity")
+            persist = bool(payload.get("persist", True))
+
+            try:
+                outcomes = app_analysis.analyze(
+                    target,
+                    plugins=plugins,
+                    recursive=recursive,
+                    categories=categories,
+                    severity=severity,
+                    persist=persist,
+                )
+            except Exception as exc:
+                self._send_error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
+
+            self._send_json(
+                {
+                    "outcomes": [
+                        {
+                            "plugin_name": out.plugin_name,
+                            "target": out.target,
+                            "duration_ms": out.duration_ms,
+                            "result": out.result.as_dict(),
+                        }
+                        for out in outcomes
+                    ]
+                },
+                status=HTTPStatus.CREATED,
+            )
+
+        def _post_analyze_plugin(self, plugin_name: str) -> None:
+            """Executar análise isolada de um plugin específico."""
+            try:
+                payload = self._read_json()
+            except ValueError as exc:
+                self._send_error(HTTPStatus.BAD_REQUEST, f"JSON inválido: {exc}")
+                return
+
+            target = payload.get("target")
+            if not target:
+                self._send_error(HTTPStatus.BAD_REQUEST, "campo 'target' obrigatório")
+                return
+            categories = payload.get("categories")
+            severity = payload.get("severity")
+            persist = bool(payload.get("persist", True))
+
+            try:
+                outcomes = app_analysis.analyze(
+                    target,
+                    plugins=[plugin_name],
+                    categories=categories,
+                    severity=severity,
+                    persist=persist,
+                )
+            except Exception as exc:
+                self._send_error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
+
+            self._send_json(
+                {
+                    "plugin_name": plugin_name,
+                    "outcomes": [
+                        {
+                            "target": out.target,
+                            "duration_ms": out.duration_ms,
+                            "result": out.result.as_dict(),
+                        }
+                        for out in outcomes
+                    ],
+                },
+                status=HTTPStatus.CREATED,
+            )
+
+        def _query_params(self) -> dict[str, str]:
+            """Parsear querystring da requisição."""
+            query = self.path.split("?", 1)
+            if len(query) != 2:
+                return {}
+            return dict(part.split("=", 1) for part in query[1].split("&") if "=" in part)
+
+        def _read_analyze_payload(self) -> dict[str, Any]:
+            """Ler o payload do endpoint /api/analyze (JSON)."""
+            try:
+                return self._read_json()
+            except ValueError:
+                return {"error": "JSON inválido"}
 
         def _get_fim_baselines(self) -> None:
             """Listar metadados das baselines do FIM (dropdown da UI)."""

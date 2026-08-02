@@ -627,3 +627,61 @@ migração idempotente + backup + fallback, ARES-QA-033 resolvido, 388 testes ve
 cobertura 91.34%, mypy 0, ruff limpo. Fundação sólida para M2+.
 
 > Fechamento M1: jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — M1 SQLITE FOUNDATION**
+
+---
+
+# 15. v2.1 — M2.3: Integração dos Analisadores (String + Entropy)
+
+## 15.1 Escopo
+
+| Campo | Valor |
+|---|---|
+| **Módulos novos** | `app/services/analysis_service.py` (AnalysisService/AnalysisOutcome), `app/services/analysis_store.py` (AnalysisRecord/AnalysisStore) |
+| **Arquivos modificados** | `core/storage/sqlite_db.py` (tabela `analyses` + índices), `plugins/builtin/string_analyzer_plugin.py`, `plugins/builtin/entropy_analyzer_plugin.py`, `ui/server.py`, `cli/hash_cmd.py`, `services/__init__.py`, `plugins/builtin/__init__.py` |
+| **Testes novos** | `test_analysis_service.py` (31), `TestAnalyzeApi` (integration/UI), `TestAnalyzeCommandE2E` (5), +2 `ALLOWED_ROOT` em `test_entropy_plugin.py` (~40 no total) |
+| **Versão** | 2.1.0-dev (plugin String/Entropy em 2.0.0) |
+
+## 15.2 Bugs corrigidos durante a missão
+
+| Bug | Descrição | Status |
+|---|---|---|
+| `_blank_result` | Não estava definido — NameError latente | ✅ CORRIGIDO |
+| `PluginExecutionError` | Não importado em `analysis_service` — NameError | ✅ CORRIGIDO |
+| Variável `key` reutilizada | Causava erro de tipo no mypy | ✅ CORRIGIDO |
+| Tradução de newline (`newline="") | `_stream_entropy`/`_stream_block_metrics` abriam em modo texto com `newline=None`; universal newline translation do Windows `\r\n`/`\r`→`\n` encolhia `total_size` em dados binários/latin1 (flaky em arquivos grandes). Corrigido com `newline=""` — 15/20→0/20 mismatches no probe. | ✅ CORRIGIDO |
+
+## 15.3 Quality Gate (QG-ARES) — M2.3
+
+| Item | Status |
+|---|---|
+| OWASP Top 10 verificado | ✅ Passou |
+| SAST/análise estática (mypy strict + ruff) | ✅ Passou (mypy 0 em 63 arquivos; ruff limpo) |
+| LGPD/GDPR | ✅ Passou (sem dados pessoais; payloads são evidências de análise) |
+| Injeção SQL | ✅ Passou (queries parametrizadas no `AnalysisStore` — padrão herdado do SQLiteDb) |
+| Testes E2E/API | ✅ Passou (class TestAnalyzeCommandE2E 5 casos; TestAnalyzeApi com 400/404) |
+| Sem critical/high issues | ✅ Passou (0 Critical, 0 High) |
+| CI (GitHub Actions) | ✅ Green (pytest → mypy app → ruff check → ruff format --check) |
+
+## 15.4 Métricas finais
+
+| Métrica | Valor |
+|---|---|
+| Testes | **474 passed, 2 skipped** (zero regressões) |
+| Cobertura global | **90.21%** (gate ≥ 90%) |
+| `analysis_service.py` | **100%** |
+| `analysis_store.py` | **100%** |
+| `entropy_analyzer_plugin.py` | **100%** |
+| mypy strict | **0 issues** (63 arquivos) |
+| ruff check / format | **limpo / 110 arquivos OK** |
+| Core deps | **0** (100% stdlib — ADR-001) |
+
+### Veredito M2.3: ✅ **APROVADO**
+
+**Motivo:** 0 Critical/High. Integração correta dos analisadores String e Entropy
+na camada de serviços (`AnalysisService`) com persistência em SQLite
+(`AnalysisStore`); API e CLI de análise funcionais e cobertos por testes
+unitários/integração/E2E; 3 bugs de nome-import/tipo corrigidos durante a missão;
+suíte global **474 passed, 2 skipped**, cobertura **90.21%** (módulos-chave a
+100%), mypy strict 0, ruff limpo e CI green.
+
+> Fechamento M2.3: jr (Tech Lead) + ARES — 02/08/2026 — **VEREDITO: APROVADO — M2.3 ANALYZERS INTEGRATED**

@@ -58,6 +58,23 @@ CREATE TABLE IF NOT EXISTS baseline_entries (
 
 CREATE INDEX IF NOT EXISTS idx_scans_timestamp ON scans(timestamp);
 CREATE INDEX IF NOT EXISTS idx_entries_baseline ON baseline_entries(baseline_id);
+
+CREATE TABLE IF NOT EXISTS analyses (
+    analysis_id  TEXT PRIMARY KEY,
+    target       TEXT NOT NULL,
+    timestamp    TEXT NOT NULL,
+    plugin_name  TEXT NOT NULL,
+    category     TEXT,
+    severity     TEXT NOT NULL,
+    score        INTEGER NOT NULL,
+    evidence_count INTEGER NOT NULL DEFAULT 0,
+    duration_ms  REAL NOT NULL DEFAULT 0,
+    payload      TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_analyses_timestamp ON analyses(timestamp);
+CREATE INDEX IF NOT EXISTS idx_analyses_plugin ON analyses(plugin_name);
+CREATE INDEX IF NOT EXISTS idx_analyses_severity ON analyses(severity);
 """
 
 

@@ -69,7 +69,7 @@ EDYShield/
 │   │   │   └── logger.py           # setup_logging (idempotente), get_logger
 │   │   ├── storage/                # Persistência SQLite (v2.1 — M1)
 │   │   │   ├── __init__.py         # re-exports (SQLiteDb, DEFAULT_DB_PATH)
-│   │   │   └── sqlite_db.py        # SQLiteDb: conexão thread-safe + schema + transações
+│   │   │   └── sqlite_db.py        # SQLiteDb: conexão thread-safe + schema (scans/baselines/analyses) + transações
 │   │   ├── models/                 # Dataclasses, enums, tipos
 │   │   │   ├── __init__.py
 │   │   │   ├── hashes.py           # HashResult, HashSource
@@ -81,9 +81,11 @@ EDYShield/
 │   │   │   └── input.py            # validate_chunk_size, validate_expected
 │   │   └── utils/                  # RESERVADO — estrutura criada, sem código
 │   │       └── __init__.py
-│   ├── services/                   # CASOS DE USO — shim de segurança de paths (Missão 2)
-│   │   ├── __init__.py             # re-export resolve_safe_path/validate_allowed_root
-│   │   └── file_utils.py           # shim → core.filesystem.safe_path
+│   ├── services/                   # CASOS DE USO — segurança de paths (M2) + análise (M2.3)
+│   │   ├── __init__.py             # re-export resolve_safe_path/validate_allowed_root + AnalysisService/AnalysisStore/AnalysisRecord
+│   │   ├── file_utils.py           # shim → core.filesystem.safe_path
+│   │   ├── analysis_service.py     # AnalysisService/AnalysisOutcome (M2.3 — String + Entropy)
+│   │   └── analysis_store.py       # AnalysisRecord/AnalysisStore — SQLite tabela `analyses` (M2.3)
 │   └── ui/                         # INTERFACE GRÁFICA
 │       └── static/                 # Interface dark standalone (sem lógica sensível)
 │           ├── index.html
@@ -318,9 +320,14 @@ Texto/bytes ──▶ hashlib.new(algo) ──▶ update(bytes) ──▶ hexdig
 - [ ] Módulo **String Analyzer / Entropy** (detecção de strings suspeitas) — *movido p/ v2.1*
 
 ### 🧠 v2.1 — Inteligência
-- [ ] **String Analyzer** (detecção de strings suspeitas)
-- [ ] **Entropy Analyzer** (detecção de alta entropia)
-- [ ] Baseline de diretórios monitorados (banco local **SQLite**)
+- [x] **String Analyzer** (detecção de strings suspeitas) — plugin `string_analyzer`
+  (M2.2) integrado via `AnalysisService` (M2.3)
+- [x] **Entropy Analyzer** (detecção de alta entropia) — plugin `entropy_analyzer`
+  registrado no `build_default_manager` (M2.2) integrado via `AnalysisService` (M2.3)
+- [x] **Integração dos analisadores** (M2.3) — camada de serviços
+  `app/services/analysis_service.py` (execução isolada/combinada, merge/dedup,
+  ordenação por severidade, filtros, duração) + persistência em `analysis_store.py`
+  (SQLite — tabela `analyses`), CLI `edyshield analyze` e API `/api/analyze*`
 - [ ] **Alertas** (console/notificação)
 
 ### 🏆 v3.0 — Plataforma Completa
