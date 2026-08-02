@@ -364,13 +364,12 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 
 ## 📸 Screenshots
 
-> Pré-visualização da interface web dark (painel SOC). As imagens abaixo são placeholders elegantes
-> do layout — substitua por capturas reais em `assets/screenshots/` (PNG recomendado, 1280×800).
+> Interface web dark (painel SOC) do EDY Shield Console em execução local (`http://127.0.0.1:8000`).
 
 | | |
 |---|---|
-| <img src="assets/screenshots/dashboard.svg" alt="Dashboard" width="100%"> | <img src="assets/screenshots/hash-checker.svg" alt="Hash Checker" width="100%"> |
-| <img src="assets/screenshots/log-analyzer.svg" alt="Log Analyzer" width="100%"> | <img src="assets/screenshots/plugins.svg" alt="Plugins" width="100%"> |
+| <img src="assets/screenshots/dashboard.png" alt="Dashboard" width="100%"> | <img src="assets/screenshots/hash-checker.png" alt="Hash Checker" width="100%"> |
+| <img src="assets/screenshots/log-analyzer.png" alt="Log Analyzer" width="100%"> | <img src="assets/screenshots/plugins.png" alt="Plugins" width="100%"> |
 
 ---
 
