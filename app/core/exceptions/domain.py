@@ -71,3 +71,24 @@ class FilesystemError(EDYShieldError):
     Base for filesystem-domain failures that higher layers must translate
     without exposing absolute paths or raw OS errors.
     """
+
+
+class FimError(EDYShieldError):
+    """Raiz das falhas do domínio File Integrity Monitor (Sprint 5).
+
+    Cobrem baseline/scanner/store do FIM. Extensão da hierarquia
+    ``EDYShieldError`` para que services/UI tratem falhas de integridade
+    com o mesmo mecanismo das demais falhas de domínio (ADR-005).
+    """
+
+
+class BaselineCorruptionError(FimError):
+    """Baseline JSON inválida/corrompida — rejeitada no load (RF-04).
+
+    Nunca se retorna baseline parcial: arquivos malformados, campos
+    ausentes ou tipos errados levantam esta exceção.
+    """
+
+
+class BaselineNotFoundError(FimError):
+    """Baseline inexistente no FimStore (baseline_id inválido)."""

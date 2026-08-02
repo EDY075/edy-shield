@@ -44,6 +44,7 @@
     'dashboard': 'Painel de Operações',
     'hash-checker': 'Hash Checker',
     'log-analyzer': 'Log Analyzer',
+    'fim': 'File Integrity Monitor',
     'history': 'Histórico',
     'reports': 'Relatórios',
     'modules': 'Módulos'
@@ -68,6 +69,7 @@
     if (name === 'history') loadHistory();
     if (name === 'reports') loadReports();
     if (name === 'modules') loadModules();
+    if (name === 'fim') loadFimBaselines();
   }
 
   /* ------------------------------------------------------------
@@ -80,8 +82,8 @@
       el('stat-plugins').textContent = String((plugins.plugins || []).length);
       el('stat-scans').textContent = String((history.entries || []).length);
       el('stat-status').textContent = 'Online';
-      el('engine-version').textContent = 'v' + (plugins.version || '1.1.0');
-      el('footer-version').textContent = 'v' + (plugins.version || '1.1.0');
+      el('engine-version').textContent = 'v' + (plugins.version || '2.0.0');
+      el('footer-version').textContent = 'v' + (plugins.version || '2.0.0');
       setStatus(true, 'SYSTEM ONLINE');
       renderModuleGrid(el('dashboard-modules'), plugins.plugins || []);
     } catch (err) {
@@ -98,7 +100,8 @@
     }
     plugins.forEach(function (plugin) {
       var view = plugin.name === 'hash_checker' ? 'hash-checker'
-        : plugin.name === 'log_analyzer' ? 'log-analyzer' : null;
+        : plugin.name === 'log_analyzer' ? 'log-analyzer'
+        : plugin.name === 'file_integrity' ? 'fim' : null;
       var card = document.createElement('article');
       card.className = 'module-card module-card--active';
       var badge = plugin.name === 'hash_checker'
@@ -235,6 +238,75 @@
   }
 
   /* ------------------------------------------------------------
+     File Integrity Monitor
+     ------------------------------------------------------------ */
+  async function loadFimBaselines() {
+    var select = el('fim-baseline');
+    if (!select) return;
+    try {
+      var data = await api('/api/fim/baselines');
+      var baselines = data.baselines || [];
+      select.innerHTML = '<option value="">-- selecionar baseline --</option>';
+      baselines.forEach(function (b) {
+        var opt = document.createElement('option');
+        opt.value = b.id;
+        opt.textContent = b.id + ' · ' + b.entries + ' entradas · ' + b.algorithm;
+        select.appendChild(opt);
+      });
+      el('fim-result').innerHTML =
+        '<p class="hash-result__note">' + baselines.length + ' baseline(s) disponível(eis).</p>';
+    } catch (err) {
+      el('fim-result').innerHTML =
+        '<p class="hash-result__note" style="color: var(--accent-red);">' + esc(err.message) + '</p>';
+    }
+  }
+
+  function toggleFimAction() {
+    var action = el('fim-action').value;
+    var baselineGroup = el('fim-baseline-group');
+    var btn = el('fim-execute');
+    if (action === 'scan') {
+      baselineGroup.style.display = '';
+      btn.textContent = 'Executar Scan';
+    } else {
+      baselineGroup.style.display = 'none';
+      btn.textContent = 'Criar Baseline';
+    }
+  }
+
+  async function runFim() {
+    var target = el('fim-path').value.trim();
+    if (!target) { renderFimError('Informe o caminho do diretório.'); return; }
+
+    var action = el('fim-action').value;
+    var options = { action: action, algorithm: el('fim-algo').value, recursive: true };
+    if (action === 'scan') {
+      var baselineId = el('fim-baseline').value;
+      if (!baselineId) { renderFimError('Selecione uma baseline para o scan.'); return; }
+      options.baseline_id = baselineId;
+    }
+
+    var resultBox = el('fim-result');
+    resultBox.innerHTML = '<p class="hash-result__note">Executando...</p>';
+    try {
+      var data = await api('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plugin: 'file_integrity', target: target, options: options })
+      });
+      renderScanResult(resultBox, data.result);
+      loadFimBaselines();
+    } catch (err) {
+      renderFimError(err.message);
+    }
+  }
+
+  function renderFimError(message) {
+    el('fim-result').innerHTML =
+      '<p class="hash-result__note" style="color: var(--accent-red);">' + esc(message) + '</p>';
+  }
+
+  /* ------------------------------------------------------------
      Histórico
      ------------------------------------------------------------ */
   async function loadHistory() {
@@ -284,7 +356,8 @@
           '<td class="report-links">' +
           '<a href="/api/report/' + id + '?fmt=json" download>JSON</a> · ' +
           '<a href="/api/report/' + id + '?fmt=txt" download>TXT</a> · ' +
-          '<a href="/api/report/' + id + '?fmt=html" download>HTML</a></td></tr>';
+          '<a href="/api/report/' + id + '?fmt=html" download>HTML</a> · ' +
+          '<a href="/api/report/' + id + '?fmt=md" download>MD</a></td></tr>';
       });
       html += '</tbody></table>';
       box.innerHTML = html;
@@ -336,6 +409,8 @@
     // Ações
     el('hash-calc').addEventListener('click', runHashScan);
     el('log-analyze').addEventListener('click', runLogScan);
+    el('fim-execute').addEventListener('click', runFim);
+    el('fim-action').addEventListener('change', toggleFimAction);
     el('dashboard-refresh').addEventListener('click', loadDashboard);
     el('history-refresh').addEventListener('click', loadHistory);
     el('reports-refresh').addEventListener('click', loadReports);

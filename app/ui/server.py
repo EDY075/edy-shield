@@ -28,11 +28,12 @@ import json
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from app import __version__
+from app.core.fim import DEFAULT_FIM_DIR, FimStore
 from app.plugins import PluginManager, PluginRegistry, ScanContext
-from app.plugins.builtin import HashCheckerPlugin, LogAnalyzer
+from app.plugins.builtin import FileIntegrityPlugin, HashCheckerPlugin, LogAnalyzer
 from app.plugins.plugin_errors import PluginError
 from app.services import HistoryStore
 from app.services.report_engine import render
@@ -40,19 +41,24 @@ from app.services.report_engine import render
 #: Diretório com os assets estáticos da UI.
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
-#: Formatos de relatório aceitos.
-_REPORT_FORMATS = ("json", "txt", "html")
 
-
-def build_default_manager() -> PluginManager:
+def build_default_manager(fim_dir: Path | None = None) -> PluginManager:
     """Construir o PluginManager padrão com os plugins built-in.
 
+    Args:
+        fim_dir: Diretório do FimStore do plugin ``file_integrity``;
+            ``None`` usa o padrão (``~/.edyshield/fim``). Injetável para
+            testes e para evitar tocar o store do usuário.
+
     Returns:
-        Manager com ``log_analyzer`` e ``hash_checker`` registrados.
+        Manager com ``log_analyzer``, ``hash_checker`` e
+        ``file_integrity`` registrados.
     """
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
     registry.register(HashCheckerPlugin())
+    store = FimStore(fim_dir) if fim_dir is not None else FimStore(DEFAULT_FIM_DIR)
+    registry.register(FileIntegrityPlugin(store))
     return PluginManager(registry)
 
 
@@ -132,6 +138,8 @@ def _make_handler(
 
             if path == "/":
                 self._send_file(assets / "index.html", "text/html; charset=utf-8")
+            elif path == "/icon.svg":
+                self._send_file(assets / "icon.svg", "image/svg+xml; charset=utf-8")
             elif path == "/css/style.css":
                 self._send_file(assets / "css" / "style.css", "text/css; charset=utf-8")
             elif path == "/app.js":
@@ -142,6 +150,10 @@ def _make_handler(
                 self._send_json({"entries": app_history.list()})
             elif path.startswith("/api/history/"):
                 self._get_history_entry(path)
+            elif path == "/api/fim/baselines":
+                self._get_fim_baselines()
+            elif path.startswith("/api/fim/baselines/"):
+                self._get_fim_baseline(path)
             elif path.startswith("/api/report/"):
                 self._get_report(path)
             else:
@@ -207,6 +219,33 @@ def _make_handler(
                 return
             self._send_json(result.as_dict())
 
+        def _get_fim_baselines(self) -> None:
+            """Listar metadados das baselines do FIM (dropdown da UI)."""
+            store = self._fim_store()
+            self._send_json({"baselines": store.list()})
+
+        def _get_fim_baseline(self, path: str) -> None:
+            """Carregar uma baseline pelo id (visualização/edição futura)."""
+            baseline_id = path.removeprefix("/api/fim/baselines/")
+            if not baseline_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "baseline_id ausente")
+                return
+            store = self._fim_store()
+            try:
+                baseline = store.load(baseline_id)
+            except PluginError as exc:
+                self._send_error(HTTPStatus.NOT_FOUND, str(exc))
+                return
+            except Exception as exc:
+                self._send_error(HTTPStatus.NOT_FOUND, str(exc))
+                return
+            self._send_json(baseline.to_dict())
+
+        def _fim_store(self) -> FimStore:
+            """Obter o FimStore do plugin file_integrity registrado."""
+            plugin = app_manager.registry.get("file_integrity")
+            return cast(FimStore, plugin.store)  # type: ignore[attr-defined]
+
         def _get_report(self, path: str) -> None:
             """Gerar relatório (json|txt|html) de um ScanResult salvo."""
             scan_id = path.removeprefix("/api/report/")
@@ -239,6 +278,7 @@ def _make_handler(
                 "json": "application/json; charset=utf-8",
                 "txt": "text/plain; charset=utf-8",
                 "html": "text/html; charset=utf-8",
+                "md": "text/markdown; charset=utf-8",
             }[fmt]
             self._send_bytes(content.encode("utf-8"), content_type)
 

@@ -6,6 +6,7 @@ um plugin via PluginManager) em relatórios portáveis:
 * **JSON** — estrutura completa e máquina-legível.
 * **TXT** — relatório legível em texto puro.
 * **HTML** — relatório estilizado para visualização em navegador.
+* **Markdown** — relatório em Markdown (adicionado na Sprint 5 — FIM).
 
 Estrutura comum a todos os formatos (Missão 8):
 
@@ -221,12 +222,68 @@ def to_html(result: ScanResult) -> str:
     )
 
 
+def to_markdown(result: ScanResult) -> str:
+    """Converter um ScanResult em relatório Markdown.
+
+    Mantém a mesma estrutura dos demais formatos (resumo, estatísticas,
+    achados e observações), com badges de severidade via ``code`` e listas.
+
+    Args:
+        result: Resultado a serializar.
+
+    Returns:
+        Relatório Markdown legível.
+    """
+    severity = result.max_severity().value
+    severity_label = _SEVERITY_LABELS.get(severity, severity)
+
+    lines: list[str] = [
+        "# EDY SHIELD — Relatório de Varredura",
+        "",
+        f"- **Plugin:** `{result.plugin_name}` v{result.plugin_version}",
+        f"- **Timestamp:** `{result.timestamp.astimezone(UTC).isoformat()}`",
+        f"- **Severidade máxima:** `{severity_label}`",
+        "",
+        "## Resumo",
+        "",
+        result.summary,
+        "",
+        "## Estatísticas",
+        "",
+    ]
+    if result.stats:
+        lines.append("| Chave | Valor |")
+        lines.append("|-------|-------|")
+        for key, value in sorted(result.stats.items()):
+            lines.append(f"| `{key}` | {value} |")
+    else:
+        lines.append("_(sem estatísticas)_")
+
+    lines += ["", "## Achados", ""]
+    if result.findings:
+        for finding in result.findings:
+            sev_label = _SEVERITY_LABELS.get(finding.severity.value, finding.severity.value)
+            source = f" (`{finding.source}`)" if finding.source else ""
+            lines.append(f"- **{sev_label}**{source} {finding.message}")
+    else:
+        lines.append("_(nenhum achado)_")
+
+    lines += ["", "## Observações", ""]
+    if result.observations:
+        lines.extend(f"- {observation}" for observation in result.observations)
+    else:
+        lines.append("_(nenhuma observação)_")
+
+    lines += ["", "---", "", "*Relatório gerado automaticamente pelo EDY Shield.*", ""]
+    return "\n".join(lines)
+
+
 def render(result: ScanResult, fmt: str) -> str:
     """Renderizar um ScanResult no formato solicitado.
 
     Args:
         result: Resultado a renderizar.
-        fmt: Formato desejado — ``json``, ``txt`` ou ``html``.
+        fmt: Formato desejado — ``json``, ``txt``, ``html`` ou ``md``/``markdown``.
 
     Returns:
         Conteúdo do relatório no formato escolhido.
@@ -241,4 +298,6 @@ def render(result: ScanResult, fmt: str) -> str:
         return to_txt(result)
     if normalized == "html":
         return to_html(result)
-    raise ValueError(f"Formato de relatório não suportado: {fmt!r}. Use json|txt|html.")
+    if normalized in ("md", "markdown"):
+        return to_markdown(result)
+    raise ValueError(f"Formato de relatório não suportado: {fmt!r}. Use json|txt|html|md.")

@@ -146,3 +146,59 @@ class TestWindowsCompatibility:
         proc = run_cli("hash", str(f))
         assert proc.returncode == EXIT_SUCCESS
         assert len(proc.stdout.strip()) == 64
+
+
+class TestFimCommandE2E:
+    """Testes E2E do File Integrity Monitor via CLI (Sprint 5)."""
+
+    def _make_conf(self, tmp_path: Path) -> Path:
+        conf = tmp_path / "conf"
+        conf.mkdir()
+        (conf / "a.txt").write_text("aaa", encoding="utf-8")
+        (conf / "b.txt").write_text("bbb", encoding="utf-8")
+        return conf
+
+    def test_fim_baseline_criar(self, tmp_path: Path) -> None:
+        conf = self._make_conf(tmp_path)
+        baseline_file = tmp_path / "baseline.json"
+
+        proc = run_cli("fim", "baseline", "criar", str(conf), "--output", str(baseline_file))
+        assert proc.returncode == EXIT_SUCCESS
+        assert baseline_file.exists()
+        assert "baseline criada" in proc.stdout
+        assert "fim_sha256_" in proc.stdout
+
+    def test_fim_scan_no_changes(self, tmp_path: Path) -> None:
+        conf = self._make_conf(tmp_path)
+        baseline_file = tmp_path / "baseline.json"
+        run_cli("fim", "baseline", "criar", str(conf), "--output", str(baseline_file))
+
+        proc = run_cli("fim", "scan", str(conf), "--baseline", str(baseline_file))
+        assert proc.returncode == EXIT_SUCCESS  # 0 = sem mudanças
+        assert "0 mudança(s)" in proc.stderr
+
+    def test_fim_scan_detects_changes_exit_1(self, tmp_path: Path) -> None:
+        conf = self._make_conf(tmp_path)
+        baseline_file = tmp_path / "baseline.json"
+        run_cli("fim", "baseline", "criar", str(conf), "--output", str(baseline_file))
+
+        (conf / "a.txt").write_text("changed!", encoding="utf-8")
+        (conf / "c.txt").write_text("new", encoding="utf-8")
+        (conf / "b.txt").unlink()
+
+        proc = run_cli("fim", "scan", str(conf), "--baseline", str(baseline_file))
+        assert proc.returncode == EXIT_MISMATCH  # 1 = mudanças
+        assert "novo" in proc.stdout
+        assert "modificado" in proc.stdout
+        assert "removido" in proc.stdout
+
+    def test_fim_scan_missing_baseline_exit_2(self, tmp_path: Path) -> None:
+        conf = self._make_conf(tmp_path)
+        proc = run_cli("fim", "scan", str(conf), "--baseline", str(tmp_path / "nope.json"))
+        assert proc.returncode == EXIT_ERROR  # 2 = erro
+
+    def test_fim_help(self) -> None:
+        proc = run_cli("fim", "--help")
+        assert proc.returncode == EXIT_SUCCESS
+        assert "baseline" in proc.stdout
+        assert "scan" in proc.stdout

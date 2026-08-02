@@ -9,16 +9,22 @@ hierarquia completa para consumo externo.
 """
 
 from app.core.exceptions.domain import (
+    BaselineCorruptionError,
+    BaselineNotFoundError,
     EDYShieldError,
     FilesystemError,
+    FimError,
     HashError,
     UnsupportedAlgorithmError,
     ValidationError,
 )
 
 __all__ = [
+    "BaselineCorruptionError",
+    "BaselineNotFoundError",
     "EDYShieldError",
     "FilesystemError",
+    "FimError",
     "HashError",
     "UnsupportedAlgorithmError",
     "ValidationError",

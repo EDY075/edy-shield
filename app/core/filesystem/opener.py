@@ -38,6 +38,8 @@ def open_regular_file(
     *,
     allowed_root: Path | None = None,
     binary: Literal[False],
+    encoding: str | None = None,
+    errors: str | None = None,
 ) -> IO[str]: ...
 
 
@@ -47,6 +49,8 @@ def open_regular_file(
     *,
     allowed_root: Path | None = None,
     binary: Literal[True] = True,
+    encoding: str | None = None,
+    errors: str | None = None,
 ) -> IO[bytes]: ...
 
 
@@ -55,6 +59,8 @@ def open_regular_file(
     *,
     allowed_root: Path | None = None,
     binary: bool = True,
+    encoding: str | None = None,
+    errors: str | None = None,
 ) -> IO[bytes] | IO[str]:
     """Abrir um arquivo regular de forma segura (com TOCTOU hardening).
 
@@ -66,8 +72,12 @@ def open_regular_file(
         path: Caminho do arquivo (``Path`` ou ``str``).
         allowed_root: Raiz permitida, ou ``None`` para cwd.
         binary: Se ``True`` (padrão), retorna um arquivo binário (``rb``).
-            Se ``False``, abre como texto (``r``) — o chamador deve
-            fornecer ``encoding`` e ``errors``.
+            Se ``False``, abre como texto (``r``) — use ``encoding`` e
+            ``errors`` para controle de decodificação.
+        encoding: Encoding do modo texto (ignorado em ``binary=True``);
+            ``None`` usa o encoding padrão da plataforma.
+        errors: Política de erros de decodificação do modo texto (ex.:
+            ``"replace"``); ``None`` usa o padrão da plataforma.
 
     Returns:
         Um objeto file-like (`TextIO` ou `BinaryIO`).
@@ -88,8 +98,9 @@ def open_regular_file(
         if not stat.S_ISREG(st.st_mode):
             raise HashError(f"Cannot hash non-regular file: {target.name}")
 
-        mode = "rb" if binary else "r"
-        return os.fdopen(fd, mode)
+        if binary:
+            return os.fdopen(fd, "rb")
+        return os.fdopen(fd, "r", encoding=encoding, errors=errors)
     except BaseException:
         os.close(fd)
         raise

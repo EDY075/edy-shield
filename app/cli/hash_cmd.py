@@ -1,4 +1,4 @@
-"""CLI real do EDY Shield — comandos ``hash``, ``verify`` e ``checksum``.
+"""CLI real do EDY Shield — comandos ``hash``, ``verify``, ``checksum`` e ``fim``.
 
 Interface via ``argparse`` (stdlib, sem dependências externas). O entrypoint
 ``edyshield`` do ``pyproject.toml`` aponta para :func:`main`, resolvendo o
@@ -10,12 +10,14 @@ Comandos:
     edyshield verify <path> --expected <HASH> [--algorithm SHA256] [--root DIR]
     edyshield checksum create <dir> [--algorithm SHA256] [--output FILE] [--recursive]
     edyshield checksum verify <file.sha256|.md5|...> [--root DIR]
+    edyshield fim baseline criar <dir> [--algorithm SHA256] [--output baseline.json]
+    edyshield fim scan <dir> --baseline <ID|arquivo.json> [--no-recursive]
     edyshield --help
     edyshield --version
 
 Exit codes (ARES-QA-029):
-    0 = sucesso total
-    1 = mismatch encontrado (verify / checksum verify)
+    0 = sucesso total (fim scan: nenhuma mudança)
+    1 = mismatch encontrado (verify / checksum verify / fim scan: mudanças)
     2 = erro de uso, domínio ou leitura
 """
 
@@ -30,6 +32,16 @@ from app.core.algorithms import compute, hash_directory, hash_files, verify_file
 from app.core.checksums import create_checksum_file, verify_checksum_file
 from app.core.config import Settings, load_settings
 from app.core.exceptions import EDYShieldError
+from app.core.fim import (
+    DEFAULT_FIM_DIR,
+    Baseline,
+    FimStore,
+    compare_baseline_snapshot,
+    create_baseline,
+    load_baseline,
+    save_baseline,
+    scan_snapshot,
+)
 from app.core.logging import get_logger, setup_logging
 
 logger = get_logger("cli.hash_cmd")
@@ -153,6 +165,66 @@ def _build_parser() -> argparse.ArgumentParser:
         help="diretório raiz permitido (padrão: diretório do checksum)",
     )
 
+    fim_parser = subparsers.add_parser(
+        "fim",
+        help="File Integrity Monitor — baseline e detecção de mudanças",
+        description="Cria baselines de integridade e compara contra varreduras posteriores.",
+    )
+    fim_sub = fim_parser.add_subparsers(dest="fim_command", required=True)
+
+    baseline_parser = fim_sub.add_parser(
+        "baseline",
+        help="criar uma baseline de integridade do diretório/arquivo",
+        description="Fotografia criptográfica (hashes + metadados) do alvo.",
+    )
+    baseline_sub = baseline_parser.add_subparsers(dest="baseline_command", required=True)
+
+    criar_parser = baseline_sub.add_parser(
+        "criar",
+        help="criar uma baseline e salvar como JSON",
+        description="Gera a baseline (baseline.json por padrão) e registra no FimStore.",
+    )
+    criar_parser.add_argument("target", help="diretório ou arquivo a fotografar")
+    criar_parser.add_argument(
+        "--algorithm",
+        choices=_ALGORITHM_CHOICES,
+        default=None,
+        help="algoritmo de hash (padrão: configuração ou SHA256)",
+    )
+    criar_parser.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="não descer recursivamente em subdiretórios",
+    )
+    criar_parser.add_argument(
+        "--output",
+        default="baseline.json",
+        help="arquivo JSON de saída (padrão: baseline.json)",
+    )
+
+    scan_parser = fim_sub.add_parser(
+        "scan",
+        help="varrer o alvo e comparar contra uma baseline",
+        description="Detecta arquivos novos, modificados e removidos.",
+    )
+    scan_parser.add_argument("target", help="diretório ou arquivo a varrer")
+    scan_parser.add_argument(
+        "--baseline",
+        required=True,
+        help="baseline_id (fim_...) ou caminho de arquivo JSON",
+    )
+    scan_parser.add_argument(
+        "--algorithm",
+        choices=_ALGORITHM_CHOICES,
+        default=None,
+        help="algoritmo de hash (padrão: da baseline)",
+    )
+    scan_parser.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="não descer recursivamente em subdiretórios",
+    )
+
     return parser
 
 
@@ -195,7 +267,7 @@ def main(argv: list[str] | None = None) -> int:
     algorithm = getattr(args, "algorithm", None) or settings.default_hash_algorithm
     # Prioridade de raiz permitida (ARES-QA-028): --root explícito > env
     # EDY_ALLOWED_ROOT > diretório pai do arquivo alvo (resolvido).
-    if args.root:
+    if getattr(args, "root", None):
         root: Path | None = Path(args.root)
     else:
         root = settings.allowed_root
@@ -217,6 +289,18 @@ def main(argv: list[str] | None = None) -> int:
                 return _cmd_checksum_create(args.directory, algorithm, args.output, args.recursive)
             if args.checksum_command == "verify":
                 return _cmd_checksum_verify(args.checksum_file, root, settings)
+        if args.command == "fim":
+            if args.fim_command == "baseline" and args.baseline_command == "criar":
+                return _cmd_fim_baseline_criar(
+                    args.target, algorithm, args.output, args.no_recursive
+                )
+            if args.fim_command == "scan":
+                return _cmd_fim_scan(
+                    args.target,
+                    args.baseline,
+                    algorithm if args.algorithm else None,
+                    args.no_recursive,
+                )
     except SystemExit:
         raise
     except EDYShieldError as exc:
@@ -431,6 +515,114 @@ def _cmd_checksum_verify(
     if report.ok_all:
         return EXIT_SUCCESS
     return EXIT_MISMATCH
+
+
+def _cmd_fim_baseline_criar(
+    target: str,
+    algorithm: str,
+    output: str,
+    no_recursive: bool,
+) -> int:
+    """Executar o comando ``fim baseline criar`` (Sprint 5).
+
+    Cria a baseline de integridade do alvo, salva como JSON determinístico
+    (``--output``, padrão ``baseline.json``) e registra no FimStore
+    (``~/.edyshield/fim``) para reutilização por id.
+
+    Args:
+        target: Diretório ou arquivo a fotografar.
+        algorithm: Algoritmo de hash.
+        output: Caminho do arquivo JSON de saída.
+        no_recursive: Quando ``True``, não desce em subdiretórios.
+
+    Returns:
+        ``EXIT_SUCCESS`` (0) ou ``EXIT_ERROR`` (2).
+    """
+    baseline = create_baseline(
+        target,
+        algorithm=algorithm,
+        recursive=not no_recursive,
+        allowed_root=None,
+    )
+    # Persistência dupla: FimStore (id) + arquivo JSON local.
+    store = FimStore(DEFAULT_FIM_DIR)
+    baseline_id = store.save(baseline)
+    out_path = save_baseline(baseline, output)
+
+    print(f"baseline criada: {out_path} ({len(baseline.entries)} entrada(s)) — id {baseline_id}")
+    return EXIT_SUCCESS
+
+
+def _load_baseline_cli(reference: str) -> Baseline:
+    """Carregar uma baseline por id do FimStore ou por caminho de arquivo.
+
+    Args:
+        reference: ``fim_...`` (id no store) ou caminho de arquivo JSON.
+
+    Returns:
+        :class:`~app.core.fim.models.Baseline`.
+
+    Raises:
+        EDYShieldError / FileNotFoundError: Se a baseline não for localizada.
+    """
+    store = FimStore(DEFAULT_FIM_DIR)
+    is_id = reference.startswith("fim_") and "/" not in reference and "\\" not in reference
+    if is_id:
+        try:
+            return store.load(reference)
+        except EDYShieldError:
+            pass
+    return load_baseline(reference)
+
+
+def _cmd_fim_scan(
+    target: str,
+    baseline_ref: str,
+    algorithm: str | None,
+    no_recursive: bool,
+) -> int:
+    """Executar o comando ``fim scan`` (Sprint 5).
+
+    Carrega a baseline de referência, re-varrer o alvo e compara. Imprime
+    as mudanças detectadas e um resumo.
+
+    Args:
+        target: Diretório ou arquivo a varrer.
+        baseline_ref: baseline_id (``fim_...``) ou caminho de arquivo JSON.
+        algorithm: Algoritmo (``None`` usa o da baseline).
+        no_recursive: Quando ``True``, não desce em subdiretórios.
+
+    Returns:
+        ``EXIT_SUCCESS`` (0) quando sem mudanças, ``EXIT_MISMATCH`` (1)
+        quando há mudanças, ``EXIT_ERROR`` (2) em falhas.
+    """
+    baseline = _load_baseline_cli(baseline_ref)
+    effective_algorithm = algorithm or baseline.algorithm
+
+    snapshot = scan_snapshot(
+        target,
+        algorithm=effective_algorithm,
+        recursive=not no_recursive,
+        allowed_root=None,
+    )
+    diff = compare_baseline_snapshot(baseline, snapshot)
+
+    for path in diff.added:
+        print(f"novo       {path}")
+    for path in diff.modified:
+        print(f"modificado {path}")
+    for path in diff.removed:
+        print(f"removido   {path}")
+    for path in diff.ignored:
+        print(f"ignorado   {path}", file=sys.stderr)
+
+    print(
+        f"fim: {diff.changed} mudança(s) — "
+        f"{len(diff.added)} novo(s), {len(diff.modified)} modificado(s), "
+        f"{len(diff.removed)} removido(s), {len(diff.unchanged)} inalterado(s)",
+        file=sys.stderr,
+    )
+    return EXIT_MISMATCH if diff.changed else EXIT_SUCCESS
 
 
 if __name__ == "__main__":

@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="EDY Shield — Plataforma modular de cibersegurança. Hash Checker, Log Analyzer, Histórico e Relatórios em um painel unificado.">
-  <meta name="theme-color" content="#0a0e14">
+  <meta name="theme-color" content="#0A0E14">
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
   <title>EDY SHIELD — Security Operations</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,8 +26,18 @@
     <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
       <div class="sidebar__brand">
         <div class="brand-mark" aria-hidden="true">
-          <span class="brand-mark__core"></span>
-          <span class="brand-mark__ring"></span>
+          <svg viewBox="0 0 128 128" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+            <rect width="128" height="128" rx="18" fill="#0A0E14"/>
+            <rect x="2" y="2" width="124" height="124" rx="17" fill="none" stroke="url(#grad)" stroke-width="1.5" opacity="0.3"/>
+            <text x="64" y="78" text-anchor="middle" font-family="'Space Grotesk','Inter',sans-serif" font-weight="800" font-size="56" fill="url(#grad)" letter-spacing="-0.02em">E</text>
+            <rect x="18" y="104" width="8" height="2" rx="1" fill="#22D3EE" opacity="0.3"/>
+            <rect x="28" y="104" width="12" height="2" rx="1" fill="#00E5A0" opacity="0.3"/>
+            <rect x="42" y="104" width="10" height="2" rx="1" fill="#22D3EE" opacity="0.3"/>
+            <rect x="54" y="104" width="14" height="2" rx="1" fill="#00E5A0" opacity="0.3"/>
+            <rect x="70" y="104" width="8" height="2" rx="1" fill="#22D3EE" opacity="0.3"/>
+            <circle cx="112" cy="112" r="4" fill="#00E5A0" opacity="0.6"/>
+            <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00E5A0"/><stop offset="100%" stop-color="#22D3EE"/></linearGradient></defs>
+          </svg>
         </div>
         <div class="brand-text">
           <span class="brand-text__name">EDY <strong>SHIELD</strong></span>
@@ -53,6 +64,12 @@
             <a class="nav-item" href="#log-analyzer" data-view="log-analyzer">
               <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>
               <span>Log Analyzer</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" href="#fim" data-view="fim">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s-8-4.5-8-11.8V3.8l8-2 8 2v7.2c0 7.3-8 11.8-8 11.8z"/><path d="M9 12l2 2 4-4"/></svg>
+              <span>FIM</span>
             </a>
           </li>
           <li>
@@ -85,7 +102,7 @@
           <span class="sys-status__dot" aria-hidden="true"></span>
           <div>
             <p class="sys-status__title">Engine</p>
-            <p class="sys-status__value" id="engine-version">v1.1.0</p>
+            <p class="sys-status__value" id="engine-version">v2.0.0</p>
           </div>
         </div>
       </div>
@@ -295,6 +312,75 @@
         </section>
 
         <!-- ============================================================
+             VIEW: FILE INTEGRITY MONITOR (FIM)
+             ============================================================ -->
+        <section class="view" id="view-fim" aria-labelledby="fim-title">
+          <div class="card card--hero">
+            <div class="card__header">
+              <div class="card__heading">
+                <span class="card__kicker">Plugin v2.0</span>
+                <h2 class="card__title" id="fim-title">File Integrity Monitor</h2>
+                <p class="card__desc">Crie baselines de integridade e detecte modificação, criação e remoção de arquivos em varreduras posteriores.</p>
+              </div>
+              <span class="card__badge">Baseline · Scan · Compare</span>
+            </div>
+
+            <div class="hash-form">
+              <div class="field-group field-group--algo">
+                <label class="field-label" for="fim-action">Ação</label>
+                <div class="select-wrap">
+                  <select class="field-input field-input--select" id="fim-action" name="fim-action">
+                    <option value="baseline" selected>Nova Baseline</option>
+                    <option value="scan">Scan (comparar)</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <div class="field-group field-group--algo">
+                <label class="field-label" for="fim-algo">Algoritmo</label>
+                <div class="select-wrap">
+                  <select class="field-input field-input--select" id="fim-algo" name="fim-algo">
+                    <option value="SHA256" selected>SHA-256</option>
+                    <option value="SHA1">SHA-1</option>
+                    <option value="MD5">MD5</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <div class="field-group field-group--input">
+                <label class="field-label" for="fim-path">Caminho do diretório</label>
+                <input class="field-input" type="text" id="fim-path" name="fim-path"
+                       placeholder="C:\conf\ ou /etc/nginx/" autocomplete="off" spellcheck="false">
+              </div>
+
+              <div class="field-group field-group--input" id="fim-baseline-group" style="display:none;">
+                <label class="field-label" for="fim-baseline">Baseline ID</label>
+                <div class="select-wrap">
+                  <select class="field-input field-input--select" id="fim-baseline" name="fim-baseline">
+                    <option value="">-- carregar baseline --</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <div class="field-group field-group--actions">
+                <button class="btn btn--primary" type="button" id="fim-execute" aria-label="Executar varredura FIM">
+                  Criar Baseline
+                </button>
+              </div>
+            </div>
+
+            <div class="hash-result" id="fim-result" aria-live="polite">
+              <p class="hash-result__note">O File Integrity Monitor está disponível via CLI:<br>
+              <code>edyshield fim baseline criar ./pasta</code><br><br>
+              A implementação de UI para esta ferramenta será entregue na Sprint 5.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
              VIEW: MÓDULOS (grid informativo)
              ============================================================ -->
         <section class="view" id="view-modules" aria-labelledby="modules-title">
@@ -309,7 +395,7 @@
 
         <footer class="app-footer">
           <p>EDY SHIELD — Security Operations Platform</p>
-          <p>Versão <strong id="footer-version">v1.1.0</strong></p>
+          <p>Versão <strong id="footer-version">v2.0.0</strong></p>
         </footer>
 
       </div>
