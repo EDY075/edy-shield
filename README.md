@@ -71,9 +71,11 @@ contratos tipados e `PluginManager`, dois plugins oficiais (`log_analyzer` e `ha
 SOC)** servida por um servidor HTTP 100% stdlib (`app/ui/server.py`) que consome os plugins
 **somente via PluginManager** — a UI nunca toca o Core diretamente.
 
-> Documentação técnica de referência: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ·
-> Contrato de API: [`docs/API_STABILITY.md`](docs/API_STABILITY.md) ·
-> Segurança: [`SECURITY.md`](SECURITY.md) · [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)
+<div align="center">
+
+📚 **Documentação de referência:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/API_STABILITY.md`](docs/API_STABILITY.md) · [`SECURITY.md`](SECURITY.md) · [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)
+
+</div>
 
 ---
 
@@ -377,10 +379,6 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 > GIF demonstrativo do EDY Shield Console — navegação entre Dashboard, Hash Checker, Log Analyzer, Histórico, Relatórios e Módulos.
 
 <img src="assets/demo.gif" alt="EDY Shield Demo" width="100%" style="max-width: 1280px;">
-
-
-
-Leia sobre: Segurança | Console HTTP | Temas | Tempo
 
 ---
 
