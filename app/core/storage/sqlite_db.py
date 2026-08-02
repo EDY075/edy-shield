@@ -75,6 +75,33 @@ CREATE TABLE IF NOT EXISTS analyses (
 CREATE INDEX IF NOT EXISTS idx_analyses_timestamp ON analyses(timestamp);
 CREATE INDEX IF NOT EXISTS idx_analyses_plugin ON analyses(plugin_name);
 CREATE INDEX IF NOT EXISTS idx_analyses_severity ON analyses(severity);
+
+CREATE TABLE IF NOT EXISTS alerts (
+    alert_id        TEXT PRIMARY KEY,
+    fingerprint     TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    description     TEXT NOT NULL,
+    source          TEXT NOT NULL,
+    rule_id         TEXT NOT NULL,
+    severity        TEXT NOT NULL,
+    status          TEXT NOT NULL,
+    target          TEXT NOT NULL,
+    count           INTEGER NOT NULL DEFAULT 1,
+    first_seen_at   TEXT NOT NULL,
+    last_seen_at    TEXT NOT NULL,
+    details         TEXT NOT NULL DEFAULT '{}',
+    acknowledged_at TEXT,
+    acknowledged_by TEXT,
+    resolved_at     TEXT,
+    resolved_by     TEXT,
+    resolution_note TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_alerts_fingerprint ON alerts(fingerprint);
+CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
+CREATE INDEX IF NOT EXISTS idx_alerts_severity ON alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_alerts_source ON alerts(source);
+CREATE INDEX IF NOT EXISTS idx_alerts_last_seen ON alerts(last_seen_at);
 """
 
 

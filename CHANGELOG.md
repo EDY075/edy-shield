@@ -133,6 +133,54 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+### v2.1 — M3: Alert Engine
+
+#### Added
+
+- **Core de Alertas** (`app/core/alerts/`) — motor de alertas 100% stdlib (ADR-009):
+  - `models.py` — `Severity`, `AlertStatus`, `AlertAction` (`StrEnum`), `AlertRecord`,
+    `AlertRule`, `AlertEvent`, `AlertSource` (constantes canônicas), `compute_fingerprint`
+    (SHA-256), `render_template` (format-safe, proteção contra template injection).
+  - `deduplicator.py` — `DedupCache` (thread-safe, `RLock`), `try_dedup` (janela temporal),
+    `is_within_window` (ISO-8601 parsing). ADR-010: fingerprint = SHA256(source|rule_id|target).
+  - `channels.py` — `BaseAlertChannel` (ABC), `ConsoleChannel` (logging), `FileChannel`
+    (UTF-8 append), `CompositeChannel` (multi-dispatch), `NullChannel` (testes).
+  - `rules.py` — `RuleRegistry` (registro, remoção, avaliação por prioridade), `default_rules`
+    (8 regras embutidas: FIM_MODIFIED/CREATED/DELETED, STRING_SECRET/URL, ENTROPY_HIGH/MEDIUM,
+    DEFAULT_CATCH_ALL), 10 operadores (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`,
+    `regex`, `in`, `exists`), `evaluate_condition`.
+  - `engine.py` — `AlertEngine` (process_event, process_scan_result, stats), `EngineResult`.
+    Orquestra regras → fingerprint → dedup → supressão → dispatch. Adaptador de evidências.
+- **AlertStore** (`app/services/alert_store.py`) — persistência SQLite (tabela `alerts` com
+  5 índices: fingerprint, status, severity, source, last_seen). CRUD completo, filtros,
+  paginação, stats agregadas, `get_by_fingerprint_active` (warm-up do cache).
+- **AlertService** (`app/services/alert_service.py`) — façade que integra engine + store.
+  Ciclo de vida: `acknowledge`, `resolve`, `suppress`, `reopen` (transições validadas).
+  `process_and_store` (novo ou atualizado), `process_scan_evidences`, hidratação de cache
+  na inicialização. Suporta `EDYSHIELD_DB_PATH` (env var para testes).
+- **CLI `edyshield alerts`** (`app/cli/alert_cmd.py`) — 8 subcomandos: `list`, `show`, `ack`,
+  `resolve`, `suppress`, `reopen`, `stats`, `rules`. Saída JSON opcional (`--json`).
+  Integrado ao parser principal em `hash_cmd.py`.
+- **Schema SQLite** — tabela `alerts` adicionada a `_SCHEMA` em `sqlite_db.py` (idempotente).
+- **ADR-009** — Motor de Alertas Desacoplado 100% Stdlib no Core (implementado).
+- **ADR-010** — Deduplicação Baseada em Fingerprint Temporal (implementado).
+- **Testes** — `tests/unit/test_alert_core.py` (57), `test_alert_service.py` (20),
+  `test_alert_coverage.py` (13), `tests/e2e/test_alert_cli_e2e.py` (10). Total: 100 novos.
+
+#### Changed
+
+- `app/core/storage/sqlite_db.py` — `_SCHEMA` estendido com tabela `alerts` + 5 índices.
+- `app/cli/hash_cmd.py` — integrado subparser `alerts` + dispatch em `main()`.
+
+#### Quality
+
+- Suíte global **575 passed, 2 skipped** (zero regressões, +101 testes). Cobertura global
+  **90.51%** (gate >= 90%): módulos de alertas Core 94% (models 99%, engine 96%, dedup 92%,
+  rules 90%, channels 90%), `alert_service.py` 87%, `alert_store.py` 89%. `mypy --strict`
+  0 (9 arquivos novos). `ruff check` e `ruff format` limpos.
+
+---
+
 ## [0.1.0] — 2026-08-01
 
 ### Sprint 2 — Fundação técnica (Core em camadas, CLI real, config & logging)

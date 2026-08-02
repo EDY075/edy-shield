@@ -323,6 +323,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="filtrar por categoria (ex.: url, api_key)",
     )
 
+    # --- subcomando: alerts (M3-T09) --------------------------------
+    from app.cli.alert_cmd import _build_alerts_parser
+
+    _build_alerts_parser(subparsers)
+
     return parser
 
 
@@ -420,6 +425,10 @@ def main(argv: list[str] | None = None) -> int:
                 args.severity,
                 args.category,
             )
+        if args.command == "alerts":
+            from app.cli.alert_cmd import handle_alerts_command
+
+            return handle_alerts_command(args)
     except SystemExit:
         raise
     except EDYShieldError as exc:
