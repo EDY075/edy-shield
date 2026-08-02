@@ -1,15 +1,22 @@
-"""CLI real do EDY Shield — comandos ``hash`` e ``verify`` (Missão 3).
+"""CLI real do EDY Shield — comandos ``hash``, ``verify`` e ``checksum``.
 
 Interface via ``argparse`` (stdlib, sem dependências externas). O entrypoint
 ``edyshield`` do ``pyproject.toml`` aponta para :func:`main`, resolvendo o
 achado ARES-QA-021.
 
 Comandos:
-
     edyshield hash <path> [--algorithm SHA256] [--root DIR]
+    edyshield hash --batch <dir> [--recursive] [--algorithm SHA256] [--root DIR]
     edyshield verify <path> --expected <HASH> [--algorithm SHA256] [--root DIR]
+    edyshield checksum create <dir> [--algorithm SHA256] [--output FILE] [--recursive]
+    edyshield checksum verify <file.sha256|.md5|...> [--root DIR]
     edyshield --help
     edyshield --version
+
+Exit codes (ARES-QA-029):
+    0 = sucesso total
+    1 = mismatch encontrado (verify / checksum verify)
+    2 = erro de uso, domínio ou leitura
 """
 
 from __future__ import annotations
@@ -19,7 +26,8 @@ import sys
 from pathlib import Path
 
 from app import __version__
-from app.core.algorithms import compute, verify_file
+from app.core.algorithms import compute, hash_directory, hash_files, verify_file
+from app.core.checksums import create_checksum_file, verify_checksum_file
 from app.core.config import Settings, load_settings
 from app.core.exceptions import EDYShieldError
 from app.core.logging import get_logger, setup_logging
@@ -49,10 +57,20 @@ def _build_parser() -> argparse.ArgumentParser:
 
     hash_parser = subparsers.add_parser(
         "hash",
-        help="calcular o hash de um arquivo ou texto",
-        description="Calcula o hash de um arquivo e imprime o hexdigest.",
+        help="calcular o hash de um arquivo, texto ou diretório (batch)",
+        description="Calcula o hash de um arquivo, texto ou diretório (com --batch).",
     )
-    hash_parser.add_argument("source", help="caminho do arquivo ou texto")
+    hash_parser.add_argument("source", help="caminho do arquivo, texto ou diretório")
+    hash_parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="processar um diretório inteiro (vários arquivos)",
+    )
+    hash_parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="descer recursivamente em subdiretórios (com --batch)",
+    )
     hash_parser.add_argument(
         "--algorithm",
         choices=_ALGORITHM_CHOICES,
@@ -88,6 +106,53 @@ def _build_parser() -> argparse.ArgumentParser:
         help="diretório raiz permitido (padrão: diretório de trabalho atual)",
     )
 
+    checksum_parser = subparsers.add_parser(
+        "checksum",
+        help="criar e verificar arquivos de checksum",
+        description="Cria ou verifica arquivos de checksum (.sha256, .sha1, .md5).",
+    )
+    checksum_sub = checksum_parser.add_subparsers(dest="checksum_command", required=True)
+
+    create_parser = checksum_sub.add_parser(
+        "create",
+        help="criar um arquivo de checksum a partir de um diretório",
+        description="Gera um arquivo de checksum para todos os arquivos do diretório.",
+    )
+    create_parser.add_argument("directory", help="diretório a varrer")
+    create_parser.add_argument(
+        "--algorithm",
+        choices=_ALGORITHM_CHOICES,
+        default=None,
+        help="algoritmo de hash (padrão: configuração ou SHA256)",
+    )
+    create_parser.add_argument(
+        "--output",
+        default=None,
+        help="arquivo de checksum de saída (padrão: <dir>/SHA256SUMS)",
+    )
+    create_parser.add_argument(
+        "--recursive",
+        action="store_true",
+        help="descer recursivamente em subdiretórios",
+    )
+    create_parser.add_argument(
+        "--root",
+        default=None,
+        help="diretório raiz permitido (padrão: diretório alvo)",
+    )
+
+    verify_cs_parser = checksum_sub.add_parser(
+        "verify",
+        help="verificar um arquivo de checksum",
+        description="Verifica as entradas de um arquivo de checksum contra os arquivos.",
+    )
+    verify_cs_parser.add_argument("checksum_file", help="arquivo de checksum (.sha256/.sha1/.md5)")
+    verify_cs_parser.add_argument(
+        "--root",
+        default=None,
+        help="diretório raiz permitido (padrão: diretório do checksum)",
+    )
+
     return parser
 
 
@@ -105,8 +170,8 @@ def main(argv: list[str] | None = None) -> int:
     Returns:
         Código de saída:
         - ``0`` sucesso (hash calculado / verificação MATCH)
-        - ``1`` verificação MISMATCH (apenas ``verify``)
-        - ``2`` erro de domínio / validação / inesperado
+        - ``1`` verificação MISMATCH (verify / checksum verify)
+        - ``2`` erro de uso, domínio ou leitura
         (ARES-QA-029)
     """
     try:
@@ -127,7 +192,7 @@ def main(argv: list[str] | None = None) -> int:
         # código de saída para que main() seja testável e retorne int.
         return int(exc.code or 0)
 
-    algorithm = args.algorithm or settings.default_hash_algorithm
+    algorithm = getattr(args, "algorithm", None) or settings.default_hash_algorithm
     # Prioridade de raiz permitida (ARES-QA-028): --root explícito > env
     # EDY_ALLOWED_ROOT > diretório pai do arquivo alvo (resolvido).
     if args.root:
@@ -142,9 +207,16 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         if args.command == "hash":
+            if args.batch:
+                return _cmd_hash_batch(args.source, algorithm, args.recursive)
             return _cmd_hash(args.source, algorithm, root, settings)
         if args.command == "verify":
             return _cmd_verify(args.source, args.expected, algorithm, root, settings)
+        if args.command == "checksum":
+            if args.checksum_command == "create":
+                return _cmd_checksum_create(args.directory, algorithm, args.output, args.recursive)
+            if args.checksum_command == "verify":
+                return _cmd_checksum_verify(args.checksum_file, root, settings)
     except SystemExit:
         raise
     except EDYShieldError as exc:
@@ -194,7 +266,7 @@ def _cmd_hash(
     root: Path | None,
     settings: Settings,
 ) -> int:
-    """Executar o comando ``hash``."""
+    """Executar o comando ``hash`` (arquivo ou texto)."""
     result = compute(
         source,
         algorithm,
@@ -210,7 +282,48 @@ def _cmd_hash(
         result.hexdigest,
     )
     print(result.hexdigest)
-    return 0
+    return EXIT_SUCCESS
+
+
+def _cmd_hash_batch(
+    source: str,
+    algorithm: str,
+    recursive: bool,
+) -> int:
+    """Executar o comando ``hash --batch`` (diretório/lista de arquivos).
+
+    Resultados (digests) vão para stdout; erros individuais e resumo vão para
+    stderr. Exit code ``2`` se algum arquivo falhar, ``0`` se tudo passar.
+
+    Args:
+        source: Diretório (ou arquivo) a processar em lote.
+        algorithm: Algoritmo de hash.
+        recursive: Se ``True``, varre recursivamente subdiretórios.
+
+    Returns:
+        Código de saída (0 sucesso total, 2 com erros).
+    """
+    path = Path(source)
+    if path.is_dir():
+        results = hash_directory(path, algorithm, recursive=recursive)
+    else:
+        results = hash_files([path], algorithm)
+
+    ok = 0
+    errors = 0
+    for entry, err in results:
+        if err is not None or entry is None:
+            errors += 1
+            print(f"erro: {err}", file=sys.stderr)
+            continue
+        ok += 1
+        print(f"{entry.hexdigest}  {entry.path}")
+
+    print(
+        f"batch: {len(results)} processado(s), {ok} sucesso(s), {errors} erro(s)",
+        file=sys.stderr,
+    )
+    return EXIT_SUCCESS if errors == 0 else EXIT_ERROR
 
 
 def _cmd_verify(
@@ -239,6 +352,84 @@ def _cmd_verify(
         print("OK")
         return EXIT_SUCCESS
     print("FAIL")
+    return EXIT_MISMATCH
+
+
+def _default_checksum_output(directory: Path, algorithm: str) -> Path:
+    """Nome padrão do arquivo de checksum para um algoritmo."""
+    suffix = {"SHA256": "SHA256SUMS", "SHA1": "SHA1SUMS", "MD5": "MD5SUMS"}[algorithm]
+    return directory / suffix
+
+
+def _cmd_checksum_create(
+    directory: str,
+    algorithm: str,
+    output: str | None,
+    recursive: bool,
+) -> int:
+    """Executar o comando ``checksum create``.
+
+    Args:
+        directory: Diretório a varrer.
+        algorithm: Algoritmo de hash.
+        output: Caminho do arquivo de checksum (ou ``None`` para padrão).
+        recursive: Se ``True``, desce recursivamente.
+
+    Returns:
+        ``EXIT_SUCCESS`` (0) ou ``EXIT_ERROR`` (2).
+    """
+    root = Path(directory)
+    out_path = (
+        Path(output).resolve() if output else _default_checksum_output(root.resolve(), algorithm)
+    )
+
+    count = create_checksum_file(root, out_path, algorithm=algorithm, recursive=recursive)
+    print(f"checksum criado: {out_path} ({count} entrada(s))")
+    return EXIT_SUCCESS
+
+
+def _cmd_checksum_verify(
+    checksum_file: str,
+    root: Path | None,
+    settings: Settings,
+) -> int:
+    """Executar o comando ``checksum verify``.
+
+    Para cada entrada, imprime ``status  filename``. Ao final imprime resumo.
+    Exit code: ``0`` se tudo OK, ``1`` se houver mismatch/missing/invalid.
+
+    Args:
+        checksum_file: Caminho do arquivo de checksum.
+        root: Raiz permitida (ou ``None`` para o diretório do arquivo).
+        settings: Configurações carregadas.
+
+    Returns:
+        Código de saída (0, 1 ou 2).
+    """
+    allowed_root = root.resolve() if root is not None else None
+    report = verify_checksum_file(
+        checksum_file, allowed_root=allowed_root, chunk_size=settings.chunk_size
+    )
+
+    for entry in report.entries:
+        if entry.status == "ok":
+            print(f"ok       {entry.filename}")
+        elif entry.status == "mismatch":
+            print(f"mismatch {entry.filename}")
+        elif entry.status == "missing":
+            print(f"missing  {entry.filename}")
+        else:
+            print(f"invalid  {entry.filename}  ({entry.error})")
+
+    print(
+        f"checksum: {report.ok}/{report.total} ok, "
+        f"{report.mismatch} mismatch, {report.missing} missing, "
+        f"{report.invalid} invalid",
+        file=sys.stderr,
+    )
+
+    if report.ok_all:
+        return EXIT_SUCCESS
     return EXIT_MISMATCH
 
 
