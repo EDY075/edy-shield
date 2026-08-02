@@ -35,7 +35,7 @@ def target_dir(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def plugin(tmp_path: Path) -> FileIntegrityPlugin:
-    store = FimStore(tmp_path / "fim")
+    store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
     return FileIntegrityPlugin(store)
 
 

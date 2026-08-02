@@ -400,7 +400,7 @@ class TestBaselineCorruption:
 
 class TestFimStore:
     def test_save_and_load(self, target_dir: Path, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         baseline = create_baseline(target_dir)
         baseline_id = store.save(baseline)
         assert baseline_id == baseline.baseline_id
@@ -408,7 +408,7 @@ class TestFimStore:
         assert loaded == baseline
 
     def test_list_order_newest_first(self, target_dir: Path, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         b1 = create_baseline(target_dir, now=datetime(2026, 8, 2, 10, 0, 0, tzinfo=UTC))
         b2 = create_baseline(target_dir, now=datetime(2026, 8, 2, 11, 0, 0, tzinfo=UTC))
         store.save(b1)
@@ -418,7 +418,7 @@ class TestFimStore:
         assert ids[1] == b1.baseline_id
 
     def test_list_metadata_fields(self, target_dir: Path, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         baseline = create_baseline(target_dir)
         store.save(baseline)
         meta = store.list()[0]
@@ -428,19 +428,19 @@ class TestFimStore:
         assert "created_at" in meta
 
     def test_delete(self, target_dir: Path, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         baseline = create_baseline(target_dir)
         baseline_id = store.save(baseline)
         assert store.delete(baseline_id) is True
         assert store.delete(baseline_id) is False
 
     def test_load_missing_raises(self, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         with pytest.raises(BaselineNotFoundError):
             store.load("fim_sha256_20260802T000000Z")
 
     def test_unsafe_id_rejected(self, tmp_path: Path) -> None:
-        store = FimStore(tmp_path / "fim")
+        store = FimStore(tmp_path / "fim", db_path=tmp_path / "test.db")
         with pytest.raises(BaselineNotFoundError):
             store.load("../escape")
 

@@ -341,6 +341,17 @@ edyshield fim scan ./conf --baseline fim_sha256_20260802T120000Z
 # removido   old.cert
 ```
 
+### Histórico (v2.1) — varreduras persistidas em SQLite
+
+```bash
+# Listar varreduras persistidas (backend SQLite ~/.edyshield/edy_shield.db)
+edyshield history
+# 2026-08-02T07:08:23+00:00  hash_checker v2.0.0  INFO  20260802T070823Z_hash_checker
+
+# Limitar a quantidade de registros
+edyshield history --limit 5
+```
+
 ### 1. Hash de texto
 
 ```python

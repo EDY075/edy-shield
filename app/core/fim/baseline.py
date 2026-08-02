@@ -70,7 +70,15 @@ def _validate_entry(entry: BaselineEntry, algorithm: str) -> None:
         BaselineCorruptionError: Se a entrada violar as regras.
     """
     path = entry.path
-    absolute = Path(path).is_absolute() or path.startswith("/") or path.startswith("\\")
+    # Rejeita paths absolutos em qualquer plataforma: POSIX ("/..."), Windows
+    # ("C:\\...") e prefixo de drive ("C:/...") mesmo no Linux (compat
+    # multiplataforma — Path.is_absolute() não detecta "C:/x" no POSIX).
+    absolute = (
+        Path(path).is_absolute()
+        or path.startswith("/")
+        or path.startswith("\\")
+        or bool(re.match(r"^[A-Za-z]:[\\/]", path))
+    )
     if not path or absolute:
         raise BaselineCorruptionError(f"path deve ser relativo: {path!r}")
     if ".." in Path(path).parts:

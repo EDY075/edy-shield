@@ -59,6 +59,10 @@ class FimStore:
         """Caminho do banco SQLite usado pelo store."""
         return self._db.db_path
 
+    def close(self) -> None:
+        """Fechar a conexão SQLite (liberar recursos)."""
+        self._db.close()
+
     @staticmethod
     def build_id(algorithm: str, now: datetime | None = None) -> str:
         """Gerar ``fim_<algo>_<UTC %Y%m%dT%H%M%SZ>``.

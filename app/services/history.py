@@ -58,6 +58,10 @@ class HistoryStore:
         """Caminho do banco SQLite usado pelo store."""
         return self._db.db_path
 
+    def close(self) -> None:
+        """Fechar a conexão SQLite (liberar recursos)."""
+        self._db.close()
+
     def save(self, result: ScanResult) -> str:
         """Persistir um resultado e retornar o id gerado.
 

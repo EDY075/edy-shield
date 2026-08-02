@@ -42,8 +42,10 @@ class TestServe:
         fake = FakeServer(("127.0.0.1", 0), object)
         monkeypatch.setattr(server_mod, "ThreadingHTTPServer", lambda _addr, _handler: fake)
 
-        manager = server_mod.build_default_manager(fim_dir=tmp_path / "fim")
-        history = HistoryStore(tmp_path / "history")
+        manager = server_mod.build_default_manager(
+            fim_dir=tmp_path / "fim", db_path=tmp_path / "test.db"
+        )
+        history = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
 
         serve(host="127.0.0.1", port=0, manager=manager, history=history)
 
