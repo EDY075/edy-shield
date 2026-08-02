@@ -374,13 +374,13 @@ $env:EDY_DEFAULT_HASH_ALGORITHM="SHA256"
 
 ## 🎬 Demo
 
-> Em breve — GIF demonstrativo do EDY Shield Console (dashboard, hash checker, log analyzer e
-> relatórios). Coloque o arquivo em `assets/demo.gif` e referencie-o abaixo.
+> GIF demonstrativo do EDY Shield Console — navegação entre Dashboard, Hash Checker, Log Analyzer, Histórico, Relatórios e Módulos.
 
-<!--
-  Coloque aqui o GIF após criá-lo:
-  <img src="assets/demo.gif" alt="EDY Shield demo" width="100%">
--->
+<img src="assets/demo.gif" alt="EDY Shield Demo" width="100%" style="max-width: 1280px;">
+
+
+
+Leia sobre: Segurança | Console HTTP | Temas | Tempo
 
 ---
 
