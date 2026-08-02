@@ -26,7 +26,7 @@ class TestScanResultFromDict:
     def test_roundtrip(self) -> None:
         original = ScanResult(
             plugin_name="log_analyzer",
-            plugin_version="1.1.0",
+            plugin_version="2.0.0",
             timestamp=datetime(2026, 8, 1, 12, 0, 0, tzinfo=UTC),
             summary="sum",
             findings=(Evidence(severity=Severity.CRITICAL, message="x", source="linha 1"),),
@@ -55,7 +55,7 @@ class TestScanResultFromDict:
 
 class TestHistoryStore:
     def test_save_and_get(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         result = ScanResult(
             plugin_name="p",
             plugin_version="1",
@@ -66,11 +66,11 @@ class TestHistoryStore:
         assert store.get(scan_id) == result
 
     def test_get_missing(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         assert store.get("nao-existe") is None
 
     def test_list_sorted_desc(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         older = ScanResult(
             plugin_name="a",
             plugin_version="1",
@@ -90,7 +90,7 @@ class TestHistoryStore:
         assert entries[0]["plugin_name"] == "b"  # mais recente primeiro
 
     def test_clear(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         result = ScanResult(
             plugin_name="p",
             plugin_version="1",
@@ -102,16 +102,16 @@ class TestHistoryStore:
         assert store.list() == []
 
     def test_unsafe_id_raises(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         with pytest.raises(HistoryError):
             store.get("../escape")
 
     def test_base_dir_created(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "nested" / "history")
+        store = HistoryStore(tmp_path / "nested" / "history", db_path=tmp_path / "test.db")
         assert store.base_dir.is_dir()
 
     def test_corrupt_file_raises(self, tmp_path: Path) -> None:
-        store = HistoryStore(tmp_path / "history")
+        store = HistoryStore(tmp_path / "history", db_path=tmp_path / "test.db")
         (store.base_dir / "corrupt.json").write_text("{not json", encoding="utf-8")
         with pytest.raises(HistoryError):
             store.get("corrupt")
@@ -173,9 +173,9 @@ class TestHashCheckerPlugin:
 
 
 class TestDefaultManager:
-    def test_build_default_manager_registers_both(self) -> None:
+    def test_build_default_manager_registers_both(self, tmp_path: Path) -> None:
         from app.ui.server import build_default_manager
 
-        manager = build_default_manager()
+        manager = build_default_manager(fim_dir=tmp_path / "fim", db_path=tmp_path / "test.db")
         assert manager.registry.contains("hash_checker")
         assert manager.registry.contains("log_analyzer")

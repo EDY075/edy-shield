@@ -27,7 +27,7 @@ class Plugin(ABC):
 
     #: Identificador único do plugin (slug, lowercase com underscores).
     name: str
-    #: Versão semântica do plugin (ex.: ``"1.1.0"``).
+    #: Versão semântica do plugin (ex.: ``"2.0.0"``).
     version: str
     #: Descrição curta exibida em relatórios e na UI.
     description: str

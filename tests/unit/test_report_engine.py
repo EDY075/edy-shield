@@ -21,7 +21,7 @@ def result() -> ScanResult:
     """ScanResult de exemplo com todos os campos preenchidos."""
     return ScanResult(
         plugin_name="log_analyzer",
-        plugin_version="1.1.0",
+        plugin_version="2.0.0",
         timestamp=datetime(2026, 8, 1, 12, 0, 0, tzinfo=UTC),
         summary="3 evento(s) detectado(s) em 4 linhas.",
         findings=(
@@ -47,7 +47,7 @@ class TestToJson:
     def test_pretty_valid_json(self, result: ScanResult) -> None:
         parsed = json.loads(to_json(result))
         assert parsed["plugin_name"] == "log_analyzer"
-        assert parsed["plugin_version"] == "1.1.0"
+        assert parsed["plugin_version"] == "2.0.0"
         assert parsed["max_severity"] == "CRITICAL"
         assert parsed["timestamp"] == "2026-08-01T12:00:00+00:00"
         assert len(parsed["findings"]) == 2
@@ -79,7 +79,7 @@ class TestToTxt:
     def test_contains_metadata(self, result: ScanResult) -> None:
         text = to_txt(result)
         assert "log_analyzer" in text
-        assert "v1.1.0" in text
+        assert "v2.0.0" in text
         assert "2026-08-01T12:00:00" in text
         assert "Crítica" in text
 
