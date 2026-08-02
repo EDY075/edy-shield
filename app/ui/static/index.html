@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EDY Shield — Plataforma modular de cibersegurança. Hash Checker, Log Analyzer, Histórico e Relatórios em um painel unificado.">
+  <meta name="theme-color" content="#0a0e14">
+  <title>EDY SHIELD — Security Operations</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <a class="skip-link" href="#main-content">Pular para o conteúdo principal</a>
+
+  <div class="app-shell">
+
+    <!-- ============================================================
+         SIDEBAR — Navegação principal (painel SOC)
+         ============================================================ -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegação principal">
+      <div class="sidebar__brand">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="brand-mark__core"></span>
+          <span class="brand-mark__ring"></span>
+        </div>
+        <div class="brand-text">
+          <span class="brand-text__name">EDY <strong>SHIELD</strong></span>
+          <span class="brand-text__tag">Security Operations</span>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav" aria-label="Seções do sistema">
+        <p class="sidebar__label">Painel</p>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item nav-item--active" href="#dashboard" data-view="dashboard" aria-current="true">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" href="#hash-checker" data-view="hash-checker">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h3"/></svg>
+              <span>Hash Checker</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" href="#log-analyzer" data-view="log-analyzer">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg>
+              <span>Log Analyzer</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" href="#historico" data-view="history">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              <span>Histórico</span>
+            </a>
+          </li>
+          <li>
+            <a class="nav-item" href="#relatorios" data-view="reports">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+              <span>Relatórios</span>
+            </a>
+          </li>
+        </ul>
+
+        <p class="sidebar__label sidebar__label--second">Sistema</p>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" href="#modulos" data-view="modules">
+              <svg class="nav-item__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Módulos</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="sys-status">
+          <span class="sys-status__dot" aria-hidden="true"></span>
+          <div>
+            <p class="sys-status__title">Engine</p>
+            <p class="sys-status__value" id="engine-version">v1.1.0</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" aria-hidden="true"></div>
+
+    <!-- ============================================================
+         MAIN — Conteúdo principal
+         ============================================================ -->
+    <main class="main" id="main-content">
+
+      <header class="topbar">
+        <div class="topbar__left">
+          <button class="icon-btn topbar__menu" id="menu-toggle" aria-label="Abrir menu de navegação" aria-controls="sidebar" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <div>
+            <h1 class="topbar__title" id="view-title">Painel de Operações</h1>
+            <p class="topbar__subtitle" id="live-clock" aria-live="off">--</p>
+          </div>
+        </div>
+
+        <div class="topbar__right">
+          <span class="status-pill status-pill--online" role="status" id="api-status">
+            <span class="status-pill__dot" aria-hidden="true"></span>
+            CONECTANDO
+          </span>
+          <div class="user-chip" aria-label="Usuário: Analista">
+            <span class="user-chip__avatar" aria-hidden="true">ED</span>
+            <span class="user-chip__name">Analista</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <!-- ============================================================
+             VIEW: DASHBOARD
+             ============================================================ -->
+        <section class="view is-active" id="view-dashboard" aria-labelledby="dashboard-title">
+          <div class="section-head">
+            <div>
+              <h2 class="section-head__title" id="dashboard-title">Dashboard</h2>
+              <p class="section-head__sub">Visão geral da plataforma e plugins disponíveis</p>
+            </div>
+            <button class="btn btn--file" type="button" id="dashboard-refresh" aria-label="Atualizar dashboard">
+              Atualizar
+            </button>
+          </div>
+
+          <div class="stat-grid" id="dashboard-stats" aria-live="polite">
+            <div class="stat-card">
+              <span class="stat-card__label">Plugins ativos</span>
+              <span class="stat-card__value" id="stat-plugins">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">Varreduras</span>
+              <span class="stat-card__value" id="stat-scans">--</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-card__label">Status API</span>
+              <span class="stat-card__value stat-card__value--ok" id="stat-status">--</span>
+            </div>
+          </div>
+
+          <div class="modules" style="margin-top: 24px;">
+            <div class="section-head">
+              <h3 class="section-head__title">Módulos</h3>
+              <p class="section-head__sub">Clique para abrir a ferramenta</p>
+            </div>
+            <div class="modules__grid" id="dashboard-modules">
+              <!-- preenchido por app.js -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             VIEW: HASH CHECKER
+             ============================================================ -->
+        <section class="view" id="view-hash-checker" aria-labelledby="hash-title">
+          <div class="card card--hero">
+            <div class="card__header">
+              <div class="card__heading">
+                <span class="card__kicker">Módulo principal</span>
+                <h2 class="card__title" id="hash-title">Hash Checker</h2>
+                <p class="card__desc">Calcule hashes de texto ou arquivo e verifique integridade contra um digest esperado.</p>
+              </div>
+              <span class="card__badge">SHA-256 · SHA-1 · MD5</span>
+            </div>
+
+            <div class="hash-form">
+              <div class="field-group field-group--algo">
+                <label class="field-label" for="hash-algo">Algoritmo</label>
+                <div class="select-wrap">
+                  <select class="field-input field-input--select" id="hash-algo" name="algo">
+                    <option value="SHA256" selected>SHA-256</option>
+                    <option value="SHA1">SHA-1</option>
+                    <option value="MD5">MD5</option>
+                  </select>
+                  <svg class="select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </div>
+              </div>
+
+              <div class="field-group field-group--input">
+                <label class="field-label" for="hash-input">Texto ou caminho do arquivo</label>
+                <input class="field-input" type="text" id="hash-input" name="input"
+                       placeholder="Digite um texto ou um caminho de arquivo..." autocomplete="off" spellcheck="false">
+              </div>
+
+              <div class="field-group field-group--actions">
+                <button class="btn btn--primary" type="button" id="hash-calc" aria-label="Calcular hash">
+                  Calcular Hash
+                </button>
+              </div>
+            </div>
+
+            <div class="field-group" style="margin-top: 16px;">
+              <label class="field-label" for="hash-expected">Digest esperado (verificação opcional)</label>
+              <input class="field-input" type="text" id="hash-expected" name="expected"
+                     placeholder="Cole um hash para verificar integridade (opcional)" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div class="hash-result" id="hash-result" aria-live="polite">
+              <p class="hash-result__note">Resultado aparecerá aqui após a execução.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             VIEW: LOG ANALYZER
+             ============================================================ -->
+        <section class="view" id="view-log-analyzer" aria-labelledby="log-title">
+          <div class="card card--hero">
+            <div class="card__header">
+              <div class="card__heading">
+                <span class="card__kicker">Plugin oficial</span>
+                <h2 class="card__title" id="log-title">Log Analyzer</h2>
+                <p class="card__desc">Analise arquivos de log e detecte falhas de login, erros, avisos e eventos críticos.</p>
+              </div>
+              <span class="card__badge">.log · .txt</span>
+            </div>
+
+            <div class="hash-form">
+              <div class="field-group field-group--input" style="grid-column: 1 / -1;">
+                <label class="field-label" for="log-path">Caminho do arquivo de log</label>
+                <input class="field-input" type="text" id="log-path" name="log"
+                       placeholder="C:\\logs\\auth.log ou /var/log/auth.log" autocomplete="off" spellcheck="false">
+              </div>
+
+              <div class="field-group">
+                <label class="field-label" for="log-max-lines">Máx. de linhas (0 = ilimitado)</label>
+                <input class="field-input" type="number" id="log-max-lines" name="max_lines" value="0" min="0">
+              </div>
+
+              <div class="field-group field-group--actions" style="align-items: flex-end;">
+                <button class="btn btn--primary" type="button" id="log-analyze" aria-label="Analisar log">
+                  Analisar Log
+                </button>
+              </div>
+            </div>
+
+            <div class="hash-result" id="log-result" aria-live="polite">
+              <p class="hash-result__note">Resultado aparecerá aqui após a execução.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             VIEW: HISTÓRICO
+             ============================================================ -->
+        <section class="view" id="view-history" aria-labelledby="history-title">
+          <div class="section-head">
+            <div>
+              <h2 class="section-head__title" id="history-title">Histórico de Varreduras</h2>
+              <p class="section-head__sub">Execuções salvas na plataforma</p>
+            </div>
+            <button class="btn btn--file" type="button" id="history-refresh" aria-label="Atualizar histórico">
+              Atualizar
+            </button>
+          </div>
+          <div class="card">
+            <div class="table-wrap" id="history-table" aria-live="polite">
+              <p class="hash-result__note">Carregando histórico...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             VIEW: RELATÓRIOS
+             ============================================================ -->
+        <section class="view" id="view-reports" aria-labelledby="reports-title">
+          <div class="section-head">
+            <div>
+              <h2 class="section-head__title" id="reports-title">Relatórios</h2>
+              <p class="section-head__sub">Exporte varreduras em JSON, TXT ou HTML</p>
+            </div>
+            <button class="btn btn--file" type="button" id="reports-refresh" aria-label="Atualizar relatórios">
+              Atualizar
+            </button>
+          </div>
+          <div class="card">
+            <div class="table-wrap" id="reports-table" aria-live="polite">
+              <p class="hash-result__note">Carregando varreduras disponíveis...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             VIEW: MÓDULOS (grid informativo)
+             ============================================================ -->
+        <section class="view" id="view-modules" aria-labelledby="modules-title">
+          <div class="section-head">
+            <h2 class="section-head__title" id="modules-title">Módulos</h2>
+            <p class="section-head__sub">Plataforma modular em expansão</p>
+          </div>
+          <div class="modules__grid" id="modules-grid">
+            <!-- preenchido por app.js -->
+          </div>
+        </section>
+
+        <footer class="app-footer">
+          <p>EDY SHIELD — Security Operations Platform</p>
+          <p>Versão <strong id="footer-version">v1.1.0</strong></p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

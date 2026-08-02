@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edy-shield"
+version = "1.1.0"
+description = "Plataforma modular de cibersegurança defensiva em Python 3.12 — core 100% stdlib."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "EDY Shield Contributors" },
+]
+keywords = ["cibersegurança", "hash", "segurança", "integridade", "forense"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Security :: Cryptography",
+]
+
+# Runtime: intentionally EMPTY. The core is 100% stdlib (ADR-001); no
+# third-party dependency is allowed in the runtime environment.
+
+[project.optional-dependencies]
+dev = [
+    "pytest==9.1.1",
+    "pytest-cov==7.1.0",
+    "mypy==2.3.0",
+    "ruff==0.16.1",
+]
+
+[project.scripts]
+edyshield = "app.cli.hash_cmd:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=app --cov-report=term-missing --cov-fail-under=90"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["app"]
+warn_unused_ignores = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+# docs/ é de propriedade de jr (ARCHITECTURE.md) e ARES (QA_REPORT.md);
+# fora do escopo de formatação/lint do VULCAN.
+# EDY_SHIELD_COMPLETO.md é artefato de transferência de contexto (não código).
+exclude = ["docs", "EDY_SHIELD_COMPLETO.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "ARG", "C4", "RUF"]
+ignore = ["E501"]
