@@ -152,14 +152,17 @@ def test_validate_expected_rejects_wrong_length() -> None:
 
 
 def test_algorithms_public_api_symbols() -> None:
-    """app.core.algorithms exports exactly the 8 public symbols."""
+    """app.core.algorithms exports the 8 stable symbols + batch helpers."""
     assert set(algorithms_all) == {
+        "BatchResult",
         "DEFAULT_CHUNK_SIZE",
         "HashAlgorithm",
         "compute",
         "compute_bytes",
         "compute_file",
         "compute_text",
+        "hash_directory",
+        "hash_files",
         "supported_algorithms",
         "verify_file",
     }
