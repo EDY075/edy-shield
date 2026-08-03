@@ -1,0 +1,17 @@
+PASTA DE REFERÊNCIA VISUAL — EDY SHIELD
+
+Conteúdo:
+1. edy-shield-logo-reference.png
+   Referência oficial da marca.
+
+2. edy-shield-alert-center-reference.png
+   Referência oficial para layout, cores, espaçamento e organização do Alert Center.
+
+3. PROMPT_PARA_JR.txt
+   Prompt curto para orientar a implementação.
+
+Como usar:
+- Copie esta pasta para dentro do projeto EDYShield, de preferência em:
+  docs/ui-reference/
+- Depois envie ao JR o conteúdo de PROMPT_PARA_JR.txt.
+- Informe ao JR que as imagens estão em docs/ui-reference/.

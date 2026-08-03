@@ -1,0 +1,66 @@
+NOVA SPRINT: M4.4 — INTEGRAÇÃO VISUAL OFICIAL
+
+Objetivo:
+Integrar ao EDY Shield a nova identidade visual e a nova interface usando como referência os arquivos desta pasta.
+
+Arquivos de referência:
+- edy-shield-logo-reference.png
+- edy-shield-alert-center-reference.png
+
+Prioridade:
+Reproduzir a interface com alta fidelidade visual, mas sem copiar pixels cegamente nem quebrar a arquitetura atual.
+
+Implementar nesta ordem:
+
+1. Branding
+- Substituir o ícone genérico atual pela nova marca EDY Shield.
+- Criar versões adequadas para sidebar, favicon e tela de carregamento.
+- Manter proporção, nitidez e boa leitura em tamanhos pequenos.
+
+2. Estrutura visual
+- Sidebar escura e compacta.
+- Topbar limpa com busca, status, notificações e perfil.
+- Fundo azul-marinho/preto.
+- Azul como cor principal.
+- Bordas suaves, sombras discretas e bom espaçamento.
+- Evitar poluição visual e animações desnecessárias.
+
+3. Alert Center
+- Cards de severidade no topo.
+- Busca e filtros em uma área organizada.
+- Tabela compacta, legível e profissional.
+- Badges consistentes por severidade e status.
+- Paginação e ações em lote.
+- Painel lateral para detalhes do alerta, sem modal.
+
+4. Painel lateral
+- Abas: Resumo, Timeline, Evidências, Comentários e Histórico.
+- Exibir regra, origem, alvo, usuário, severidade, status, MITRE ATT&CK, IOCs e fingerprint.
+- Manter botões funcionais: ACK, Resolver, Suprimir, Reabrir, Copiar IOC, Copiar Hash e Exportar JSON.
+
+5. Regras de implementação
+- Reaproveitar APIs e funções já existentes.
+- Não adicionar funcionalidades fora do escopo.
+- Não usar dados fictícios em produção.
+- Manter Vanilla JS e a arquitetura atual.
+- Não quebrar CLI, rotas, testes ou segurança existente.
+- Preservar responsividade, acessibilidade e desempenho.
+
+6. Validação
+- Comparar visualmente com as imagens de referência.
+- Testar todos os botões e fluxos.
+- Executar testes específicos durante o trabalho.
+- Executar suíte completa apenas no final.
+- Rodar mypy e ruff.
+- Atualizar CHANGELOG e MEMORY_LOG.
+- Fazer commit.
+
+Entrega final curta:
+- arquivos alterados;
+- fidelidade visual alcançada;
+- funções validadas;
+- testes executados;
+- commit;
+- pendências reais.
+
+Não faça perguntas durante a Sprint, salvo bloqueio técnico real.

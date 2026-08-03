@@ -668,10 +668,12 @@ def _make_handler(
                 self._send_error(HTTPStatus.NOT_FOUND, "alerta não encontrado")
                 return
             related = app_alerts.list_related_alerts(record.fingerprint, exclude_id=alert_id)
-            self._send_json({
-                "related": [r.to_dict() for r in related],
-                "count": len(related),
-            })
+            self._send_json(
+                {
+                    "related": [r.to_dict() for r in related],
+                    "count": len(related),
+                }
+            )
 
         def _get_alert_export(self, path: str) -> None:
             """Exportar investigação de um alerta em Markdown ou JSON.
@@ -680,7 +682,9 @@ def _make_handler(
             """
             parts = path.removeprefix("/api/alerts/").split("/")
             if len(parts) != 3 or parts[1] != "export":
-                self._send_error(HTTPStatus.BAD_REQUEST, "formato: /api/alerts/{id}/export/{md|json}")
+                self._send_error(
+                    HTTPStatus.BAD_REQUEST, "formato: /api/alerts/{id}/export/{md|json}"
+                )
                 return
             alert_id, fmt = parts[0], parts[2]
             record = app_alerts.get_alert(alert_id)
@@ -691,11 +695,13 @@ def _make_handler(
             related = app_alerts.list_related_alerts(record.fingerprint, exclude_id=alert_id)
 
             if fmt == "json":
-                self._send_json({
-                    "alert": record.to_dict(),
-                    "comments": comments,
-                    "related": [r.to_dict() for r in related],
-                })
+                self._send_json(
+                    {
+                        "alert": record.to_dict(),
+                        "comments": comments,
+                        "related": [r.to_dict() for r in related],
+                    }
+                )
                 return
 
             if fmt == "md":
@@ -971,7 +977,9 @@ def _build_markdown_export(
     if related:
         lines.append("## Alertas Semelhantes (mesmo fingerprint)")
         for r in related:
-            lines.append(f"- **{r.alert_id}** — {r.severity.value} — {r.status.value} — {r.last_seen_at}")
+            lines.append(
+                f"- **{r.alert_id}** — {r.severity.value} — {r.status.value} — {r.last_seen_at}"
+            )
         lines.append("")
     if record.acknowledged_at:
         lines.append("## Reconhecimento")

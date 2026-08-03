@@ -355,7 +355,9 @@ class AlertStore:
 
     # --- Alertas Semelhantes (por fingerprint) ---
 
-    def get_by_fingerprint(self, fingerprint: str, exclude_id: str | None = None) -> list[AlertRecord]:
+    def get_by_fingerprint(
+        self, fingerprint: str, exclude_id: str | None = None
+    ) -> list[AlertRecord]:
         """Buscar alertas com o mesmo fingerprint (eventos correlacionados).
 
         Args:
