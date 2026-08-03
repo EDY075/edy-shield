@@ -9,6 +9,66 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### v2.3 — M4.2: Blue Team Overview
+
+#### Added
+
+- **API endpoints de alertas** (`app/ui/server.py`):
+  - `GET /api/alerts` — listar alertas com filtros (severity, status, source, since, limit, offset).
+  - `GET /api/alerts/stats` — estatísticas agregadas (total, por status, por severidade, por origem, engine stats, cache dedup).
+  - `GET /api/alerts/rules` — regras ativas do motor de alertas com todos os campos.
+  - `GET /api/health` — saúde do sistema: SQLite, analisadores, python_version, uptime, alert_engine stats, dedup_cache_size.
+  - `POST /api/alerts/{id}/{action}` — ações de ciclo de vida (ack, resolve, suppress, reopen) com payload `{by, note}`.
+- **AlertService injetável** (`server.py`) — `create_server` e `serve` aceitam `alert_service` opcional para testes.
+
+- **Tema Dark/Light** (`dashboard.css`):
+  - `[data-theme="light"]` — tokens completos para modo claro (bg, text, accent, border, shadow, severity-bg).
+  - Toggle de tema no topbar com ícone e salvamento em `localStorage`.
+  - Botões de seleção de tema na página Settings.
+
+- **Central Operacional Blue Team** (`dashboard.js`):
+  - KPI cards com dados reais: Total Alertas, Críticos, Altos, Pendentes, Eventos Hoje, Analisadores.
+  - **Critical Banner**: destaque visual animado quando há alertas CRITICAL.
+  - **Quick Actions**: Novo Scan, Ver Alertas, Importar IOC, Abrir Logs, Atualizar Dashboard.
+  - **Bar Charts**: alertas por severidade, por status, por origem (dados reais via API).
+  - **Timeline de atividade**: últimos 10 alertas com severidade.
+  - **Health Bars**: CPU, Memória, Disco, Uptime com gradiente (good/warning/critical).
+  - **Component Status**: API, SQLite, Alert Engine, Analisadores, Python version.
+  - **Period Filter**: 1h, 24h, 7d, 30d (estrutura preparada).
+  - **Auto-refresh**: 30s via custom event `edy-refresh`.
+  - **Indicador Online/Offline**: verificação a cada 60s via `/api/health`.
+  - **Global API Helper**: `window.EDY.api()` e `window.EDY.apiPost()` expostos.
+
+- **Páginas atualizadas com dados reais**:
+  - `alerts.js` — KPI + tabela com filtros de severidade/status, busca via API real.
+  - `health.js` — status de componentes, alert engine stats, uptime formatado.
+  - `rules.js` — tabela de regras ativas via `/api/alerts/rules`.
+  - `settings.js` — tema dark/light com botões estilizados, toggle auto-refresh.
+
+- **Testes de integração** — `tests/integration/test_m42_endpoints.py` (29 casos):
+  - Alerts list (5): listagem, filtros severity/status/limit, severidade inválida.
+  - Alert stats (3): estrutura, total, by_severity.
+  - Alert rules (2): estrutura, campos esperados.
+  - Health (5): status geral, sqlite, uptime, python_version, analisadores.
+  - Alert actions (3): alerta não encontrado, ação desconhecida, ack → resolve.
+  - Dashboard M4.2 (9): CSS com light theme, JS com theme toggle, páginas com API real, HTML com themeToggle.
+  - No-regression (3): plugins, dashboard, path traversal.
+
+#### Changed
+
+- `app/ui/server.py` — `create_server()` e `serve()` aceitam `alert_service` opcional; `_make_handler()` aceita parâmetro `alert_service` e função `serve` também.
+- `app/ui/static/dashboard/css/dashboard.css` — tokens de identidade azul (`--accent-gradient`, `--accent-secondary`), tema light completo, estilos para `theme-toggle`, `quick-actions`, `bar-chart`, `timeline`, `critical-highlight`, `critical-banner`, `period-filter`, `refresh-indicator`, `health-bar`, `online-indicator`.
+- `app/ui/static/dashboard/js/app.js` — toggle de tema com localStorage, indicador online/offline, auto-refresh 30s, API helper global `window.EDY`.
+- `app/ui/static/dashboard/index.html` — adicionados `themeToggle` e `onlineIndicator` no topbar.
+
+#### Quality
+
+- **Suíte de testes:** 618 passed, 2 skipped — cobertura **90.07%** (gate ≥ 90%).
+- **mypy --strict:** 0 issues (72 arquivos).
+- **ruff check / format:** limpos.
+
+---
+
 ### v2.2 — M4.1: Dashboard SOC/SIEM (SPA)
 
 #### Added

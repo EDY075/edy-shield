@@ -25,6 +25,8 @@ Uso:
 from __future__ import annotations
 
 import json
+import os
+import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -42,8 +44,12 @@ from app.plugins.builtin import (
 )
 from app.plugins.plugin_errors import PluginError
 from app.services import HistoryStore
+from app.services.alert_service import AlertService, AlertServiceError
 from app.services.analysis_service import AnalysisService
 from app.services.report_engine import render
+
+#: Timestamp de inicialização do servidor (para cálculo de uptime).
+_START_TIME: float = time.time()
 
 #: Diretório com os assets estáticos da UI.
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -86,6 +92,7 @@ def create_server(
     *,
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
+    alert_service: AlertService | None = None,
     static_dir: Path = STATIC_DIR,
 ) -> ThreadingHTTPServer:
     """Criar o servidor HTTP (ThreadingHTTPServer) com os handlers.
@@ -93,12 +100,13 @@ def create_server(
     Args:
         manager: PluginManager a usar (padrão: built-in).
         history: HistoryStore a usar (padrão: diretório ``~/.edyshield``).
+        alert_service: AlertService a usar (padrão: instância nova).
         static_dir: Diretório dos assets estáticos.
 
     Returns:
         Servidor HTTP pronto para ``serve_forever()``.
     """
-    handler = _make_handler(manager, history, static_dir)
+    handler = _make_handler(manager, history, alert_service, static_dir)
     return ThreadingHTTPServer(("127.0.0.1", 0), handler)
 
 
@@ -108,6 +116,7 @@ def serve(
     *,
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
+    alert_service: AlertService | None = None,
 ) -> None:
     """Iniciar o servidor HTTP em primeiro plano (bloqueante).
 
@@ -116,8 +125,9 @@ def serve(
         port: Porta de bind.
         manager: PluginManager a usar (padrão: built-in).
         history: HistoryStore a usar (padrão: ``~/.edyshield``).
+        alert_service: AlertService a usar (padrão: instância nova).
     """
-    handler = _make_handler(manager, history, STATIC_DIR)
+    handler = _make_handler(manager, history, alert_service, STATIC_DIR)
     server = ThreadingHTTPServer((host, port), handler)
     print(f"EDY Shield UI em http://{host}:{server.server_port} (v{__version__})")
     try:
@@ -143,6 +153,7 @@ def _default_db_path() -> Path:
 def _make_handler(
     manager: PluginManager | None,
     history: HistoryStore | None,
+    alert_service: AlertService | None,
     static_dir: Path,
 ) -> type[BaseHTTPRequestHandler]:
     """Criar uma classe handler fechando o contexto da aplicação."""
@@ -150,7 +161,15 @@ def _make_handler(
     app_manager = manager if manager is not None else build_default_manager()
     app_history = history if history is not None else HistoryStore(_default_history_dir())
     app_analysis = AnalysisService(manager=app_manager)
+    # AlertService: injetável (testes) ou instância nova (produção).
+    # Respeita EDYSHIELD_DB_PATH quando não injetada.
+    if alert_service is not None:
+        app_alerts = alert_service
+    else:
+        env_db = os.environ.get("EDYSHIELD_DB_PATH")
+        app_alerts = AlertService(db_path=Path(env_db) if env_db else None)
     assets = static_dir
+    start_time = _START_TIME
 
     class EdyShieldHandler(BaseHTTPRequestHandler):
         """Handler HTTP da API do EDY Shield."""
@@ -182,6 +201,16 @@ def _make_handler(
                 self._get_analyze_history()
             elif path.startswith("/api/analyze/"):
                 self._get_analyze_entry(path)
+            elif path == "/api/alerts":
+                self._get_alerts()
+            elif path == "/api/alerts/stats":
+                self._get_alert_stats()
+            elif path == "/api/alerts/rules":
+                self._get_alert_rules()
+            elif path.startswith("/api/alerts/"):
+                self._get_alert_detail(path)
+            elif path == "/api/health":
+                self._get_health()
             elif path == "/api/fim/baselines":
                 self._get_fim_baselines()
             elif path.startswith("/api/fim/baselines/"):
@@ -206,6 +235,8 @@ def _make_handler(
                 self._post_analyze_plugin("string_analyzer")
             elif path == "/api/analyze/entropy":
                 self._post_analyze_plugin("entropy_analyzer")
+            elif path.startswith("/api/alerts/") and "/" in path.removeprefix("/api/alerts/"):
+                self._post_alert_action(path)
             else:
                 self._send_error(HTTPStatus.NOT_FOUND, "endpoint não encontrado")
 
@@ -389,6 +420,194 @@ def _make_handler(
             if len(query) != 2:
                 return {}
             return dict(part.split("=", 1) for part in query[1].split("&") if "=" in part)
+
+        # ------------------------------------------------------------------
+        # Handlers de API — Alertas e Health (M4.2)
+        # ------------------------------------------------------------------
+
+        def _get_alerts(self) -> None:
+            """Listar alertas com filtros opcionais via querystring."""
+            params = self._query_params()
+            severity_str = params.get("severity")
+            status_str = params.get("status")
+            source = params.get("source")
+            since = params.get("since")
+            try:
+                limit = int(params.get("limit", "50"))
+            except ValueError:
+                limit = 50
+            try:
+                offset = int(params.get("offset", "0"))
+            except ValueError:
+                offset = 0
+
+            from app.core.alerts.models import AlertStatus, Severity
+
+            try:
+                severity = Severity(severity_str) if severity_str else None
+            except ValueError:
+                severity = None
+            try:
+                status = AlertStatus(status_str) if status_str else None
+            except ValueError:
+                status = None
+
+            alerts = app_alerts.list_alerts(
+                severity=severity,
+                status=status,
+                source=source,
+                since=since,
+                limit=limit,
+                offset=offset,
+            )
+            self._send_json(
+                {
+                    "alerts": [a.to_dict() for a in alerts],
+                    "count": len(alerts),
+                }
+            )
+
+        def _get_alert_stats(self) -> None:
+            """Retornar estatísticas agregadas dos alertas (store + engine)."""
+            stats = app_alerts.stats()
+            store = stats["store"]
+            engine = stats["engine"]
+            self._send_json(
+                {
+                    "total": store["total"],
+                    "by_status": store["by_status"],
+                    "by_severity": store["by_severity"],
+                    "by_source": store["by_source"],
+                    "engine_events_processed": engine.get("events_processed", 0),
+                    "engine_alerts_created": engine.get("alerts_created", 0),
+                    "engine_alerts_deduplicated": engine.get("alerts_deduplicated", 0),
+                    "dedup_cache_size": stats["dedup_cache_size"],
+                }
+            )
+
+        def _get_alert_detail(self, path: str) -> None:
+            """Carregar um alerta pelo ID."""
+            alert_id = path.removeprefix("/api/alerts/")
+            if not alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "id ausente")
+                return
+            record = app_alerts.get_alert(alert_id)
+            if record is None:
+                self._send_error(HTTPStatus.NOT_FOUND, "alerta não encontrado")
+                return
+            self._send_json(record.to_dict())
+
+        def _get_alert_rules(self) -> None:
+            """Listar regras ativas do motor de alertas."""
+            rules = app_alerts.list_rules()
+            self._send_json(
+                {
+                    "rules": [
+                        {
+                            "rule_id": r.rule_id,
+                            "name": r.name,
+                            "source": r.source,
+                            "condition_key": r.condition_key,
+                            "operator": r.operator,
+                            "condition_value": str(r.condition_value),
+                            "target_severity": r.target_severity.value,
+                            "enabled": r.enabled,
+                            "priority": r.priority,
+                            "suppression_window_seconds": r.suppression_window_seconds,
+                        }
+                        for r in rules
+                    ],
+                    "count": len(rules),
+                }
+            )
+
+        def _post_alert_action(self, path: str) -> None:
+            """Executar ação de ciclo de vida em um alerta (ack/resolve/suppress/reopen)."""
+            parts = path.removeprefix("/api/alerts/").split("/", 1)
+            if len(parts) != 2 or not parts[0]:
+                self._send_error(
+                    HTTPStatus.BAD_REQUEST, "formato esperado: /api/alerts/{id}/{action}"
+                )
+                return
+            alert_id, action = parts[0], parts[1]
+
+            try:
+                payload = self._read_json()
+            except ValueError:
+                payload = {}
+
+            note = payload.get("note", "") if isinstance(payload, dict) else ""
+            by = payload.get("by", "webui") if isinstance(payload, dict) else "webui"
+
+            try:
+                if action == "ack":
+                    record = app_alerts.acknowledge_alert(alert_id, acked_by=by, note=note)
+                elif action == "resolve":
+                    record = app_alerts.resolve_alert(
+                        alert_id, resolved_by=by, resolution_note=note
+                    )
+                elif action == "suppress":
+                    record = app_alerts.suppress_alert(alert_id, reason=note)
+                elif action == "reopen":
+                    record = app_alerts.reopen_alert(alert_id, reason=note)
+                else:
+                    self._send_error(HTTPStatus.BAD_REQUEST, f"ação desconhecida: {action}")
+                    return
+            except AlertServiceError as exc:
+                self._send_error(HTTPStatus.BAD_REQUEST, str(exc))
+                return
+            self._send_json(record.to_dict())
+
+        def _get_health(self) -> None:
+            """Retornar saúde do sistema (CPU, memória, disco, SQLite, analisadores)."""
+            import platform
+            import sqlite3
+            import sys
+
+            from app.core.storage import DEFAULT_DB_PATH
+
+            # Saúde do SQLite
+            sqlite_ok = True
+            sqlite_error: str | None = None
+            try:
+                conn = sqlite3.connect(str(DEFAULT_DB_PATH), timeout=1)
+                conn.execute("SELECT 1")
+                conn.close()
+            except Exception as exc:
+                sqlite_ok = False
+                sqlite_error = str(exc)
+
+            # Plugins/analisadores ativos
+            plugins = app_manager.list_plugins()
+
+            # Eventos processados hoje (do engine stats)
+            engine_stats = app_alerts.stats().get("engine", {})
+
+            uptime_seconds = time.time() - start_time
+
+            self._send_json(
+                {
+                    "status": "online" if sqlite_ok else "degraded",
+                    "uptime_seconds": round(uptime_seconds, 1),
+                    "python_version": sys.version.split()[0],
+                    "platform": platform.platform(),
+                    "sqlite": {
+                        "status": "ok" if sqlite_ok else "error",
+                        "error": sqlite_error,
+                        "path": str(DEFAULT_DB_PATH),
+                    },
+                    "analyzers": {
+                        "count": len(plugins),
+                        "names": list(plugins.keys()) if isinstance(plugins, dict) else [],
+                    },
+                    "alert_engine": {
+                        "events_processed": engine_stats.get("events_processed", 0),
+                        "alerts_created": engine_stats.get("alerts_created", 0),
+                        "alerts_deduplicated": engine_stats.get("alerts_deduplicated", 0),
+                    },
+                    "dedup_cache_size": app_alerts.stats().get("dedup_cache_size", 0),
+                }
+            )
 
         def _read_analyze_payload(self) -> dict[str, Any]:
             """Ler o payload do endpoint /api/analyze (JSON)."""

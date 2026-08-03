@@ -20,10 +20,12 @@
   --text-tertiary: #6b7280;
   --text-inverse: #0a0e14;
 
-  /* Accent */
+  /* Accent — identidade azul */
   --accent-primary: #3b82f6;
   --accent-primary-hover: #2563eb;
   --accent-primary-muted: #1e3a5f;
+  --accent-secondary: #60a5fa;
+  --accent-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
 
   /* Severity colors */
   --sev-critical: #ef4444;
@@ -87,6 +89,39 @@
   --sidebar-width-collapsed: 64px;
   --topbar-height: 56px;
   --content-max-width: 1600px;
+}
+
+/* ========== Light Theme ========== */
+[data-theme="light"] {
+  --bg-base: #f3f4f6;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #f9fafb;
+  --bg-surface-3: #e5e7eb;
+  --bg-hover: #d1d5db;
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #9ca3af;
+  --text-inverse: #ffffff;
+
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-primary-muted: #dbeafe;
+  --accent-secondary: #3b82f6;
+
+  --border-default: #e5e7eb;
+  --border-light: #d1d5db;
+  --border-focus: #2563eb;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow-2: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  --sev-critical-bg: rgba(239, 68, 68, 0.08);
+  --sev-high-bg: rgba(249, 115, 22, 0.08);
+  --sev-medium-bg: rgba(234, 179, 8, 0.08);
+  --sev-low-bg: rgba(59, 130, 246, 0.08);
+  --sev-info-bg: rgba(107, 114, 128, 0.08);
 }
 
 /* ========== Reset & Base ========== */
@@ -993,4 +1028,387 @@ body {
 .ws-status.connected .ws-status-dot {
   background: var(--status-resolved);
   box-shadow: 0 0 4px var(--status-resolved);
+}
+
+/* ========== Theme Toggle (M4.2) ========== */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.theme-toggle-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ========== Online/Offline Indicator (M4.2) ========== */
+.online-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.online-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--sev-critical);
+  animation: pulse 2s ease infinite;
+}
+
+.online-indicator.online .online-indicator-dot {
+  background: var(--status-resolved);
+  box-shadow: 0 0 4px var(--status-resolved);
+}
+
+.online-indicator.online {
+  color: var(--status-resolved);
+}
+
+/* ========== Quick Actions (M4.2) ========== */
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.quick-action-btn:hover {
+  background: var(--accent-primary-muted);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.quick-action-btn:active {
+  transform: scale(0.97);
+}
+
+.quick-action-icon {
+  font-size: 18px;
+}
+
+/* ========== Bar Chart (M4.2) ========== */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bar-chart-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.bar-chart-label {
+  width: 100px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.bar-chart-track {
+  flex: 1;
+  height: 24px;
+  background: var(--bg-base);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.bar-chart-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  transition: width 400ms ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: white;
+  min-width: 2px;
+}
+
+.bar-chart-fill.sev-critical { background: var(--sev-critical); }
+.bar-chart-fill.sev-high { background: var(--sev-high); }
+.bar-chart-fill.sev-medium { background: var(--sev-medium); }
+.bar-chart-fill.sev-low { background: var(--sev-low); }
+.bar-chart-fill.sev-info { background: var(--sev-info); }
+
+.bar-chart-fill.status-new { background: var(--status-new); }
+.bar-chart-fill.status-ack { background: var(--status-ack); }
+.bar-chart-fill.status-resolved { background: var(--status-resolved); }
+.bar-chart-fill.status-suppressed { background: var(--status-suppressed); }
+
+.bar-chart-value {
+  width: 48px;
+  text-align: right;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+/* ========== Timeline (M4.2) ========== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-default);
+}
+
+.timeline-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  position: relative;
+  align-items: flex-start;
+}
+
+.timeline-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface);
+  border: 2px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 1;
+  font-size: 10px;
+}
+
+.timeline-dot.critical { border-color: var(--sev-critical); background: var(--sev-critical-bg); }
+.timeline-dot.high { border-color: var(--sev-high); background: var(--sev-high-bg); }
+.timeline-dot.medium { border-color: var(--sev-medium); background: var(--sev-medium-bg); }
+.timeline-dot.low { border-color: var(--sev-low); background: var(--sev-low-bg); }
+.timeline-dot.info { border-color: var(--sev-info); background: var(--sev-info-bg); }
+
+.timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ========== Critical Alert Highlight (M4.2) ========== */
+.critical-highlight {
+  animation: critical-pulse 3s ease infinite;
+  border-color: var(--sev-critical) !important;
+}
+
+@keyframes critical-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.15); }
+}
+
+.critical-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--sev-critical-bg);
+  border: 1px solid var(--sev-critical);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+
+.critical-banner-icon {
+  font-size: 24px;
+  color: var(--sev-critical);
+}
+
+.critical-banner-text {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.critical-banner-text strong {
+  color: var(--sev-critical);
+}
+
+/* ========== Period Filter Selector (M4.2) ========== */
+.period-filter {
+  display: flex;
+  gap: var(--space-1);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 2px;
+}
+
+.period-filter-btn {
+  padding: var(--space-1) var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.period-filter-btn:hover {
+  color: var(--text-primary);
+}
+
+.period-filter-btn.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+/* ========== Auto-refresh Indicator (M4.2) ========== */
+.refresh-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+}
+
+.refresh-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--bg-surface-3);
+  border-top-color: var(--accent-primary);
+  border-radius: var(--radius-full);
+  animation: spin 600ms linear infinite;
+  display: none;
+}
+
+.refresh-spinner.active {
+  display: block;
+}
+
+/* ========== Health Progress Bars (M4.2) ========== */
+.health-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.health-bar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-sm);
+}
+
+.health-bar-label {
+  color: var(--text-secondary);
+}
+
+.health-bar-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.health-bar-track {
+  height: 8px;
+  background: var(--bg-base);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 400ms ease;
+}
+
+.health-bar-fill.good { background: var(--status-resolved); }
+.health-bar-fill.warning { background: var(--sev-medium); }
+.health-bar-fill.critical { background: var(--sev-critical); }
+
+/* ========== Responsive M4.2 Additions ========== */
+@media (max-width: 768px) {
+  .quick-actions {
+    flex-direction: column;
+  }
+
+  .quick-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bar-chart-label {
+    width: 60px;
+    font-size: var(--font-size-xs);
+  }
+
+  .period-filter {
+    flex-wrap: wrap;
+  }
+
+  .online-indicator {
+    display: none;
+  }
 }

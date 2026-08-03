@@ -201,8 +201,8 @@ class RuleRegistry:
     def evaluate(
         self,
         source: str,
-        event_type: str,
-        data: dict[str, object],  # noqa: ARG002
+        event_type: str,  # noqa: ARG002
+        data: dict[str, object],
     ) -> AlertRule | None:
         """Avaliar um evento e retornar a primeira regra correspondente.
 
