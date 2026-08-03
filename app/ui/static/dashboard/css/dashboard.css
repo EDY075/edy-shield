@@ -490,7 +490,7 @@ body {
   min-width: 0;
 }
 
-/* ========== Topbar ========== */
+/* ========== Topbar (M4.4.3 — Enterprise) ========== */
 .topbar {
   height: var(--topbar-height);
   background: var(--bg-surface);
@@ -505,37 +505,76 @@ body {
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+}
+
+.topbar-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+}
+
+.topbar-breadcrumb-root {
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+.topbar-breadcrumb-sep {
+  color: var(--border-light);
+  font-size: 12px;
 }
 
 .topbar-title {
   font-size: var(--font-size-lg);
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .topbar-center {
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 0;
+}
+
+.topbar-search-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+}
+
+.topbar-search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  pointer-events: none;
 }
 
 .topbar-search {
   width: 100%;
-  max-width: 400px;
-  height: 36px;
+  height: 38px;
   background: var(--bg-surface-2);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-3) 0 36px;
   color: var(--text-primary);
   font-size: var(--font-size-sm);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   font-family: inherit;
 }
 
 .topbar-search:focus {
   outline: none;
   border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .topbar-search::placeholder {
@@ -545,7 +584,7 @@ body {
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .topbar-btn {
@@ -556,11 +595,16 @@ body {
   color: var(--text-secondary);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+}
+
+.topbar-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .topbar-btn:hover {
@@ -568,23 +612,62 @@ body {
   color: var(--text-primary);
 }
 
-.topbar-btn-dot {
+.topbar-btn-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--sev-critical);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-surface);
+  line-height: 1;
+}
+
+/* Refresh spinning state */
+.topbar-refresh-icon.rotating {
+  animation: spin 700ms linear infinite;
+}
+
+/* Online indicator refined */
+.online-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.online-indicator-dot {
   width: 8px;
   height: 8px;
-  background: var(--sev-critical);
   border-radius: var(--radius-full);
-  border: 2px solid var(--bg-surface);
-  animation: pulse 2s ease infinite;
+  background: var(--sev-critical);
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+.online-indicator.online .online-indicator-dot {
+  background: var(--status-resolved);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
 }
 
+.online-indicator.online {
+  color: var(--status-resolved);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+/* Avatar professional */
 .topbar-avatar {
   display: flex;
   align-items: center;
@@ -603,14 +686,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-full);
-  background: var(--accent-primary);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   font-size: var(--font-size-sm);
   flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.12);
 }
 
 .topbar-avatar-info {
@@ -622,13 +706,20 @@ body {
 
 .topbar-avatar-name {
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
 .topbar-avatar-role {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
+}
+
+.topbar-avatar-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
 }
 
 /* ========== Page Content Area ========== */
@@ -1145,7 +1236,16 @@ body {
     font-size: var(--font-size-xl);
   }
 
-  .topbar-search {
+  .topbar-search-wrap {
+    display: none;
+  }
+
+  .topbar-breadcrumb-root,
+  .topbar-breadcrumb-sep {
+    display: none;
+  }
+
+  .topbar-avatar-info {
     display: none;
   }
 }

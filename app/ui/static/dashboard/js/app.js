@@ -93,6 +93,22 @@
     // --- Sidebar: Status do Sistema (M4.4.2) ---
     _loadSidebarStatus();
 
+    // --- Topbar: Refresh (M4.4.3) ---
+    var refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function () {
+        var icon = refreshBtn.querySelector('.topbar-refresh-icon');
+        if (icon) icon.classList.add('rotating');
+        document.dispatchEvent(new CustomEvent('edy-refresh'));
+        setTimeout(function () {
+          if (icon) icon.classList.remove('rotating');
+        }, 800);
+      });
+    }
+
+    // --- Topbar: Badge de Notificações (M4.4.3) ---
+    _loadNotifBadge();
+
     // --- Updated auto-refresh: single listener + single timer ---
     _setupAutoRefresh();
 
@@ -210,6 +226,24 @@
         textApi.textContent = 'Offline';
       }
     });
+  }
+
+  // --- Topbar: Badge de Notificações (M4.4.3) ---
+  function _loadNotifBadge() {
+    fetch('/api/alerts/stats')
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        var badge = document.getElementById('notifBadge');
+        if (!badge || !data) return;
+        var count = (data.new || 0) + (data.ack || 0);
+        if (count > 0) {
+          badge.textContent = count > 99 ? '99+' : String(count);
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      })
+      .catch(function () { /* silencioso */ });
   }
 
   // --- Auto-refresh: listener \u00fanico + timer \u00fanico ---

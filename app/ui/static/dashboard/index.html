@@ -122,16 +122,27 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="topbar-btn" id="mobileMenuBtn" style="display: none;" title="Menu">
-            &#9776;
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <span class="topbar-title" id="topbarTitle">Dashboard</span>
+          <div class="topbar-breadcrumb">
+            <span class="topbar-breadcrumb-root">EDY SHIELD</span>
+            <span class="topbar-breadcrumb-sep">/</span>
+            <span class="topbar-title" id="topbarTitle">Dashboard</span>
+          </div>
         </div>
 
         <div class="topbar-center">
-          <input type="search" class="topbar-search" placeholder="Buscar alertas, assets, IOCs..." id="globalSearch">
+          <div class="topbar-search-wrap">
+            <svg class="topbar-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" class="topbar-search" placeholder="Buscar alertas, assets, IOCs..." id="globalSearch">
+          </div>
         </div>
 
         <div class="topbar-right">
+          <!-- Refresh (M4.4.3) -->
+          <button class="topbar-btn topbar-btn-icon" id="refreshBtn" title="Atualizar dados">
+            <svg class="topbar-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
           <!-- Theme Toggle (M4.2) -->
           <button class="theme-toggle" id="themeToggle" title="Alternar tema">
             <span class="theme-toggle-icon" id="themeToggleIcon">&#9728;</span>
@@ -141,15 +152,10 @@
             <span class="online-indicator-dot"></span>
             <span id="onlineIndicatorText">Verificando...</span>
           </div>
-          <!-- WebSocket status placeholder -->
-          <div class="ws-status" id="wsStatus" title="WebSocket desconectado">
-            <span class="ws-status-dot"></span>
-            <span id="wsStatusText">Offline</span>
-          </div>
           <!-- Notifications -->
-          <button class="topbar-btn" title="Notificações">
-            &#128276;
-            <span class="topbar-btn-dot" id="notifDot" style="display: none;"></span>
+          <button class="topbar-btn topbar-btn-icon" title="Notificações">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span class="topbar-btn-badge" id="notifBadge" style="display: none;">0</span>
           </button>
           <!-- User Avatar -->
           <div class="topbar-avatar" title="Analista">
@@ -158,6 +164,7 @@
               <span class="topbar-avatar-name">Analista</span>
               <span class="topbar-avatar-role">Blue Team</span>
             </div>
+            <svg class="topbar-avatar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
         </div>
       </header>
