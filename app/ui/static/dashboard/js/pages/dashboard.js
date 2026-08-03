@@ -53,27 +53,22 @@ Router.register('dashboard', {
       '    <span class="quick-action-icon">&#10227;</span> Atualizar Dashboard' +
       '  </button>' +
       '</div>' +
-      // Stat Cards - KPI principais
+      // Stat Cards - KPI principais (M4.4.4 skeleton)
       '<div class="stat-grid" id="kpiGrid">' +
-      Components.statCardHTML({ label: 'Total Alertas', value: '...', severity: 'info' }) +
-      Components.statCardHTML({ label: 'Críticos', value: '...', severity: 'critical' }) +
-      Components.statCardHTML({ label: 'Altos', value: '...', severity: 'high' }) +
-      Components.statCardHTML({ label: 'Pendentes', value: '...', severity: 'medium' }) +
-      Components.statCardHTML({ label: 'Eventos Hoje', value: '...', severity: 'low' }) +
-      Components.statCardHTML({ label: 'Analisadores', value: '...', severity: 'info' }) +
+      Components.skeletonHTML('card', 6) +
       '</div>' +
       // System Health Bars
       '<div class="content-grid" style="margin-bottom: var(--space-5);">' +
       '  <div class="card">' +
       '    <div class="card-header"><span class="card-title">Sa\u00fade do Sistema</span></div>' +
       '    <div class="card-body" id="healthBarsBody">' +
-      Components.loadingHTML('Carregando sa\u00fade do sistema...') +
+      Components.skeletonHTML('bar', 4) +
       '    </div>' +
       '  </div>' +
       '  <div class="card">' +
       '    <div class="card-header"><span class="card-title">Status dos Componentes</span></div>' +
       '    <div class="card-body" id="componentStatusBody">' +
-      Components.loadingHTML('Carregando status...') +
+      Components.skeletonHTML('line', 5) +
       '    </div>' +
       '  </div>' +
       '</div>' +
@@ -82,13 +77,13 @@ Router.register('dashboard', {
       '  <div class="card">' +
       '    <div class="card-header"><span class="card-title">Alertas por Severidade</span></div>' +
       '    <div class="card-body" id="severityChartBody">' +
-      Components.loadingHTML('Carregando gr\u00e1fico...') +
+      Components.skeletonHTML('bar', 5) +
       '    </div>' +
       '  </div>' +
       '  <div class="card">' +
       '    <div class="card-header"><span class="card-title">Alertas por Status</span></div>' +
       '    <div class="card-body" id="statusChartBody">' +
-      Components.loadingHTML('Carregando gr\u00e1fico...') +
+      Components.skeletonHTML('bar', 4) +
       '    </div>' +
       '  </div>' +
       '</div>' +
@@ -96,7 +91,7 @@ Router.register('dashboard', {
       '  <div class="card">' +
       '    <div class="card-header"><span class="card-title">Alertas por Origem</span></div>' +
       '    <div class="card-body" id="sourceChartBody">' +
-      Components.loadingHTML('Carregando gr\u00e1fico...') +
+      Components.skeletonHTML('bar', 4) +
       '    </div>' +
       '  </div>' +
       '  <div class="card">' +
@@ -105,7 +100,7 @@ Router.register('dashboard', {
       '      <button class="btn btn-sm btn-ghost" onclick="Router.navigate(\'alerts\')">Ver todos</button>' +
       '    </div>' +
       '    <div class="card-body" id="timelineBody">' +
-      Components.loadingHTML('Carregando timeline...') +
+      Components.skeletonHTML('line', 5) +
       '    </div>' +
       '  </div>' +
       '</div>'
@@ -114,7 +109,21 @@ Router.register('dashboard', {
 
   // onLoad: disparado pelo router após render
   onLoad: function () {
+    // Registrar listener de refresh remov\u00edvel
+    Dashboard._refreshHandler = function () { Dashboard.refresh(); };
+    document.addEventListener('edy-refresh', Dashboard._refreshHandler);
+    // Carregar dados
     Dashboard.loadData();
+  },
+
+  // onUnload: limpeza antes de sair da p\u00e1gina
+  onUnload: function () {
+    if (Dashboard._refreshHandler) {
+      document.removeEventListener('edy-refresh', Dashboard._refreshHandler);
+      Dashboard._refreshHandler = null;
+    }
+    // Cancelar fetch pendente via router
+    if (Router.abortFetch) Router.abortFetch();
   }
 });
 
@@ -133,7 +142,7 @@ var Dashboard = {
     .then(function (results) {
       var stats = results[0];
       var health = results[1];
-      Dashboard._renderKPIs(stats);
+      Dashboard._renderKPIs(stats, health);
       Dashboard._renderCriticalBanner(stats);
       Dashboard._renderHealthBars(health);
       Dashboard._renderComponentStatus(health);
@@ -151,7 +160,7 @@ var Dashboard = {
     });
   },
 
-  _renderKPIs: function (stats) {
+  _renderKPIs: function (stats, health) {
     var total = stats.total || 0;
     var bySeverity = stats.by_severity || {};
     var byStatus = stats.by_status || {};
@@ -163,12 +172,12 @@ var Dashboard = {
     var grid = document.getElementById('kpiGrid');
     if (!grid) return;
     grid.innerHTML = '' +
-      Components.statCardHTML({ label: 'Total Alertas', value: total, severity: 'info' }) +
-      Components.statCardHTML({ label: 'Cr\u00edticos', value: critical, severity: 'critical' }) +
-      Components.statCardHTML({ label: 'Altos', value: high, severity: 'high' }) +
-      Components.statCardHTML({ label: 'Pendentes', value: pending, severity: 'medium' }) +
-      Components.statCardHTML({ label: 'Eventos Hoje', value: eventsToday, severity: 'low' }) +
-      Components.statCardHTML({ label: 'Analisadores', value: stats.engine_events_processed !== undefined ? 'Ativo' : 'N/A', severity: 'info' });
+      Components.statCardHTML({ label: 'Total Alertas', value: total, severity: 'info', icon: '\u2637' }) +
+      Components.statCardHTML({ label: 'Cr\u00edticos', value: critical, severity: 'critical', icon: '\u26A0' }) +
+      Components.statCardHTML({ label: 'Altos', value: high, severity: 'high', icon: '\u21D1' }) +
+      Components.statCardHTML({ label: 'Pendentes', value: pending, severity: 'medium', icon: '\u25CB' }) +
+      Components.statCardHTML({ label: 'Eventos Hoje', value: eventsToday, severity: 'low', icon: '\u21D3' }) +
+      Components.statCardHTML({ label: 'Analisadores', value: (health.analyzers ? health.analyzers.count + ' ativos' : 'N/A'), severity: 'info', icon: '\u2731' });
   },
 
   _renderCriticalBanner: function (stats) {
@@ -253,7 +262,9 @@ var Dashboard = {
           '<div class="bar-chart-row">' +
           '  <span class="bar-chart-label">' + l + '</span>' +
           '  <div class="bar-chart-track">' +
-          '    <div class="bar-chart-fill sev-' + l.toLowerCase() + '" style="width: ' + pct + '%;"></div>' +
+          '    <div class="bar-chart-fill sev-' + l.toLowerCase() + '" style="width: ' + pct + '%;">' +
+          (pct > 25 ? val : '') +
+          '    </div>' +
           '  </div>' +
           '  <span class="bar-chart-value">' + val + '</span>' +
           '</div>';
@@ -278,7 +289,9 @@ var Dashboard = {
           '<div class="bar-chart-row">' +
           '  <span class="bar-chart-label">' + (statusLabels[s] || s) + '</span>' +
           '  <div class="bar-chart-track">' +
-          '    <div class="bar-chart-fill ' + (statusClasses[s] || 'sev-info') + '" style="width: ' + pct + '%;"></div>' +
+          '    <div class="bar-chart-fill ' + (statusClasses[s] || 'sev-info') + '" style="width: ' + pct + '%;">' +
+          (pct > 25 ? val : '') +
+          '    </div>' +
           '  </div>' +
           '  <span class="bar-chart-value">' + val + '</span>' +
           '</div>';
@@ -380,14 +393,7 @@ var Dashboard = {
   },
 
   _fallbackData: function () {
-    // Fallback silencioso - mantém os "..." nos stat cards
+    // Fallback silencioso - mant\u00e9m os "..." nos stat cards
     Dashboard._renderCriticalBanner({ by_severity: {} });
   }
 };
-
-// Auto-refresh via custom event
-document.addEventListener('edy-refresh', function () {
-  if (window.location.hash === '#/dashboard' || window.location.hash === '' || window.location.hash === '#/') {
-    Dashboard.refresh();
-  }
-});

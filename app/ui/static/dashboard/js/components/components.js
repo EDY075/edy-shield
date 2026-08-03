@@ -59,12 +59,17 @@ var Components = (function () {
   }
 
   /**
-   * Retorna o HTML de um stat card (card de métrica).
-   * @param {object} opts - { label, value, severity, trend }
+   * Retorna o HTML de um stat card (card de métrica) — Enterprise (M4.4.4).
+   * @param {object} opts - { label, value, severity, icon, trend }
    * @returns {string} HTML do stat card.
    */
   function statCardHTML(opts) {
     var sev = opts.severity || 'info';
+    var icons = {
+      critical: '\u26A0', high: '\u2191', medium: '\u25CF',
+      low: '\u2193', info: '\u2139'
+    };
+    var icon = opts.icon || icons[sev] || '\u2022';
     var trend = '';
     if (opts.trend) {
       var trendClass = opts.trendDirection === 'up' ? 'up' : 'down';
@@ -76,11 +81,47 @@ var Components = (function () {
     }
     return (
       '<div class="stat-card severity-' + sev + '">' +
-      '  <div class="stat-card-label">' + _escape(opts.label || '') + '</div>' +
+      '  <div class="stat-card-top">' +
+      '    <div class="stat-card-icon severity-' + sev + '">' + icon + '</div>' +
+      '    <div class="stat-card-label">' + _escape(opts.label || '') + '</div>' +
+      '  </div>' +
       '  <div class="stat-card-value">' + _escape(String(opts.value || 0)) + '</div>' +
       trend +
       '</div>'
     );
+  }
+
+  /**
+   * Retorna o HTML de um skeleton loading (placeholder shimmer).
+   * @param {string} variant - 'card' | 'bar' | 'line'
+   * @param {number} count - Quantidade de linhas/items.
+   * @returns {string} HTML do skeleton.
+   */
+  function skeletonHTML(variant, count) {
+    variant = variant || 'card';
+    var n = count || 3;
+    var out = '';
+    for (var i = 0; i < n; i++) {
+      if (variant === 'card') {
+        out +=
+          '<div class="skeleton skeleton-card">' +
+          '  <div class="skeleton-block" style="width: 32px; height: 32px; border-radius: 8px;"></div>' +
+          '  <div class="skeleton-col">' +
+          '    <div class="skeleton-block" style="width: 60%; height: 10px;"></div>' +
+          '    <div class="skeleton-block" style="width: 40%; height: 22px;"></div>' +
+          '  </div>' +
+          '</div>';
+      } else if (variant === 'bar') {
+        out +=
+          '<div class="skeleton skeleton-row">' +
+          '  <div class="skeleton-block" style="width: 80px; height: 12px;"></div>' +
+          '  <div class="skeleton-block" style="flex: 1; height: 16px; border-radius: 4px;"></div>' +
+          '</div>';
+      } else {
+        out += '<div class="skeleton-block" style="width: 100%; height: 12px; margin-bottom: 10px;"></div>';
+      }
+    }
+    return '<div class="skeleton-container">' + out + '</div>';
   }
 
   /**
@@ -160,6 +201,7 @@ var Components = (function () {
 
   return {
     loadingHTML: loadingHTML,
+    skeletonHTML: skeletonHTML,
     emptyStateHTML: emptyStateHTML,
     errorStateHTML: errorStateHTML,
     statCardHTML: statCardHTML,

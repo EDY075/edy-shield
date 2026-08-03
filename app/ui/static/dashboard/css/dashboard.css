@@ -782,7 +782,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* Stat Cards */
+/* Stat Cards — Enterprise (M4.4.4) */
 .stat-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
@@ -793,6 +793,13 @@ body {
   gap: var(--space-3);
   position: relative;
   overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.stat-card:hover {
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
 }
 
 .stat-card::before {
@@ -800,27 +807,53 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 4px;
-  height: 100%;
+  width: 100%;
+  height: 3px;
 }
 
 .stat-card.severity-critical::before { background: var(--sev-critical); }
 .stat-card.severity-high::before { background: var(--sev-high); }
 .stat-card.severity-medium::before { background: var(--sev-medium); }
 .stat-card.severity-low::before { background: var(--sev-low); }
-.stat-card.severity-info::before { background: var(--sev-info); }
+.stat-card.severity-info::before { background: var(--accent-secondary); }
+
+.stat-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stat-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stat-card-icon.severity-critical { background: var(--sev-critical-bg); color: var(--sev-critical); }
+.stat-card-icon.severity-high { background: var(--sev-high-bg); color: var(--sev-high); }
+.stat-card-icon.severity-medium { background: var(--sev-medium-bg); color: var(--sev-medium); }
+.stat-card-icon.severity-low { background: var(--sev-low-bg); color: var(--sev-low); }
+.stat-card-icon.severity-info { background: var(--sev-info-bg); color: var(--accent-secondary); }
 
 .stat-card-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .stat-card-value {
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.1;
 }
 
 .stat-card-trend {
@@ -833,12 +866,79 @@ body {
 .stat-card-trend.up { color: var(--sev-high); }
 .stat-card-trend.down { color: var(--status-resolved); }
 
-/* Grid layouts */
+/* Grid layouts — M4.4.4: grid profissional */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: var(--space-4);
   margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1400px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stat-grid { grid-template-columns: 1fr; }
+}
+
+/* Skeleton loading (M4.4.4) */
+.skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeleton-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+}
+
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+}
+
+.skeleton-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.skeleton-block {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-surface-3);
+  border-radius: 4px;
+}
+
+.skeleton-block::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  animation: skeleton-shimmer 1.4s infinite;
+}
+
+[data-theme="light"] .skeleton-block::after {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.05), transparent);
+}
+
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
 }
 
 .content-grid {
@@ -1208,19 +1308,11 @@ body {
     opacity: 1;
     width: auto;
   }
-
-  .stat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
   .page-container {
     padding: var(--space-4);
-  }
-
-  .stat-grid {
-    grid-template-columns: 1fr;
   }
 
   .content-grid {
