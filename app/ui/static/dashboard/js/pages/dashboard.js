@@ -53,9 +53,9 @@ Router.register('dashboard', {
       '    <span class="quick-action-icon">&#10227;</span> Atualizar Dashboard' +
       '  </button>' +
       '</div>' +
-      // Stat Cards - KPI principais (M4.4.4 skeleton)
+      // Stat Cards - KPI principais (M4.4.4 skeleton) — 5 KPIs como referência
       '<div class="stat-grid" id="kpiGrid">' +
-      Components.skeletonHTML('card', 6) +
+      Components.skeletonHTML('card', 5) +
       '</div>' +
       // System Health Bars
       '<div class="content-grid" style="margin-bottom: var(--space-5);">' +
@@ -176,8 +176,7 @@ var Dashboard = {
       Components.statCardHTML({ label: 'Cr\u00edticos', value: critical, severity: 'critical', icon: '\u26A0' }) +
       Components.statCardHTML({ label: 'Altos', value: high, severity: 'high', icon: '\u21D1' }) +
       Components.statCardHTML({ label: 'Pendentes', value: pending, severity: 'medium', icon: '\u25CB' }) +
-      Components.statCardHTML({ label: 'Eventos Hoje', value: eventsToday, severity: 'low', icon: '\u21D3' }) +
-      Components.statCardHTML({ label: 'Analisadores', value: (health.analyzers ? health.analyzers.count + ' ativos' : 'N/A'), severity: 'info', icon: '\u2731' });
+      Components.statCardHTML({ label: 'Resolvidos', value: (byStatus.RESOLVED || 0), severity: 'info', icon: '\u2713' });
   },
 
   _renderCriticalBanner: function (stats) {
