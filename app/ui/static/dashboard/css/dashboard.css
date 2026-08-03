@@ -85,7 +85,7 @@
   --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 240px;
   --sidebar-width-collapsed: 64px;
   --topbar-height: 56px;
   --content-max-width: 1600px;
@@ -2442,3 +2442,72 @@ h1 { letter-spacing: -0.01em; }
   .stat-card-value { font-size: 1.6rem; }
   .stat-card { padding: var(--space-4); }
 }
+
+/* ========== Pixel Perfect UI (M4.5.1 — FINAL visual) ========== */
+
+/* Alert Center: 4 KPIs lado a lado como na referência */
+.stat-grid-compact {
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 1200px) {
+  .stat-grid-compact { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stat-grid-compact { grid-template-columns: 1fr; }
+}
+
+/* Cards menores e mais elegantes (referência: KPI compactos) */
+.stat-card {
+  padding: var(--space-4);
+  gap: var(--space-2);
+}
+
+.stat-card-top { gap: var(--space-2); }
+.stat-card-icon { width: 30px; height: 30px; font-size: 14px; border-radius: var(--radius-sm); }
+.stat-card-label { font-size: 10px; letter-spacing: 0.06em; }
+.stat-card-value { font-size: 1.5rem; }
+.stat-card::before { height: 2px; }
+
+/* Menos espaço vazio no conteúdo */
+.page-container { padding: var(--space-5); }
+.content-grid { gap: var(--space-3); }
+.card { padding: var(--space-4); }
+.card-header { margin-bottom: var(--space-3); }
+.page-header { margin-bottom: var(--space-4); }
+.quick-actions { margin-bottom: var(--space-4); gap: var(--space-2); }
+.quick-action-btn { padding: var(--space-2) var(--space-3); font-size: 12px; }
+
+/* Densidade de tabela igual à referência */
+.alert-table th {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 7px 10px;
+}
+
+.alert-table td {
+  padding: 5px 10px;
+  font-size: 11.5px;
+}
+
+.alert-table .col-time { font-size: 10px; }
+
+/* Título forte na 1ª coluna de dados + cor secundária nas demais */
+.alert-table td strong { font-weight: 600; color: var(--text-primary); }
+.alert-table td { color: var(--text-secondary); }
+
+/* Badges ligeiramente menores */
+.badge { padding: 2px 7px; font-size: 9.5px; gap: 5px; }
+.badge::before { width: 5px; height: 5px; }
+
+/* Drawer: largura correta + corpo com menos padding */
+.alert-side-panel { width: 460px; }
+.alert-side-panel-body { padding: var(--space-4); }
+.alert-side-panel-section { margin-bottom: var(--space-4); }
+
+/* Tipografia: pesos consistentes */
+.topbar-title { font-size: 15px; }
+.nav-item { font-size: 12.5px; }
+.card-title { font-size: 14px; }
