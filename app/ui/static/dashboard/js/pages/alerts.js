@@ -545,12 +545,12 @@ var AlertsPage = (function () {
   function _tabEvidence(a) {
     var d = a.details || {};
     var groups = [
-      ['Hashes', _ev(d, ['hashes', 'hash', 'sha256', 'sha1', 'md5'])],
-      ['Caminhos', _ev(d, ['paths', 'path', 'files', 'file_path'])],
-      ['IPs', _ev(d, ['ips', 'ip', 'src_ip', 'dst_ip', 'remote_ip'])],
-      ['Domínios', _ev(d, ['domains', 'domain', 'hostname'])],
-      ['URLs', _ev(d, ['urls', 'url'])],
-      ['IOCs', _ev(d, ['iocs', 'indicators'])]
+      ['Hashes', _ev(d, ['hashes', 'hash', 'sha256', 'sha1', 'md5'], 'medium')],
+      ['Caminhos', _ev(d, ['paths', 'path', 'files', 'file_path'], 'info')],
+      ['IPs', _ev(d, ['ips', 'ip', 'src_ip', 'dst_ip', 'remote_ip'], 'high')],
+      ['Dom\u00ednios', _ev(d, ['domains', 'domain', 'hostname'], 'low')],
+      ['URLs', _ev(d, ['urls', 'url'], 'info')],
+      ['IOCs', _ev(d, ['iocs', 'indicators'], 'critical')]
     ];
     var html = groups.filter(function (g) { return g[1]; }).map(function (g) {
       return '<div class="alert-side-panel-section">' +
@@ -558,7 +558,7 @@ var AlertsPage = (function () {
     }).join('');
 
     if (!html) {
-      html = Components.emptyStateHTML('\u26D3', 'Sem evidências estruturadas',
+      html = Components.emptyStateHTML('\u26D3', 'Sem evid\u00eancias estruturadas',
         'Nenhum IOC estruturado encontrado. Confira o payload bruto abaixo.');
     }
     html += '<div class="alert-side-panel-section">' +
@@ -639,7 +639,7 @@ var AlertsPage = (function () {
       '<span class="alert-side-panel-field-value' + (mono ? ' mono' : '') + '">' + Components.escape(String(value)) + '</span></div>';
   }
 
-  function _ev(d, keys) {
+  function _ev(d, keys, cls) {
     var vals = [];
     keys.forEach(function (k) {
       var v = d[k];
@@ -651,7 +651,8 @@ var AlertsPage = (function () {
     vals.forEach(function (v) { if (uniq.indexOf(v) === -1) uniq.push(v); });
     if (uniq.length === 0) return '';
     return '<div class="alert-evidence-list">' + uniq.map(function (v) {
-      return '<span class="alert-evidence-item">' + Components.escape(v) + '</span>';
+      return '<span class="alert-evidence-item alert-evidence-' + (cls || 'info') + '">' +
+        Components.escape(v) + '</span>';
     }).join('') + '</div>';
   }
 
