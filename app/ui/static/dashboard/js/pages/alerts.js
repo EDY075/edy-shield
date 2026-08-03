@@ -107,14 +107,24 @@ Router.register('alerts', {
       // Backdrop do Painel Lateral
       '<div class="alert-side-panel-backdrop" id="sidePanelBackdrop" onclick="AlertsPage.closePanel()"></div>' +
 
-      // Painel Lateral (Slide Panel)
+      // Painel Lateral (Investigation Workspace M4.4.6)
       '<aside class="alert-side-panel" id="alertSidePanel">' +
       '  <div class="alert-side-panel-header">' +
-      '    <span class="alert-side-panel-title" id="panelTitle">Detalhes do Alerta</span>' +
-      '    <button class="alert-side-panel-close" onclick="AlertsPage.closePanel()">&times;</button>' +
+      '    <div class="alert-side-panel-title" id="panelTitle">Detalhes do Alerta</div>' +
+      '    <div style="display: flex; align-items: center; gap: 8px;">' +
+      '      <span class="alert-side-panel-meta" id="panelFingerprint"></span>' +
+      '      <button class="alert-side-panel-close" onclick="AlertsPage.closePanel()">&times;</button>' +
+      '    </div>' +
+      '  </div>' +
+      '  <div class="alert-side-panel-tabs" id="panelTabs">' +
+      '    <button class="alert-side-panel-tab active" data-tab="summary" onclick="AlertsPage.switchTab(\'summary\')">Summary</button>' +
+      '    <button class="alert-side-panel-tab" data-tab="timeline" onclick="AlertsPage.switchTab(\'timeline\')">Timeline</button>' +
+      '    <button class="alert-side-panel-tab" data-tab="evidence" onclick="AlertsPage.switchTab(\'evidence\')">Evidence</button>' +
+      '    <button class="alert-side-panel-tab" data-tab="comments" onclick="AlertsPage.switchTab(\'comments\')">Comments</button>' +
+      '    <button class="alert-side-panel-tab" data-tab="history" onclick="AlertsPage.switchTab(\'history\')">History</button>' +
       '  </div>' +
       '  <div class="alert-side-panel-body" id="panelBody">' +
-      '    <p style="color: var(--text-tertiary);">Selecione um alerta para ver os detalhes.</p>' +
+      '    <p style="color: var(--text-tertiary);">Selecione um alerta para investigar.</p>' +
       '  </div>' +
       '  <div class="alert-side-panel-actions" id="panelActions"></div>' +
       '</aside>'
@@ -453,119 +463,200 @@ var AlertsPage = (function () {
     state.activeAlert = alert;
     var panel = document.getElementById('alertSidePanel');
     var backdrop = document.getElementById('sidePanelBackdrop');
-    var body = document.getElementById('panelBody');
     var title = document.getElementById('panelTitle');
+    var fp = document.getElementById('panelFingerprint');
     var actions = document.getElementById('panelActions');
 
-    if (!panel || !body) return;
+    if (!panel) return;
 
     if (title) {
       title.innerHTML = Components.severityBadgeHTML(alert.severity) +
+        Components.statusBadgeHTML(alert.status) +
         ' <span style="font-size: 14px;">' + Components.escape(alert.title || alert.alert_id) + '</span>';
     }
-
-    var detailsJson = '';
-    try {
-      detailsJson = JSON.stringify(alert.details || {}, null, 2);
-    } catch (e) {
-      detailsJson = '{}';
+    if (fp) {
+      fp.textContent = (alert.fingerprint || '').slice(0, 20) + ' · ' + (alert.last_seen_at || '').slice(0, 16);
+      fp.title = 'Fingerprint: ' + (alert.fingerprint || '');
     }
 
-    body.innerHTML = '' +
-      // Resumo + Badges
-      '<div class="alert-side-panel-section">' +
-      '  <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">' +
-      Components.severityBadgeHTML(alert.severity) +
-      Components.statusBadgeHTML(alert.status) +
-      '    <span style="font-size: 11px; color: var(--text-tertiary); margin-left: auto;">Count: <strong>' + (alert.count || 1) + '</strong></span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">ID do Alerta</span>' +
-      '    <span class="alert-side-panel-field-value mono">' + Components.escape(alert.alert_id) + '</span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Descri\u00e7\u00e3o</span>' +
-      '    <span class="alert-side-panel-field-value">' + Components.escape(alert.description || '-') + '</span>' +
-      '  </div>' +
-      '</div>' +
-
-      // Origem & Asset
-      '<div class="alert-side-panel-section">' +
-      '  <div class="alert-side-panel-section-title">Contexto do Asset</div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Asset / Alvo</span>' +
-      '    <span class="alert-side-panel-field-value mono">' + Components.escape(alert.target || '-') + '</span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Regra Acionada</span>' +
-      '    <span class="alert-side-panel-field-value"><strong>' + Components.escape(alert.rule_id || '-') + '</strong></span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Origem do Evento</span>' +
-      '    <span class="alert-side-panel-field-value">' + Components.escape(alert.source || '-') + '</span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Fingerprint (Dedup)</span>' +
-      '    <span class="alert-side-panel-field-value mono" style="font-size: 10px;">' + Components.escape(alert.fingerprint || '-') + '</span>' +
-      '  </div>' +
-      '</div>' +
-
-      // Timeline / Histórico
-      '<div class="alert-side-panel-section">' +
-      '  <div class="alert-side-panel-section-title">Linha do Tempo & Hist\u00f3rico</div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">Primeira Ocorr\u00eancia</span>' +
-      '    <span class="alert-side-panel-field-value mono">' + Components.escape(alert.first_seen_at || '-') + '</span>' +
-      '  </div>' +
-      '  <div class="alert-side-panel-field">' +
-      '    <span class="alert-side-panel-field-label">\u00daltima Ocorr\u00eancia</span>' +
-      '    <span class="alert-side-panel-field-value mono">' + Components.escape(alert.last_seen_at || '-') + '</span>' +
-      '  </div>' +
-      (alert.acknowledged_at ?
-        '  <div class="alert-side-panel-field">' +
-        '    <span class="alert-side-panel-field-label">Reconhecido por</span>' +
-        '    <span class="alert-side-panel-field-value">' + Components.escape(alert.acknowledged_by || 'sistema') + ' em ' + Components.escape(alert.acknowledged_at) + '</span>' +
-        '  </div>' : '') +
-      (alert.resolved_at ?
-        '  <div class="alert-side-panel-field">' +
-        '    <span class="alert-side-panel-field-label">Resolvido por</span>' +
-        '    <span class="alert-side-panel-field-value">' + Components.escape(alert.resolved_by || 'sistema') + ' em ' + Components.escape(alert.resolved_at) + '</span>' +
-        '  </div>' : '') +
-      (alert.resolution_note ?
-        '  <div class="alert-side-panel-field">' +
-        '    <span class="alert-side-panel-field-label">Nota de Resolu\u00e7\u00e3o</span>' +
-        '    <span class="alert-side-panel-field-value">' + Components.escape(alert.resolution_note) + '</span>' +
-        '  </div>' : '') +
-      '</div>' +
-
-      // Evidências JSON
-      '<div class="alert-side-panel-section">' +
-      '  <div class="alert-side-panel-section-title">Evid\u00eancias / Payload</div>' +
-      '  <pre style="background: var(--bg-base); border: 1px solid var(--border-default); border-radius: 6px; padding: 12px; font-family: var(--font-mono); font-size: 11px; overflow-x: auto; color: var(--text-primary);">' +
-      Components.escape(detailsJson) +
-      '  </pre>' +
-      '</div>' +
-
-      // Comentários / Notas
-      '<div class="alert-side-panel-section">' +
-      '  <div class="alert-side-panel-section-title">Adicionar Nota de Triagem</div>' +
-      '  <div class="alert-side-panel-comment-input">' +
-      '    <input type="text" id="panelNoteInput" placeholder="Digite uma nota para este alerta...">' +
-      '  </div>' +
-      '</div>';
-
-    // Ações do rodapé do painel — discretas (M4.4.5)
+    // Rodapé — Ghost buttons (M4.4.6)
     if (actions) {
       actions.innerHTML = '' +
         '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'ack\')">&#10003; ACK</button>' +
-        '<button class="btn btn-sm btn-primary" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'resolve\')">&#10004; Resolver</button>' +
+        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'resolve\')">&#10004; Resolver</button>' +
         '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'suppress\')">&#128683; Suprimir</button>' +
         (alert.status === 'RESOLVED' || alert.status === 'SUPPRESSED' ?
-          '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'reopen\')">&#10227; Reabrir</button>' : '');
+          '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'reopen\')">&#10227; Reabrir</button>' : '') +
+        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.exportJSON()" style="margin-left: auto;">&#8681; JSON</button>';
     }
 
     panel.classList.add('open');
     if (backdrop) backdrop.classList.add('open');
+    switchTab('summary');
+  }
+
+  // --- Investigation Workspace: Tabs (M4.4.6) ---
+  function switchTab(tab) {
+    if (!state.activeAlert) return;
+    document.querySelectorAll('.alert-side-panel-tab').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+    });
+    var body = document.getElementById('panelBody');
+    if (!body) return;
+    var a = state.activeAlert;
+
+    if (tab === 'summary') body.innerHTML = _tabSummary(a);
+    else if (tab === 'timeline') body.innerHTML = _tabTimeline(a);
+    else if (tab === 'evidence') body.innerHTML = _tabEvidence(a);
+    else if (tab === 'comments') { body.innerHTML = Components.skeletonHTML('line', 3); _loadComments(body); }
+    else if (tab === 'history') body.innerHTML = _tabHistory(a);
+  }
+
+  function _tabSummary(a) {
+    var d = a.details || {};
+    return '' +
+      _field('Alvo / Asset', a.target || '-', true) +
+      _field('Origem', a.source || '-') +
+      _field('Regra', a.rule_id || '-', true) +
+      _field('MITRE ATT&CK', d.mitre_attack || d.mitre || d.tactic || d.technique || '-') +
+      _field('Usuário', d.user || d.username || d.account || '-', true) +
+      _field('Processo', d.process || d.process_name || '-', true) +
+      _field('Descrição', a.description || '-');
+  }
+
+  function _tabTimeline(a) {
+    var items = [];
+    if (a.first_seen_at) items.push({ t: a.first_seen_at, label: 'Primeira ocorrência', cls: 'info' });
+    if (a.last_seen_at) items.push({ t: a.last_seen_at, label: 'Última ocorrência', cls: 'low' });
+    if (a.acknowledged_at) items.push({ t: a.acknowledged_at, label: 'Reconhecido por ' + (a.acknowledged_by || 'sistema'), cls: 'medium' });
+    if (a.resolved_at) items.push({ t: a.resolved_at, label: 'Resolvido por ' + (a.resolved_by || 'sistema'), cls: 'high' });
+    if (a.resolution_note) items.push({ t: a.resolved_at || '', label: 'Nota: ' + a.resolution_note, cls: 'info' });
+    if (items.length === 0) return Components.emptyStateHTML('\u2205', 'Sem eventos', 'Nenhum evento registrado para este alerta.');
+    return '<div class="timeline">' + items.map(function (it) {
+      return '<div class="timeline-item">' +
+        '<div class="timeline-dot ' + it.cls + '">&#9679;</div>' +
+        '<div class="timeline-content">' +
+        '<div class="timeline-title">' + Components.escape(it.label) + '</div>' +
+        '<div class="timeline-meta"><span>' + Components.escape((it.t || '').slice(0, 19).replace('T', ' ')) + '</span></div>' +
+        '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function _tabEvidence(a) {
+    var d = a.details || {};
+    var groups = [
+      ['Hashes', _ev(d, ['hashes', 'hash', 'sha256', 'sha1', 'md5'])],
+      ['Caminhos', _ev(d, ['paths', 'path', 'files', 'file_path'])],
+      ['IPs', _ev(d, ['ips', 'ip', 'src_ip', 'dst_ip', 'remote_ip'])],
+      ['Domínios', _ev(d, ['domains', 'domain', 'hostname'])],
+      ['URLs', _ev(d, ['urls', 'url'])],
+      ['IOCs', _ev(d, ['iocs', 'indicators'])]
+    ];
+    var html = groups.filter(function (g) { return g[1]; }).map(function (g) {
+      return '<div class="alert-side-panel-section">' +
+        '<div class="alert-side-panel-section-title">' + g[0] + '</div>' + g[1] + '</div>';
+    }).join('');
+
+    if (!html) {
+      html = Components.emptyStateHTML('\u26D3', 'Sem evidências estruturadas',
+        'Nenhum IOC estruturado encontrado. Confira o payload bruto abaixo.');
+    }
+    html += '<div class="alert-side-panel-section">' +
+      '<div class="alert-side-panel-section-title">Payload Bruto</div>' +
+      '<pre class="alert-evidence-json">' + Components.escape(_safeJSON(d)) + '</pre></div>';
+    return html;
+  }
+
+  function _tabComments(body) {
+    EDY.api('/api/alerts/' + state.activeAlert.alert_id + '/comments')
+      .then(function (data) {
+        var list = data.comments || [];
+        var html = '<div class="alert-comments">';
+        if (list.length === 0) {
+          html += Components.emptyStateHTML('\uD83D\uDCDD', 'Sem comentários', 'Adicione a primeira nota de investigação.');
+        } else {
+          html += list.map(function (c) {
+            return '<div class="alert-comment">' +
+              '<div class="alert-comment-head"><strong>' + Components.escape(c.author || 'analyst') + '</strong>' +
+              '<span>' + Components.escape((c.created_at || '').slice(0, 19).replace('T', ' ')) + '</span></div>' +
+              '<div class="alert-comment-body">' + Components.escape(c.body || '') + '</div></div>';
+          }).join('');
+        }
+        html += '</div>' +
+          '<div class="alert-side-panel-comment-input">' +
+          '<input type="text" id="panelNoteInput" placeholder="Adicionar comentário..." onkeydown="if(event.key===\'Enter\')AlertsPage.addComment()">' +
+          '<button class="btn btn-sm btn-primary" onclick="AlertsPage.addComment()">Enviar</button></div>';
+        body.innerHTML = html;
+      })
+      .catch(function () {
+        body.innerHTML = Components.errorStateHTML('Erro', 'Falha ao carregar comentários.');
+      });
+  }
+
+  function _tabHistory(a) {
+    var rows = [];
+    rows.push(['Criado', a.created_at || a.first_seen_at || '-']);
+    rows.push(['Primeira ocorrência', a.first_seen_at || '-']);
+    rows.push(['Última ocorrência', a.last_seen_at || '-']);
+    rows.push(['Reconhecido', (a.acknowledged_at || '-') + (a.acknowledged_by ? ' por ' + a.acknowledged_by : '')]);
+    rows.push(['Resolvido', (a.resolved_at || '-') + (a.resolved_by ? ' por ' + a.resolved_by : '')]);
+    rows.push(['Count (dedup)', String(a.count || 1)]);
+    return '<div class="alert-history">' + rows.map(function (r) {
+      return '<div class="alert-history-row"><span>' + r[0] + '</span><strong>' + Components.escape(r[1]) + '</strong></div>';
+    }).join('') + '</div>';
+  }
+
+  function addComment() {
+    if (!state.activeAlert) return;
+    var input = document.getElementById('panelNoteInput');
+    var note = input ? input.value.trim() : '';
+    if (!note) return;
+    EDY.apiPost('/api/alerts/' + state.activeAlert.alert_id + '/comment', { author: 'analyst', body: note })
+      .then(function () {
+        Toast.success('Comentário adicionado.');
+        switchTab('comments');
+      })
+      .catch(function (err) {
+        Toast.error('Erro ao adicionar comentário: ' + err.message);
+      });
+  }
+
+  function exportJSON() {
+    if (!state.activeAlert) return;
+    var blob = new Blob([JSON.stringify(state.activeAlert, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'alert-' + state.activeAlert.alert_id + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Helpers
+  function _field(label, value, mono) {
+    return '<div class="alert-side-panel-field">' +
+      '<span class="alert-side-panel-field-label">' + label + '</span>' +
+      '<span class="alert-side-panel-field-value' + (mono ? ' mono' : '') + '">' + Components.escape(String(value)) + '</span></div>';
+  }
+
+  function _ev(d, keys) {
+    var vals = [];
+    keys.forEach(function (k) {
+      var v = d[k];
+      if (v === undefined || v === null) return;
+      if (Array.isArray(v)) vals = vals.concat(v.map(String));
+      else vals.push(String(v));
+    });
+    var uniq = [];
+    vals.forEach(function (v) { if (uniq.indexOf(v) === -1) uniq.push(v); });
+    if (uniq.length === 0) return '';
+    return '<div class="alert-evidence-list">' + uniq.map(function (v) {
+      return '<span class="alert-evidence-item">' + Components.escape(v) + '</span>';
+    }).join('') + '</div>';
+  }
+
+  function _safeJSON(d) {
+    try { return JSON.stringify(d, null, 2); } catch (e) { return '{}'; }
   }
 
   function closePanel() {
@@ -606,6 +697,9 @@ var AlertsPage = (function () {
     batchAction: batchAction,
     onRowClick: onRowClick,
     closePanel: closePanel,
-    individualAction: individualAction
+    individualAction: individualAction,
+    switchTab: switchTab,
+    addComment: addComment,
+    exportJSON: exportJSON
   };
 })();
