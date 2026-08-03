@@ -1002,29 +1002,6 @@ body {
   border-bottom: none;
 }
 
-/* Severity badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.badge-critical { background: var(--sev-critical-bg); color: var(--sev-critical); }
-.badge-high { background: var(--sev-high-bg); color: var(--sev-high); }
-.badge-medium { background: var(--sev-medium-bg); color: var(--sev-medium); }
-.badge-low { background: var(--sev-low-bg); color: var(--sev-low); }
-.badge-info { background: var(--sev-info-bg); color: var(--sev-info); }
-
-.badge-status-new { background: rgba(59, 130, 246, 0.12); color: var(--status-new); }
-.badge-status-ack { background: rgba(139, 92, 246, 0.12); color: var(--status-ack); }
-.badge-status-resolved { background: rgba(16, 185, 129, 0.12); color: var(--status-resolved); }
-.badge-status-suppressed { background: rgba(107, 114, 128, 0.12); color: var(--status-suppressed); }
-
 /* ========== Buttons ========== */
 .btn {
   display: inline-flex;
@@ -1845,10 +1822,15 @@ body {
 .alert-table th.sort-desc::after { content: ' \u25BC'; }
 
 .alert-table td {
-  padding: var(--space-2) var(--space-3);
+  padding: 6px 10px;
   border-bottom: 1px solid var(--border-default);
   color: var(--text-primary);
   white-space: nowrap;
+  font-size: 12px;
+}
+
+.alert-table th {
+  padding: 8px 10px;
 }
 
 .alert-table tbody tr { transition: background var(--transition-fast); cursor: pointer; }
@@ -1861,6 +1843,39 @@ body {
 .alert-table .col-status { width: 110px; }
 .alert-table .col-count { width: 60px; text-align: center; }
 .alert-table .col-time { width: 140px; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+
+/* Badges com dot de severidade (M4.4.5) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge-critical { background: rgba(239, 68, 68, 0.14); color: var(--sev-critical); }
+.badge-high { background: rgba(249, 115, 22, 0.14); color: var(--sev-high); }
+.badge-medium { background: rgba(234, 179, 8, 0.14); color: var(--sev-medium); }
+.badge-low { background: rgba(59, 130, 246, 0.14); color: var(--sev-low); }
+.badge-info { background: rgba(107, 114, 128, 0.14); color: var(--sev-info); }
+
+.badge-status-new { background: rgba(59, 130, 246, 0.14); color: var(--status-new); }
+.badge-status-ack { background: rgba(139, 92, 246, 0.14); color: var(--status-ack); }
+.badge-status-resolved { background: rgba(16, 185, 129, 0.14); color: var(--status-resolved); }
+.badge-status-suppressed { background: rgba(107, 114, 128, 0.14); color: var(--status-suppressed); }
 
 .alert-row-critical { border-left: 3px solid var(--sev-critical); }
 
@@ -2078,4 +2093,43 @@ body {
 
 @media (max-width: 768px) {
   .alert-side-panel { width: 100vw; }
+}
+
+/* ========== Alert Center Enterprise (M4.4.5) ========== */
+.page-header-compact {
+  margin-bottom: var(--space-4);
+}
+
+.stat-grid-compact {
+  margin-bottom: var(--space-4);
+}
+
+.card-alerts {
+  padding: 0;
+  overflow: hidden;
+}
+
+.card-alerts .alert-table-wrap {
+  border: none;
+  border-radius: 0;
+}
+
+/* Drawer: header com badges + sombra moderna */
+.alert-side-panel-header {
+  background: var(--bg-surface-2);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.alert-side-panel-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  min-width: 0;
+}
+
+.alert-side-panel-actions {
+  gap: var(--space-1);
+  background: var(--bg-surface-2);
+  border-top: 1px solid var(--border-light);
 }
