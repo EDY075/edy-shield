@@ -9,6 +9,36 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### v2.2 — M4.1: Dashboard SOC/SIEM (SPA)
+
+#### Added
+
+- **Dashboard SPA SOC/SIEM** (`app/ui/static/dashboard/`) — interface de Blue
+  Team 100% client-side (HTML/CSS/JS vanilla, sem framework), tema dark com
+  tokens CSS (`--bg-base`, `sidebar`, `toast`).
+- **Router SPA** — navegação hash entre páginas: Dashboard, Alert Center,
+  Rules, Assets, Logs, IOC, Health e Settings.
+- **Páginas** — `js/pages/{dashboard,alerts,rules,assets,logs,ioc,health,settings}.js`,
+  cada uma registrada no `Router`.
+- **Componentes reutilizáveis** — `js/components/components.js` (loading, stat
+  card) e `js/components/toast.js` (sistema de toast).
+- **Servidor**: rota `GET /dashboard` (+ `/dashboard/`) serve o `index.html`;
+  `/dashboard/*` serve assets (CSS/JS) com validação de path traversal;
+  `_serve_dashboard_asset` rejeita `..` e confina resolução dentro de
+  `DASHBOARD_DIR` (mitiga acesso arbitrário a arquivos).
+- **Testes de integração** — `tests/integration/test_dashboard.py` (24 casos):
+  servir HTML/CSS/JS/páginas, 404 para asset inexistente, path traversal
+  rejeitado, e no-regression dos endpoints existentes (`/`, `/api/plugins`,
+  `/css/style.css`, `/app.js`).
+
+#### Quality
+
+- **Suíte de testes:** 589 passed, 2 skipped — cobertura **90.46%** (gate ≥ 90%).
+- **mypy --strict:** 0 issues.
+- **ruff check / format:** limpos.
+
+---
+
 ### v2.1 — M1: SQLite Foundation
 
 #### Added

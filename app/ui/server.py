@@ -48,6 +48,9 @@ from app.services.report_engine import render
 #: Diretório com os assets estáticos da UI.
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
+#: Diretório do Dashboard M4.1 (SPA SOC/SIEM).
+DASHBOARD_DIR = STATIC_DIR / "dashboard"
+
 
 def build_default_manager(
     fim_dir: Path | None = None,
@@ -185,6 +188,10 @@ def _make_handler(
                 self._get_fim_baseline(path)
             elif path.startswith("/api/report/"):
                 self._get_report(path)
+            elif path == "/dashboard" or path == "/dashboard/":
+                self._send_file(DASHBOARD_DIR / "index.html", "text/html; charset=utf-8")
+            elif path.startswith("/dashboard/"):
+                self._serve_dashboard_asset(path)
             else:
                 self._send_error(HTTPStatus.NOT_FOUND, "endpoint não encontrado")
 
@@ -465,6 +472,39 @@ def _make_handler(
                 self._send_error(HTTPStatus.NOT_FOUND, "arquivo não encontrado")
                 return
             self._send_bytes(resolved.read_bytes(), content_type)
+
+        def _serve_dashboard_asset(self, path: str) -> None:
+            """Servir um asset estático do Dashboard M4.1 (SPA).
+
+            Mapeia ``/dashboard/css/dashboard.css`` -> ``DASHBOARD_DIR/css/dashboard.css``
+            e alike para JS. Valida path traversal (contention dentro de DASHBOARD_DIR).
+            """
+            rel = path.removeprefix("/dashboard/")
+            # Rejeitar path traversal (.., //, etc.)
+            if ".." in rel or rel.startswith("/"):
+                self._send_error(HTTPStatus.NOT_FOUND, "arquivo não encontrado")
+                return
+            file_path = DASHBOARD_DIR / rel
+            content_types = {
+                ".css": "text/css; charset=utf-8",
+                ".js": "application/javascript; charset=utf-8",
+                ".html": "text/html; charset=utf-8",
+                ".svg": "image/svg+xml; charset=utf-8",
+                ".png": "image/png",
+                ".ico": "image/x-icon",
+            }
+            ext = file_path.suffix.lower()
+            ct = content_types.get(ext, "application/octet-stream")
+            try:
+                resolved = file_path.resolve()
+                resolved.relative_to(DASHBOARD_DIR.resolve())
+            except (OSError, ValueError):
+                self._send_error(HTTPStatus.NOT_FOUND, "arquivo não encontrado")
+                return
+            if not resolved.is_file():
+                self._send_error(HTTPStatus.NOT_FOUND, "arquivo não encontrado")
+                return
+            self._send_bytes(resolved.read_bytes(), ct)
 
         def _read_json(self) -> dict[str, Any]:
             """Ler e decodificar o corpo JSON da requisição."""

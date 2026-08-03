@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0e14">
+  <meta name="description" content="EDY Shield — SOC Dashboard para Blue Team">
+  <title>EDY Shield — Dashboard</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/dashboard/css/dashboard.css">
+</head>
+<body>
+
+  <!-- Auth Overlay (estrutura preparada, hidden por default) -->
+  <div id="authOverlay" class="auth-overlay auth-hidden">
+    <div class="card" style="width: 400px; max-width: 90vw;">
+      <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="sidebar-logo">E</div>
+          <span class="card-title">EDY Shield</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+          Autenticação necessária para acessar o dashboard.
+        </p>
+        <!-- Auth form placeholder — implementado em sprint futura -->
+        <button class="btn btn-primary" onclick="document.getElementById('authOverlay').classList.add('auth-hidden')" style="width: 100%;">
+          Entrar (Demo)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">E</div>
+        <span class="sidebar-brand">EDY Shield</span>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <div class="sidebar-section-label">Operações</div>
+        <button class="nav-item active" data-route="dashboard">
+          <span class="nav-item-icon">&#9632;</span>
+          <span class="nav-item-label">Dashboard</span>
+        </button>
+        <button class="nav-item" data-route="alerts">
+          <span class="nav-item-icon">&#9888;</span>
+          <span class="nav-item-label">Alert Center</span>
+          <span class="nav-item-badge" id="alertBadge" style="display: none;">0</span>
+        </button>
+        <button class="nav-item" data-route="rules">
+          <span class="nav-item-icon">&#9881;</span>
+          <span class="nav-item-label">Rules</span>
+        </button>
+
+        <div class="sidebar-section-label">Inventário</div>
+        <button class="nav-item" data-route="assets">
+          <span class="nav-item-icon">&#9112;</span>
+          <span class="nav-item-label">Assets</span>
+        </button>
+        <button class="nav-item" data-route="logs">
+          <span class="nav-item-icon">&#9776;</span>
+          <span class="nav-item-label">Logs</span>
+        </button>
+        <button class="nav-item" data-route="ioc">
+          <span class="nav-item-icon">&#9888;</span>
+          <span class="nav-item-label">IOC Manager</span>
+        </button>
+
+        <div class="sidebar-section-label">Sistema</div>
+        <button class="nav-item" data-route="health">
+          <span class="nav-item-icon">&#10003;</span>
+          <span class="nav-item-label">System Health</span>
+        </button>
+        <button class="nav-item" data-route="settings">
+          <span class="nav-item-icon">&#9881;</span>
+          <span class="nav-item-label">Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="sidebar-collapse-btn" id="collapseBtn" title="Recolher/Expandir">
+          &#9776;
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+      <!-- Topbar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="topbar-btn" id="mobileMenuBtn" style="display: none;" title="Menu">
+            &#9776;
+          </button>
+          <span class="topbar-title" id="topbarTitle">Dashboard</span>
+        </div>
+
+        <div class="topbar-center">
+          <input type="search" class="topbar-search" placeholder="Buscar alertas, assets, IOCs..." id="globalSearch">
+        </div>
+
+        <div class="topbar-right">
+          <!-- WebSocket status placeholder -->
+          <div class="ws-status" id="wsStatus" title="WebSocket desconectado">
+            <span class="ws-status-dot"></span>
+            <span id="wsStatusText">Offline</span>
+          </div>
+          <!-- Notifications -->
+          <button class="topbar-btn" title="Notificações">
+            &#128276;
+            <span class="topbar-btn-dot" id="notifDot" style="display: none;"></span>
+          </button>
+          <!-- User Avatar -->
+          <div class="topbar-avatar" title="Analista">
+            <div class="topbar-avatar-img">A</div>
+            <div class="topbar-avatar-info">
+              <span class="topbar-avatar-name">Analista</span>
+              <span class="topbar-avatar-role">Blue Team</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content (SPA mount point) -->
+      <main class="page-container" id="pageContainer">
+        <!-- Pages render here dynamically via router -->
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="/dashboard/js/components/toast.js"></script>
+  <script src="/dashboard/js/components/components.js"></script>
+  <script src="/dashboard/js/router.js"></script>
+  <script src="/dashboard/js/pages/dashboard.js"></script>
+  <script src="/dashboard/js/pages/alerts.js"></script>
+  <script src="/dashboard/js/pages/rules.js"></script>
+  <script src="/dashboard/js/pages/assets.js"></script>
+  <script src="/dashboard/js/pages/logs.js"></script>
+  <script src="/dashboard/js/pages/ioc.js"></script>
+  <script src="/dashboard/js/pages/health.js"></script>
+  <script src="/dashboard/js/pages/settings.js"></script>
+  <script src="/dashboard/js/app.js"></script>
+</body>
+</html>
