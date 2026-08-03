@@ -104,6 +104,7 @@ class TestDashboardServing:
         assert "Router" in text
         assert "register" in text
         assert "navigate" in text
+        assert "onLoad" in text
 
     def test_dashboard_js_toast(self, dash) -> None:
         """GET /dashboard/js/components/toast.js deve servir o toast system."""

@@ -1,11 +1,14 @@
 /**
- * EDY Shield Dashboard — SPA Router (M4.1)
+ * EDY Shield Dashboard — SPA Router (M4.2.2)
  *
  * Roteamento client-side baseado em hash (#/dashboard, #/alerts, etc).
- * Suporta navegação programática e transição entre páginas.
+ * Suporta ciclo de vida completo: onLoad, onUnload, loading global,
+ * tratamento de erro de rota, cancelamento de fetch concorrentes.
  *
- * O router registra páginas em um mapa e renderiza a página ativa no
- * contâiner #pageContainer. Cada página é uma função que retorna HTML.
+ * Cada página registrada pode ter:
+ *   - render()      -> string HTML
+ *   - onLoad()     -> chamado UMA vez após render
+ *   - onUnload()   -> chamado antes de trocar de página (limpeza)
  */
 
 var Router = (function () {
@@ -14,32 +17,28 @@ var Router = (function () {
   var routes = {};
   var currentRoute = null;
   var pageContainer = null;
+  var loading = false;
+  var fetchController = null;
 
-  /**
-   * Inicializa o router com o contâiner de páginas.
-   * @param {HTMLElement} container - Elemento onde as páginas renderizam.
-   */
   function init(container) {
     pageContainer = container;
     window.addEventListener('hashchange', _onHashChange);
     _onHashChange();
   }
 
-  /**
-   * Registra uma rota.
-   * @param {string} path - Caminho da rota (ex: 'dashboard', 'alerts').
-   * @param {object} config - { title, render: function() -> string }
-   */
   function register(path, config) {
     routes[path] = config;
   }
 
-  /**
-   * Navega para uma rota programaticamente.
-   * @param {string} path - Caminho da rota.
-   */
   function navigate(path) {
     window.location.hash = '#/' + path;
+  }
+
+  function _abortPendingFetch() {
+    if (fetchController) {
+      fetchController.abort();
+      fetchController = null;
+    }
   }
 
   function _onHashChange() {
@@ -52,12 +51,29 @@ var Router = (function () {
       route = routes[hash];
     }
 
+    // Não recarregar se já está na mesma rota
+    if (currentRoute === hash) return;
+
+    // --- onUnload: limpar página anterior ---
+    var prevRoute = currentRoute ? routes[currentRoute] : null;
+    if (prevRoute && typeof prevRoute.onUnload === 'function') {
+      try {
+        prevRoute.onUnload();
+      } catch (e) {
+        console.warn('Router.onUnload error:', e);
+      }
+    }
+
+    // Cancelar qualquer fetch pendente da página anterior
+    _abortPendingFetch();
+
+    // Atualizar estado
     currentRoute = hash;
 
     // Atualizar título
     var topbarTitle = document.getElementById('topbarTitle');
-    if (topbarTitle && route) {
-      topbarTitle.textContent = route.title || 'Dashboard';
+    if (topbarTitle) {
+      topbarTitle.textContent = route ? route.title : 'Dashboard';
     }
 
     // Atualizar nav items ativos
@@ -71,24 +87,69 @@ var Router = (function () {
       }
     });
 
-    // Renderizar página
-    if (pageContainer && route && typeof route.render === 'function') {
-      pageContainer.innerHTML = '<div class="page-view">' + route.render() + '</div>';
+    // Loading global durante troca
+    if (pageContainer) {
+      pageContainer.innerHTML =
+        '<div class="page-view">' +
+        '<div class="loading-container"><div><div class="spinner"></div>' +
+        '<div class="loading-text">Carregando...</div></div></div></div>';
     }
+
+    // Renderizar página com pequeno delay para mostrar o loading
+    setTimeout(function () {
+      if (!pageContainer || !route || typeof route.render !== 'function') {
+        if (pageContainer) {
+          pageContainer.innerHTML =
+            '<div class="page-view">' +
+            Components.errorStateHTML('Rota n\u00e3o encontrada',
+              'A p\u00e1gina solicitada n\u00e3o existe.') +
+            '</div>';
+        }
+        return;
+      }
+
+      try {
+        pageContainer.innerHTML = '<div class="page-view">' + route.render() + '</div>';
+      } catch (e) {
+        pageContainer.innerHTML =
+          '<div class="page-view">' +
+          Components.errorStateHTML('Erro ao renderizar',
+            'Ocorreu um erro ao carregar esta p\u00e1gina: ' + e.message) +
+          '</div>';
+        return;
+      }
+
+      // Disparar onLoad UMA vez, com tratamento de erro
+      if (typeof route.onLoad === 'function') {
+        try {
+          route.onLoad();
+        } catch (e) {
+          console.error('Router.onLoad error:', e);
+          Toast.error('Erro ao carregar dados da p\u00e1gina');
+        }
+      }
+    }, 50); // 50ms para mostrar o loading
+  }
+
+  function getCurrentRoute() {
+    return currentRoute;
   }
 
   /**
-   * Retorna a rota atual.
-   * @returns {string|null} Rota atual.
+   * Criar um AbortController para fetch cancelável nas páginas.
    */
-  function getCurrentRoute() {
-    return currentRoute;
+  function createSignal() {
+    _abortPendingFetch();
+    fetchController = new AbortController();
+    return fetchController.signal;
   }
 
   return {
     init: init,
     register: register,
     navigate: navigate,
-    getCurrentRoute: getCurrentRoute
+    getCurrentRoute: getCurrentRoute,
+    createSignal: createSignal,
+    abortFetch: _abortPendingFetch
   };
 })();

@@ -415,6 +415,21 @@ class AlertService:
         self._engine.dedup_cache.clear()
         return count
 
+    # --- Investigação (M4.4) ---
+
+    def add_comment(self, alert_id: str, author: str, body: str) -> dict[str, Any]:
+        """Adicionar comentário de investigação a um alerta."""
+        comment = self._store.add_comment(alert_id, author, body)
+        return comment.to_dict()
+
+    def get_comments(self, alert_id: str) -> list[dict[str, Any]]:
+        """Listar comentários de investigação de um alerta."""
+        return [c.to_dict() for c in self._store.get_comments(alert_id)]
+
+    def list_related_alerts(self, fingerprint: str, exclude_id: str | None = None) -> list[AlertRecord]:
+        """Listar alertas com o mesmo fingerprint (eventos correlacionados)."""
+        return self._store.get_by_fingerprint(fingerprint, exclude_id=exclude_id)
+
     # --- Internos -------------------------------------------------- #
 
     def _hydrate_dedup_cache(self) -> None:

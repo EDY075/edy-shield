@@ -145,7 +145,7 @@ class TestAlertsListEndpoint:
 
     def test_list_alerts_invalid_severity_returns_200(self, m42_api) -> None:
         """Severidade inexistente simplesmente não filtra (None no backend)."""
-        status, data = m42_api("GET", "/api/alerts?severity=BOGUS")
+        status, _data = m42_api("GET", "/api/alerts?severity=BOGUS")
         assert status == 200
 
 
@@ -352,3 +352,139 @@ class TestNoRegressionM42:
     def test_path_traversal_still_rejected(self, m42_api) -> None:
         status, _ = m42_api("GET", "/dashboard/../app.js")
         assert status == 404
+
+
+class TestRouterLifecycleM42:
+    """Validar lifecycle do Router SPA — onLoad, onUnload, fetch cancel\u00e1vel."""
+
+    def test_router_js_has_on_load(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onLoad" in text
+        assert "route.onLoad" in text
+
+    def test_router_js_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+        assert "prevRoute.onUnload" in text or "route.onUnload" in text
+
+    def test_router_js_has_abort_controller(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "AbortController" in text
+        assert "createSignal" in text
+        assert "abortFetch" in text
+
+    def test_router_js_same_route_guard(self, m42_api) -> None:
+        """Router n\u00e3o recarrega se hash n\u00e3o mudou."""
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "currentRoute === hash" in text
+
+    def test_router_js_try_catch_on_load(self, m42_api) -> None:
+        """onLoad tem tratamento de erro (try/catch)."""
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "try" in text
+        assert 'route.onLoad' in text
+
+    def test_router_js_loading_global(self, m42_api) -> None:
+        """Router mostra loading durante troca de p\u00e1gina."""
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "loading-container" in text or "spinner" in text
+
+    def test_router_js_error_state_render(self, m42_api) -> None:
+        """Erro de render mostra p\u00e1gina de erro em vez de crashar."""
+        status, body = m42_api("GET", "/dashboard/js/router.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "errorStateHTML" in text
+        assert "Erro ao renderizar" in text
+
+    def test_dashboard_page_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/pages/dashboard.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+        assert "removeEventListener" in text
+
+    def test_alerts_page_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/pages/alerts.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+
+    def test_health_page_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/pages/health.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+
+    def test_rules_page_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/pages/rules.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+
+    def test_settings_page_has_on_unload(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/pages/settings.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "onUnload" in text
+
+    def test_app_js_single_timer_pattern(self, m42_api) -> None:
+        """app.js usa padr\u00e3o de timer \u00fanico (clear antes de set)."""
+        status, body = m42_api("GET", "/dashboard/js/app.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "clearInterval" in text
+        assert "setInterval" in text
+        assert "edy-refresh" in text
+
+
+class TestAlertBatchEndpoint:
+    """POST /api/alerts/batch — ações em lote sobre alertas."""
+
+    def test_batch_missing_fields_400(self, m42_api) -> None:
+        status, data = m42_api("POST", "/api/alerts/batch", {})
+        assert status == 400
+        assert "error" in data
+
+    def test_batch_empty_ids_400(self, m42_api) -> None:
+        status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": [], "action": "ack"})
+        assert status == 400
+        assert "error" in data
+
+    def test_batch_unknown_action_is_error(self, m42_api) -> None:
+        status, data = m42_api("GET", "/api/alerts?limit=1")
+        assert status == 200
+        alerts = data["alerts"]
+        if alerts:
+            aid = alerts[0]["alert_id"]
+            status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": [aid], "action": "nuke"})
+            assert status == 200
+            assert len(data["errors"]) > 0
+            assert "error" in data["errors"][0]
+
+    def test_batch_ack_then_resolve(self, m42_api) -> None:
+        status, data = m42_api("GET", "/api/alerts?status=NEW&limit=5")
+        assert status == 200
+        ids = [a["alert_id"] for a in data["alerts"]]
+        if not ids:
+            return
+        status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": ids[:2], "action": "ack", "by": "batch-test"})
+        assert status == 200
+        assert len(data["success"]) == len(ids[:2])
+        assert len(data["errors"]) == 0
+        status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": ids[:2], "action": "resolve", "note": "Batch test"})
+        assert status == 200
+        for s in data["success"]:
+            assert s["status"] == "RESOLVED"

@@ -11,6 +11,7 @@ Backend: :class:`~app.core.storage.SQLiteDb` (100% stdlib sqlite3).
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -18,11 +19,31 @@ from app.core.alerts.models import AlertRecord, AlertStatus, Severity
 from app.core.storage import DEFAULT_DB_PATH, SQLiteDb
 from app.plugins.plugin_errors import PluginError
 
-__all__ = ["AlertStore", "AlertStoreError"]
+__all__ = ["AlertComment", "AlertStore", "AlertStoreError"]
 
 
 class AlertStoreError(PluginError):
     """Falha ao persistir/ler registros de alerta."""
+
+
+@dataclass(slots=True)
+class AlertComment:
+    """Comentário de investigação de um alerta."""
+
+    id: int
+    alert_id: str
+    author: str
+    body: str
+    created_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": self.id,
+            "alert_id": self.alert_id,
+            "author": self.author,
+            "body": self.body,
+            "created_at": self.created_at,
+        }
 
 
 class AlertStore:
@@ -281,3 +302,95 @@ class AlertStore:
         """Retornar total de alertas persistidos."""
         result = self._db.scalar("SELECT COUNT(*) FROM alerts")
         return int(result) if result is not None else 0
+
+    # --- Comentários de Investigação (M4.4) ---
+
+    def add_comment(self, alert_id: str, author: str, body: str) -> AlertComment:
+        """Adicionar comentário a um alerta.
+
+        Args:
+            alert_id: ID do alerta.
+            author: Autor do comentário.
+            body: Conteúdo do comentário.
+
+        Returns:
+            :class:`AlertComment` criado.
+        """
+        from datetime import UTC, datetime
+
+        created_at = datetime.now(UTC).isoformat()
+        self._db.execute(
+            "INSERT INTO alert_comments (alert_id, author, body, created_at) VALUES (?, ?, ?, ?)",
+            (alert_id, author, body, created_at),
+        )
+        row = self._db.query_one(
+            "SELECT id, alert_id, author, body, created_at FROM alert_comments WHERE id = last_insert_rowid()",
+            (),
+        )
+        assert row is not None  # recém-inserido
+        return AlertComment(
+            id=int(row["id"]),
+            alert_id=str(row["alert_id"]),
+            author=str(row["author"]),
+            body=str(row["body"]),
+            created_at=str(row["created_at"]),
+        )
+
+    def get_comments(self, alert_id: str) -> list[AlertComment]:
+        """Listar comentários de um alerta (ordenados por criação)."""
+        rows = self._db.query(
+            "SELECT id, alert_id, author, body, created_at FROM alert_comments WHERE alert_id = ? ORDER BY created_at ASC",
+            (alert_id,),
+        )
+        return [
+            AlertComment(
+                id=int(r["id"]),
+                alert_id=str(r["alert_id"]),
+                author=str(r["author"]),
+                body=str(r["body"]),
+                created_at=str(r["created_at"]),
+            )
+            for r in rows
+        ]
+
+    # --- Alertas Semelhantes (por fingerprint) ---
+
+    def get_by_fingerprint(self, fingerprint: str, exclude_id: str | None = None) -> list[AlertRecord]:
+        """Buscar alertas com o mesmo fingerprint (eventos correlacionados).
+
+        Args:
+            fingerprint: Fingerprint SHA-256.
+            exclude_id: ID a excluir da lista (opcional).
+
+        Returns:
+            Lista de alertas com o mesmo fingerprint.
+        """
+        if exclude_id:
+            rows = self._db.query(
+                "SELECT * FROM alerts WHERE fingerprint = ? AND alert_id != ? ORDER BY last_seen_at DESC",
+                (fingerprint, exclude_id),
+            )
+        else:
+            rows = self._db.query(
+                "SELECT * FROM alerts WHERE fingerprint = ? ORDER BY last_seen_at DESC",
+                (fingerprint,),
+            )
+        return [AlertRecord.from_dict(row) for row in rows]
+
+    def get_ioc_fields(self, alert_id: str) -> dict[str, str]:
+        """Extrair campos de investigação (IOC-like) dos detalhes de um alerta.
+
+        Retorna dicionário com chaves canônicas: ip, domain, hash, file, process, user.
+        """
+        record = self.get(alert_id)
+        if record is None:
+            return {}
+        details = record.details or {}
+        return {
+            "ip": details.get("ip", ""),
+            "domain": details.get("domain", ""),
+            "hash": details.get("hash", ""),
+            "file": record.target,
+            "process": details.get("process", ""),
+            "user": details.get("user", ""),
+        }

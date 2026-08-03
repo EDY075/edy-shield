@@ -102,6 +102,17 @@ CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts(status);
 CREATE INDEX IF NOT EXISTS idx_alerts_severity ON alerts(severity);
 CREATE INDEX IF NOT EXISTS idx_alerts_source ON alerts(source);
 CREATE INDEX IF NOT EXISTS idx_alerts_last_seen ON alerts(last_seen_at);
+
+CREATE TABLE IF NOT EXISTS alert_comments (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    alert_id    TEXT NOT NULL,
+    author      TEXT NOT NULL,
+    body        TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    FOREIGN KEY (alert_id) REFERENCES alerts(alert_id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_comments_alert ON alert_comments(alert_id);
 """
 
 
