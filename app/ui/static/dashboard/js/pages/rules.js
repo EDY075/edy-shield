@@ -7,23 +7,33 @@ Router.register('rules', {
   title: 'Rules',
   render: function () {
     return (
-      '<div class="page-header">' +
+      '<div class="page-header page-header-compact">' +
       '  <div class="page-header-left">' +
       '    <h1>Rules</h1>' +
       '    <p>Regras do motor de alertas</p>' +
       '  </div>' +
-      '  <button class="btn" onclick="RulesPage.refresh()">Atualizar</button>' +
+      '  <button class="btn btn-sm btn-ghost" onclick="RulesPage.refresh()">&#10227; Atualizar</button>' +
       '</div>' +
       '<div class="card">' +
       '  <div class="card-header"><span class="card-title">Regras Ativas</span></div>' +
       '  <div class="card-body" id="rulesTableBody">' +
-      Components.loadingHTML('Carregando regras...') +
+      Components.skeletonHTML('bar', 5) +
       '  </div>' +
       '</div>'
     );
   },
   onLoad: function () {
+    RulesPage._refreshHandler = function () { RulesPage.refresh(); };
+    document.addEventListener('edy-refresh', RulesPage._refreshHandler);
     RulesPage.refresh();
+  },
+
+  onUnload: function () {
+    if (RulesPage._refreshHandler) {
+      document.removeEventListener('edy-refresh', RulesPage._refreshHandler);
+      RulesPage._refreshHandler = null;
+    }
+    if (Router.abortFetch) Router.abortFetch();
   }
 });
 

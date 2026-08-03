@@ -39,8 +39,8 @@ Router.register('settings', {
       '    <div class="card-header"><span class="card-title">Alert Engine</span></div>' +
       '    <div class="card-body">' +
       '      <div style="display: flex; flex-direction: column; gap: 16px;">' +
-      '        <div><label style="display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-secondary);">Janela de Supress\u00e3o (s)</label><input class="topbar-search" style="max-width: 100%;" value="300" /></div>' +
-      '        <div><label style="display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-secondary);">Severidade M\u00ednima</label><select class="btn" style="width: 100%;"><option>INFO</option><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></div>' +
+      '        <div><label style="display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-secondary);">Janela de Supress\u00e3o (s)</label><input class="settings-input" style="max-width: 100%; width: 100%;" value="300" /></div>' +
+      '        <div><label style="display: block; margin-bottom: 4px; font-size: 13px; color: var(--text-secondary);">Severidade M\u00ednima</label><select class="settings-input" style="width: 100%;"><option>INFO</option><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></div>' +
       '      </div>' +
       '    </div>' +
       '  </div>' +
@@ -53,6 +53,11 @@ Router.register('settings', {
   },
   onLoad: function () {
     SettingsPage._updateThemeButtons();
+  },
+
+  onUnload: function () {
+    // N\u00e3o h\u00e1 timers ou fetch para limpar, mas garante consist\u00eancia
+    if (Router.abortFetch) Router.abortFetch();
   }
 });
 

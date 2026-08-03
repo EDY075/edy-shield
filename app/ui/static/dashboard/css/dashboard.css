@@ -2326,3 +2326,119 @@ body {
   color: var(--text-primary);
   font-family: var(--font-mono);
 }
+
+/* ========== UI Polish Enterprise (M4.5 — FINAL) ========== */
+
+/* Transições uniformes 150–200ms */
+.card, .stat-card, .btn, .topbar-btn, .theme-toggle, .online-indicator,
+.nav-item, .badge, .alert-pagination-btn, .quick-action-btn, .alert-side-panel-tab,
+.topbar-avatar, .alert-table tbody tr {
+  transition-timing-function: ease;
+}
+
+/* Cards: mesma borda, altura mínima e sombra discreta no hover */
+.card, .stat-card, .alert-table-wrap, .table-container {
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-1);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body { flex: 1; }
+
+/* Header de página: altura e alinhamento consistentes */
+.page-header {
+  min-height: 44px;
+  align-items: center;
+}
+
+.page-header-left h1 {
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+/* Botões: altura uniforme 34px */
+.btn { height: 34px; }
+.btn-sm { height: 28px; padding: 0 var(--space-3); }
+
+/* Selects e inputs consistentes */
+.alert-center-toolbar select,
+.alert-center-toolbar input,
+.settings-input {
+  height: 34px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+}
+
+.alert-center-toolbar select:focus,
+.alert-center-toolbar input:focus,
+.settings-input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Empty e Error states: centralizados com mais respiro */
+.empty-state, .error-state {
+  padding: var(--space-8);
+  gap: var(--space-2);
+}
+
+.empty-state-icon, .error-state-icon {
+  font-size: 40px;
+  opacity: 0.5;
+  margin-bottom: var(--space-1);
+}
+
+/* Tabelas: hover suave e zebra sutil */
+.data-table tbody tr:hover,
+.alert-table tbody tr:hover {
+  background: var(--bg-surface-2);
+}
+
+/* Paginação: alinhamento perfeito */
+.alert-pagination {
+  align-items: center;
+  min-height: 48px;
+}
+
+/* Drawer: transição suave + sombra profissional */
+.alert-side-panel {
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+/* Scrollbar global refinada */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-surface-3); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+/* Focus visível acessível */
+button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Tipografia consistente: títulos com peso uniforme */
+h1 { letter-spacing: -0.01em; }
+.card-title { letter-spacing: -0.01em; }
+
+/* Responsividade desktop: reduzir gaps em telas menores */
+@media (max-width: 1200px) {
+  .page-container { padding: var(--space-5); }
+  .stat-grid { gap: var(--space-3); }
+}
+
+@media (max-width: 1024px) {
+  .page-container { padding: var(--space-4); }
+  .stat-card-value { font-size: 1.6rem; }
+  .stat-card { padding: var(--space-4); }
+}
