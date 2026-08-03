@@ -90,6 +90,9 @@
     // --- Indicador Online/Offline ---
     _checkOnlineStatus();
 
+    // --- Sidebar: Status do Sistema (M4.4.2) ---
+    _loadSidebarStatus();
+
     // --- Updated auto-refresh: single listener + single timer ---
     _setupAutoRefresh();
 
@@ -160,6 +163,53 @@
         }
         if (text) text.textContent = 'Offline';
       });
+  }
+
+  // --- Sidebar Status do Sistema (M4.4.2) ---
+  function _loadSidebarStatus() {
+    Promise.all([
+      fetch('/api/health').then(function (r) { return r.ok ? r.json() : null; }),
+      fetch('/api/plugins').then(function (r) { return r.ok ? r.json() : null; })
+    ]).then(function (results) {
+      var health = results[0];
+      var plugins = results[1];
+      if (!health) return;
+
+      var dotApi = document.getElementById('sbApiDot');
+      var textApi = document.getElementById('sbApiText');
+      if (dotApi && textApi) {
+        dotApi.className = 'sidebar-status-dot ' + (health.status === 'online' ? 'ok' : 'degraded');
+        textApi.textContent = health.status === 'online' ? 'Online' : 'Degradado';
+      }
+
+      var dotDb = document.getElementById('sbDbDot');
+      var textDb = document.getElementById('sbDbText');
+      if (dotDb && textDb) {
+        var dbOk = health.sqlite && health.sqlite.status === 'ok';
+        dotDb.className = 'sidebar-status-dot ' + (dbOk ? 'ok' : 'error');
+        textDb.textContent = dbOk ? 'Saudável' : 'Erro';
+      }
+
+      var dotAna = document.getElementById('sbAnaDot');
+      var textAna = document.getElementById('sbAnaText');
+      if (dotAna && textAna) {
+        var count = (health.analyzers && health.analyzers.count) || 0;
+        dotAna.className = 'sidebar-status-dot ' + (count > 0 ? 'ok' : 'degraded');
+        textAna.textContent = count + '/' + count + ' Online';
+      }
+
+      var textVer = document.getElementById('sbVerText');
+      if (textVer && plugins && plugins.version) {
+        textVer.textContent = 'v' + plugins.version;
+      }
+    }).catch(function () {
+      var dotApi = document.getElementById('sbApiDot');
+      var textApi = document.getElementById('sbApiText');
+      if (dotApi && textApi) {
+        dotApi.className = 'sidebar-status-dot error';
+        textApi.textContent = 'Offline';
+      }
+    });
   }
 
   // --- Auto-refresh: listener \u00fanico + timer \u00fanico ---
