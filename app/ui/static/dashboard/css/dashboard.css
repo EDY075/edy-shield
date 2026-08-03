@@ -9,14 +9,14 @@
 :root {
   /* Backgrounds (SOC dark) */
   --bg-base: #0a0e14;
-  --bg-surface: #111827;
-  --bg-surface-2: #1a2332;
+  --bg-surface: #141c2b;
+  --bg-surface-2: #1c2636;
   --bg-surface-3: #243044;
   --bg-hover: #2a3a52;
 
   /* Text */
   --text-primary: #e4e7eb;
-  --text-secondary: #9ca3af;
+  --text-secondary: #a3adb8;
   --text-tertiary: #6b7280;
   --text-inverse: #0a0e14;
 
@@ -46,7 +46,7 @@
   --status-suppressed: #6b7280;
 
   /* Borders */
-  --border-default: #1e293b;
+  --border-default: #243044;
   --border-light: #334155;
   --border-focus: #3b82f6;
 
