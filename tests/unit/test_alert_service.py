@@ -9,9 +9,7 @@ Suites:
 
 from __future__ import annotations
 
-import json
 import tempfile
-import time
 from pathlib import Path
 
 import pytest
@@ -21,14 +19,12 @@ from app.core.alerts.models import (
     AlertEvent,
     AlertRecord,
     AlertRule,
-    AlertSource,
     AlertStatus,
     Severity,
 )
 from app.core.alerts.rules import default_rules
 from app.services.alert_service import AlertService
 from app.services.alert_store import AlertStore
-
 
 # ============================================================================
 # AlertStore

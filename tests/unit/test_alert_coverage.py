@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -23,16 +22,11 @@ from app.cli.alert_cmd import handle_alerts_command
 from app.core.alerts.channels import NullChannel
 from app.core.alerts.models import (
     AlertEvent,
-    AlertRecord,
-    AlertRule,
     AlertSource,
-    AlertStatus,
     Severity,
 )
 from app.core.alerts.rules import default_rules
-from app.services.alert_service import AlertService, AlertServiceError
-from app.services.alert_store import AlertStore
-
+from app.services.alert_service import AlertService
 
 # ============================================================================
 # AlertService -- propriedades e process_scan_evidences
@@ -158,14 +152,14 @@ class TestCLICoverage:
         # Chamando handle direto com args incompleto
         args = _SilentArgs()
         # Simular a ausencia de alert_command
-        setattr(args, "alert_command", None)
+        args.alert_command = None
         rc = handle_alerts_command(args)  # type: ignore[arg-type]
         assert rc == 2
 
     def test_alerts_unknown_subcommand(self, cli_env: dict[str, str]) -> None:
         """Subcomando desconhecido deve falhar (exit 2)."""
         args = _SilentArgs()
-        setattr(args, "alert_command", "unknown_xyz")
+        args.alert_command = "unknown_xyz"
         rc = handle_alerts_command(args)  # type: ignore[arg-type]
         assert rc == 2
 

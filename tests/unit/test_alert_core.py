@@ -15,12 +15,10 @@ Suites:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import tempfile
 import threading
-from pathlib import Path
 
 import pytest
 
@@ -31,8 +29,8 @@ from app.core.alerts.channels import (
     FileChannel,
     NullChannel,
 )
-from app.core.alerts.deduplicator import DedupCache, try_dedup
-from app.core.alerts.engine import AlertEngine, EngineResult
+from app.core.alerts.deduplicator import DedupCache
+from app.core.alerts.engine import AlertEngine
 from app.core.alerts.models import (
     AlertAction,
     AlertEvent,
@@ -46,8 +44,7 @@ from app.core.alerts.models import (
     render_template,
     severity_rank,
 )
-from app.core.alerts.rules import OPERATORS, RuleRegistry, default_rules, evaluate_condition
-
+from app.core.alerts.rules import RuleRegistry, default_rules, evaluate_condition
 
 # ============================================================================
 # M3-T01: Models

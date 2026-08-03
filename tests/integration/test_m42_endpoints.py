@@ -392,7 +392,7 @@ class TestRouterLifecycleM42:
         assert status == 200
         text = body.decode("utf-8") if isinstance(body, bytes) else body
         assert "try" in text
-        assert 'route.onLoad' in text
+        assert "route.onLoad" in text
 
     def test_router_js_loading_global(self, m42_api) -> None:
         """Router mostra loading durante troca de p\u00e1gina."""
@@ -469,7 +469,9 @@ class TestAlertBatchEndpoint:
         alerts = data["alerts"]
         if alerts:
             aid = alerts[0]["alert_id"]
-            status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": [aid], "action": "nuke"})
+            status, data = m42_api(
+                "POST", "/api/alerts/batch", {"alert_ids": [aid], "action": "nuke"}
+            )
             assert status == 200
             assert len(data["errors"]) > 0
             assert "error" in data["errors"][0]
@@ -480,11 +482,17 @@ class TestAlertBatchEndpoint:
         ids = [a["alert_id"] for a in data["alerts"]]
         if not ids:
             return
-        status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": ids[:2], "action": "ack", "by": "batch-test"})
+        status, data = m42_api(
+            "POST", "/api/alerts/batch", {"alert_ids": ids[:2], "action": "ack", "by": "batch-test"}
+        )
         assert status == 200
         assert len(data["success"]) == len(ids[:2])
         assert len(data["errors"]) == 0
-        status, data = m42_api("POST", "/api/alerts/batch", {"alert_ids": ids[:2], "action": "resolve", "note": "Batch test"})
+        status, data = m42_api(
+            "POST",
+            "/api/alerts/batch",
+            {"alert_ids": ids[:2], "action": "resolve", "note": "Batch test"},
+        )
         assert status == 200
         for s in data["success"]:
             assert s["status"] == "RESOLVED"
