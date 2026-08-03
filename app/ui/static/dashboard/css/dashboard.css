@@ -2262,3 +2262,67 @@ body {
 
 .alert-history-row span { color: var(--text-tertiary); }
 .alert-history-row strong { color: var(--text-primary); font-weight: 500; word-break: break-word; text-align: right; }
+
+/* ========== System Health Enterprise (M4.4.8) ========== */
+.health-updated {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.health-svc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 13px;
+}
+
+.health-svc-row:last-child { border-bottom: none; }
+
+.health-svc-label { color: var(--text-secondary); }
+
+.health-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.health-stat-row:last-child { border-bottom: none; }
+.health-stat-row span { color: var(--text-secondary); }
+.health-stat-row strong { color: var(--text-primary); }
+
+.plugin-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plugin-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-2);
+}
+
+.plugin-item-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--status-resolved);
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.6);
+  flex-shrink: 0;
+}
+
+.plugin-item-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
