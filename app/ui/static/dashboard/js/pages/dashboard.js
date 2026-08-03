@@ -167,16 +167,29 @@ var Dashboard = {
     var critical = bySeverity.CRITICAL || 0;
     var high = bySeverity.HIGH || 0;
     var pending = (byStatus.NEW || 0) + (byStatus.ACKNOWLEDGED || 0);
-    var eventsToday = stats.engine_events_processed || 0;
+    var resolved = byStatus.RESOLVED || 0;
 
     var grid = document.getElementById('kpiGrid');
     if (!grid) return;
-    grid.innerHTML = '' +
-      Components.statCardHTML({ label: 'Total Alertas', value: total, severity: 'info', icon: '\u2637' }) +
-      Components.statCardHTML({ label: 'Cr\u00edticos', value: critical, severity: 'critical', icon: '\u26A0' }) +
-      Components.statCardHTML({ label: 'Altos', value: high, severity: 'high', icon: '\u21D1' }) +
-      Components.statCardHTML({ label: 'Pendentes', value: pending, severity: 'medium', icon: '\u25CB' }) +
-      Components.statCardHTML({ label: 'Resolvidos', value: (byStatus.RESOLVED || 0), severity: 'info', icon: '\u2713' });
+    var defs = [
+      { label: 'Total Alertas', value: total, sev: 'info', icon: '\u2637', key: 'total' },
+      { label: 'Cr\u00edticos', value: critical, sev: 'critical', icon: '\u26A0', key: 'critical' },
+      { label: 'Altos', value: high, sev: 'high', icon: '\u21D1', key: 'high' },
+      { label: 'Pendentes', value: pending, sev: 'medium', icon: '\u25CB', key: 'pending' },
+      { label: 'Resolvidos', value: resolved, sev: 'info', icon: '\u2713', key: 'resolved' }
+    ];
+    var maxVal = Math.max(1, total, critical, high, pending, resolved);
+    grid.innerHTML = defs.map(function (d) {
+      var pct = Math.round((d.value || 0) / maxVal * 100);
+      return '<div class="stat-card severity-' + d.sev + '">' +
+        '<div class="stat-card-top">' +
+        '  <div class="stat-card-icon severity-' + d.sev + '">' + d.icon + '</div>' +
+        '  <div class="stat-card-label">' + d.label + '</div>' +
+        '</div>' +
+        '<div class="stat-card-value">' + d.value + '</div>' +
+        '<div class="stat-card-minibar"><div class="stat-card-minibar-fill sev-' + d.sev + '" style="width: ' + pct + '%;"></div></div>' +
+        '</div>';
+    }).join('');
   },
 
   _renderCriticalBanner: function (stats) {
@@ -196,10 +209,12 @@ var Dashboard = {
     var body = document.getElementById('healthBarsBody');
     if (!body) return;
 
-    // Simular CPU/Mem/Disco baseado em health
-    var cpu = 23;
-    var mem = 42;
-    var disk = 31;
+    // Dados reais da API — sem simulação
+    var sqliteOk = health.sqlite && health.sqlite.status === 'ok';
+    var analyzerCount = health.analyzers ? health.analyzers.count : 0;
+    var engine = health.alert_engine || {};
+    var events = engine.events_processed || 0;
+    var dedup = engine.alerts_deduplicated || 0;
 
     function barClass(val) {
       if (val > 80) return 'critical';
@@ -207,18 +222,21 @@ var Dashboard = {
       return 'good';
     }
 
+    var sqlitePct = sqliteOk ? 100 : 0;
+    var eventsPct = Math.min(100, Math.round(events / 1000 * 100));
+
     body.innerHTML = '' +
       '<div class="health-bar">' +
-      '  <div class="health-bar-header"><span class="health-bar-label">CPU</span><span class="health-bar-value">' + cpu + '%</span></div>' +
-      '  <div class="health-bar-track"><div class="health-bar-fill ' + barClass(cpu) + '" style="width: ' + cpu + '%;"></div></div>' +
+      '  <div class="health-bar-header"><span class="health-bar-label">SQLite</span><span class="health-bar-value">' + (sqliteOk ? 'Operacional' : 'Erro') + '</span></div>' +
+      '  <div class="health-bar-track"><div class="health-bar-fill ' + (sqliteOk ? 'good' : 'critical') + '" style="width: ' + sqlitePct + '%;"></div></div>' +
       '</div>' +
       '<div class="health-bar" style="margin-top: 12px;">' +
-      '  <div class="health-bar-header"><span class="health-bar-label">Mem\u00f3ria</span><span class="health-bar-value">' + mem + '%</span></div>' +
-      '  <div class="health-bar-track"><div class="health-bar-fill ' + barClass(mem) + '" style="width: ' + mem + '%;"></div></div>' +
+      '  <div class="health-bar-header"><span class="health-bar-label">Analisadores</span><span class="health-bar-value">' + analyzerCount + ' ativos</span></div>' +
+      '  <div class="health-bar-track"><div class="health-bar-fill ' + (analyzerCount > 0 ? 'good' : 'critical') + '" style="width: ' + Math.min(100, analyzerCount * 20) + '%;"></div></div>' +
       '</div>' +
       '<div class="health-bar" style="margin-top: 12px;">' +
-      '  <div class="health-bar-header"><span class="health-bar-label">Disco</span><span class="health-bar-value">' + disk + '%</span></div>' +
-      '  <div class="health-bar-track"><div class="health-bar-fill ' + barClass(disk) + '" style="width: ' + disk + '%;"></div></div>' +
+      '  <div class="health-bar-header"><span class="health-bar-label">Eventos Processados</span><span class="health-bar-value">' + events + '</span></div>' +
+      '  <div class="health-bar-track"><div class="health-bar-fill good" style="width: ' + eventsPct + '%;"></div></div>' +
       '</div>' +
       '<div class="health-bar" style="margin-top: 12px;">' +
       '  <div class="health-bar-header"><span class="health-bar-label">Uptime</span><span class="health-bar-value">' + Dashboard._formatUptime(health.uptime_seconds || 0) + '</span></div>' +
@@ -230,18 +248,22 @@ var Dashboard = {
     var body = document.getElementById('componentStatusBody');
     if (!body) return;
 
-    var sqlite = health.sqlite && health.sqlite.status === 'ok' ? Components.statusBadgeHTML('RESOLVED') : Components.statusBadgeHTML('SUPPRESSED');
-    var apiStatus = health.status === 'online' ? Components.statusBadgeHTML('RESOLVED') : Components.statusBadgeHTML('SUPPRESSED');
+    function ptBadge(ok, okLabel, badLabel) {
+      return '<span class="badge ' + (ok ? 'badge-status-resolved' : 'badge-status-suppressed') + '">' + (ok ? okLabel : badLabel) + '</span>';
+    }
+
+    var sqliteOk = health.sqlite && health.sqlite.status === 'ok';
+    var apiOk = health.status === 'online';
+    var analyzerCount = health.analyzers ? health.analyzers.count : 0;
 
     body.innerHTML = '' +
       '<div style="display: flex; flex-direction: column; gap: 12px;">' +
-      '  <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">API REST</span>' + apiStatus + '</div>' +
-      '  <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">SQLite</span>' + sqlite + '</div>' +
-      '  <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Alert Engine</span>' +
-      (health.alert_engine ? Components.statusBadgeHTML('RESOLVED') : Components.statusBadgeHTML('SUPPRESSED')) + '</div>' +
-      '  <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Analisadores</span>' +
-      '<span class="badge badge-status-resolved">' + (health.analyzers ? health.analyzers.count : 'N/A') + ' ativos</span></div>' +
-      '  <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-secondary);">Python</span>' +
+      '  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="color: var(--text-secondary);">API REST</span>' + ptBadge(apiOk, 'Operacional', 'Degradado') + '</div>' +
+      '  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="color: var(--text-secondary);">Banco de Dados</span>' + ptBadge(sqliteOk, 'Saud\u00e1vel', 'Erro') + '</div>' +
+      '  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="color: var(--text-secondary);">Alert Engine</span>' + ptBadge(!!health.alert_engine, 'Ativo', 'Inativo') + '</div>' +
+      '  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="color: var(--text-secondary);">Analisadores</span>' +
+      '<span class="badge badge-status-resolved">' + analyzerCount + ' ativos</span></div>' +
+      '  <div style="display: flex; justify-content: space-between; align-items: center;"><span style="color: var(--text-secondary);">Python</span>' +
       '<span style="color: var(--text-primary); font-size: 12px;">' + (health.python_version || 'N/A') + '</span></div>' +
       '</div>';
   },
