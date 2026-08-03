@@ -1,20 +1,26 @@
 /**
- * EDY Shield Dashboard — Bootstrap (M4.2 - Blue Team Overview)
+ * EDY Shield Dashboard — Bootstrap (M4.2.2 - Blue Team Overview)
  *
  * Inicializa o router, sidebar, tema dark/light, indicador online,
- * pesquisa global e interações globais do dashboard Blue Team.
+ * pesquisa global e intera\u00e7\u00f5es globais do dashboard Blue Team.
+ * Gest\u00e3o de timers: single-interval auto-refresh + single-interval health check.
+ * Todos os listeners s\u00e3o adicionados UMA vez, guardados para n\u00e3o duplicar.
  */
 
 (function () {
   'use strict';
 
   var AUTO_REFRESH_INTERVAL = 30000; // 30s
+  var HEALTH_CHECK_INTERVAL = 60000; // 60s
+
   var refreshTimer = null;
+  var healthTimer = null;
+  var refreshListener = null;
 
   document.addEventListener('DOMContentLoaded', function () {
 
-    // --- Tema: carregar preferência salva ---
-    var savedTheme = localStorage.getItem('edy-shield-theme') || 'dark';
+    // --- Tema: carregar prefer\u00eancia salva ---
+    var savedTheme = _getStoredTheme();
     document.documentElement.setAttribute('data-theme', savedTheme);
     _updateThemeToggleIcon(savedTheme);
 
@@ -22,9 +28,8 @@
     var pageContainer = document.getElementById('pageContainer');
     Router.init(pageContainer);
 
-    // --- Sidebar: navegação ---
-    var navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(function (item) {
+    // --- Sidebar: navega\u00e7\u00e3o (listener \u00fanico) ---
+    document.querySelectorAll('.nav-item').forEach(function (item) {
       item.addEventListener('click', function () {
         var route = item.getAttribute('data-route');
         if (route) {
@@ -65,7 +70,7 @@
         var current = document.documentElement.getAttribute('data-theme') || 'dark';
         var next = current === 'dark' ? 'light' : 'dark';
         document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('edy-shield-theme', next);
+        _storeTheme(next);
         _updateThemeToggleIcon(next);
         Toast.info('Tema alterado para ' + (next === 'dark' ? 'Escuro' : 'Claro'));
       });
@@ -76,9 +81,8 @@
     if (searchInput) {
       searchInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && searchInput.value.trim()) {
-          var query = searchInput.value.trim();
           Router.navigate('alerts');
-          Toast.info('Buscando: ' + query);
+          Toast.info('Buscando: ' + searchInput.value.trim());
         }
       });
     }
@@ -86,10 +90,10 @@
     // --- Indicador Online/Offline ---
     _checkOnlineStatus();
 
-    // --- Atualização automática dos dados ---
-    _startAutoRefresh();
+    // --- Updated auto-refresh: single listener + single timer ---
+    _setupAutoRefresh();
 
-    // --- Responsividade: reavaliar ao redimensionar ---
+    // --- Responsividade ---
     window.addEventListener('resize', function () {
       if (mobileMenuBtn) {
         mobileMenuBtn.style.display = window.innerWidth <= 1024 ? 'flex' : 'none';
@@ -100,24 +104,24 @@
     setTimeout(function () {
       Toast.info('Dados reais carregados via API. Auto-refresh a cada 30s.', 'EDY Shield M4.2');
     }, 800);
-
-    // --- WebSocket status placeholder ---
-    var wsStatus = document.getElementById('wsStatus');
-    var wsStatusText = document.getElementById('wsStatusText');
-    function _updateWSStatus(connected) {
-      if (connected) {
-        wsStatus.classList.add('connected');
-        wsStatusText.textContent = 'WS Ativo';
-        wsStatus.title = 'WebSocket conectado';
-      } else {
-        wsStatus.classList.remove('connected');
-        wsStatusText.textContent = 'Offline';
-        wsStatus.title = 'WebSocket desconectado';
-      }
-    }
   });
 
-  // --- Helpers globais ---
+  // --- Tema helpers ---
+  function _getStoredTheme() {
+    try {
+      return localStorage.getItem('edy-shield-theme') || 'dark';
+    } catch (e) {
+      return 'dark';
+    }
+  }
+
+  function _storeTheme(theme) {
+    try {
+      localStorage.setItem('edy-shield-theme', theme);
+    } catch (e) {
+      // ignore
+    }
+  }
 
   function _updateThemeToggleIcon(theme) {
     var icon = document.getElementById('themeToggleIcon');
@@ -126,12 +130,14 @@
     }
   }
 
+  // --- Indicador Online ---
   function _checkOnlineStatus() {
     fetch('/api/health')
       .then(function (resp) { return resp.json(); })
       .then(function (data) {
         var online = data.status === 'online';
         var indicator = document.getElementById('onlineIndicator');
+        var text = document.getElementById('onlineIndicatorText');
         if (indicator) {
           if (online) {
             indicator.classList.add('online');
@@ -141,26 +147,64 @@
             indicator.title = 'Servidor degradado';
           }
         }
+        if (text) {
+          text.textContent = online ? 'Online' : 'Degradado';
+        }
       })
       .catch(function () {
         var indicator = document.getElementById('onlineIndicator');
+        var text = document.getElementById('onlineIndicatorText');
         if (indicator) {
           indicator.classList.remove('online');
           indicator.title = 'Servidor offline';
         }
+        if (text) text.textContent = 'Offline';
       });
   }
 
-  function _startAutoRefresh() {
+  // --- Auto-refresh: listener \u00fanico + timer \u00fanico ---
+  function _setupAutoRefresh() {
+    // Remover listener anterior se existir
+    if (refreshListener) {
+      document.removeEventListener('edy-refresh', refreshListener);
+    }
+
+    // Criar novo listener
+    refreshListener = function () {
+      var hash = window.location.hash.slice(2) || 'dashboard';
+      var route = Router.getCurrentRoute ? Router.getCurrentRoute() : null;
+      if (!route || hash !== route) return;
+      var handlers = { dashboard: true, health: true, alerts: true };
+      if (handlers[hash]) {
+        var pageObj = window[hash.charAt(0).toUpperCase() + hash.slice(1) + 'Page'];
+        if (pageObj && typeof pageObj.refresh === 'function') {
+          pageObj.refresh();
+        }
+      }
+    };
+    document.addEventListener('edy-refresh', refreshListener);
+
+    // Limpar timer anterior
     if (refreshTimer) clearInterval(refreshTimer);
+
+    // Novo timer \u00fanico
     refreshTimer = setInterval(function () {
-      // Emitir evento customizado para as páginas se atualizarem
-      var event = new CustomEvent('edy-refresh');
-      document.dispatchEvent(event);
+      document.dispatchEvent(new CustomEvent('edy-refresh'));
     }, AUTO_REFRESH_INTERVAL);
+
+    // Health check timer \u00fanico
+    if (healthTimer) clearInterval(healthTimer);
+    healthTimer = setInterval(_checkOnlineStatus, HEALTH_CHECK_INTERVAL);
   }
 
-  // --- API Helper global exposto ---
+  // --- Na mudanca de p\u00e1gina, cancelar fetchs pendentes ---
+  window.addEventListener('beforeunload', function () {
+    if (refreshTimer) clearInterval(refreshTimer);
+    if (healthTimer) clearInterval(healthTimer);
+    if (refreshListener) document.removeEventListener('edy-refresh', refreshListener);
+  });
+
+  // --- API Helper global ---
   window.EDY = {
     api: function (path) {
       return fetch(path).then(function (r) {
@@ -181,10 +225,10 @@
     checkOnline: _checkOnlineStatus,
     getTheme: function () {
       return document.documentElement.getAttribute('data-theme') || 'dark';
+    },
+    abortFetch: function () {
+      if (Router.abortFetch) Router.abortFetch();
     }
   };
-
-  // Verificar status online a cada 60s
-  setInterval(_checkOnlineStatus, 60000);
 
 })();
