@@ -19,16 +19,17 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&amp;logoColor=white" alt="Python 3.12"></a>
-  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-2.0.0-blue" alt="Version 2.0.0"></a>
+  <a href="https://github.com/EDY075/edy-shield/releases"><img src="https://img.shields.io/badge/version-2.2.0--rc-blue" alt="Version 2.2.0-rc"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License MIT"></a>
-  <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (360+ tests)"></a>
-  <img src="https://img.shields.io/badge/release-v2.0.0-blue" alt="Release v2.0.0">
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/CI-passing-brightgreen" alt="CI (635+ tests)"></a>
+  <img src="https://img.shields.io/badge/release-v2.2.0--rc-blue" alt="Release v2.2.0-rc">
 </p>
 
 <p align="center">
-  <a href="#funcionalidades"><img src="https://img.shields.io/badge/tests-361%20passed-brightgreen" alt="Tests 361 passed"></a>
-  <a href="#quality-gates"><img src="https://img.shields.io/badge/coverage-91.87%25-success" alt="Coverage 91.87%"></a>
+  <a href="#funcionalidades"><img src="https://img.shields.io/badge/tests-635%20passed-brightgreen" alt="Tests 635 passed"></a>
+  <a href="#quality-gates"><img src="https://img.shields.io/badge/coverage-91.92%25-success" alt="Coverage 91.92%"></a>
   <a href="#arquitetura"><img src="https://img.shields.io/badge/core-100%25%20stdlib-2ea44f" alt="Core 100% stdlib"></a>
+  <a href="#segurança"><img src="https://img.shields.io/badge/security-hardened-blue" alt="Security Hardened"></a>
 </p>
 
 ---

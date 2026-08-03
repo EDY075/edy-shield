@@ -9,6 +9,30 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### v2.2 — Release Candidate (UI Enterprise + Hardening)
+
+#### Added
+
+- **UI Enterprise (M4.4.x — M5.3)**: identidade visual reproduzida a partir da referência oficial
+  - Sidebar Enterprise: logo + tagline, SVG icons, seções OPERAÇÕES/SISTEMA, status do sistema no rodapé, active state com borda azul.
+  - Topbar Enterprise: breadcrumb discreto, busca ampliada com ícone, botão Refresh, indicador Online refinado, sino com badge, avatar profissional.
+  - Dashboard Enterprise: KPI cards com ícone + barra de cor, skeleton loading, grid profissional 6→3→2→1, valores dentro das barras.
+  - Alert Center Enterprise: filtros em linha única, badges com dot, tabela densa, header compacto.
+  - Investigation Workspace: drawer com tabs Summary/Timeline/Evidence/Comments/History, IOC cards coloridos, export JSON.
+  - System Health Enterprise: 4 KPIs (API/DB/Analyzers/Uptime), lista de plugins, mini gráficos, última atualização.
+  - Assets Enterprise, UI Polish global (M4.5) e Pixel Perfect (M4.5.1): bordas, sombras, hover 150–200ms, tipografia consistente, sidebar 240px.
+
+- **Security Hardening (M4.6)** (`app/ui/server.py`):
+  - `Content-Security-Policy` com `frame-ancestors 'none'` (anti-clickjacking).
+  - Headers: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, `X-XSS-Protection`.
+  - Server header ofusca stack (`server_version = "EDYShield"`).
+  - Limite de 1MB no corpo JSON (`_read_json`) — anti-DoS.
+
+#### Fixed
+
+- Duplicação de blocos CSS (badges) removida; media queries obsoletos do `stat-grid` removidos.
+- KPIs de Analisadores agora usam `health.analyzers.count` real (dados reais, sem simulação).
+
 ### v2.3 — M4.2: Blue Team Overview
 
 #### Added
