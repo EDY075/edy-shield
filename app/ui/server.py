@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from app import __version__
+from app.core.alerts.models import AlertRecord
 from app.core.fim import DEFAULT_FIM_DIR, FimStore
 from app.plugins import PluginManager, PluginRegistry, ScanContext
 from app.plugins.builtin import (
@@ -174,6 +175,10 @@ def _make_handler(
     class EdyShieldHandler(BaseHTTPRequestHandler):
         """Handler HTTP da API do EDY Shield."""
 
+        # Hardening M4.6: não expor stack Python/versão no header Server
+        server_version = "EDYShield"
+        sys_version = ""
+
         # Silence default logging for cleaner tests; logs go through
         # the application logger via the CLI instead.
         def log_message(self, format: str, *args: Any) -> None:
@@ -207,6 +212,12 @@ def _make_handler(
                 self._get_alert_stats()
             elif path == "/api/alerts/rules":
                 self._get_alert_rules()
+            elif path.startswith("/api/alerts/") and path.endswith("/comments"):
+                self._get_alert_comments(path)
+            elif path.startswith("/api/alerts/") and path.endswith("/related"):
+                self._get_related_alerts(path)
+            elif path.startswith("/api/alerts/") and "/export/" in path:
+                self._get_alert_export(path)
             elif path.startswith("/api/alerts/"):
                 self._get_alert_detail(path)
             elif path == "/api/health":
@@ -235,6 +246,10 @@ def _make_handler(
                 self._post_analyze_plugin("string_analyzer")
             elif path == "/api/analyze/entropy":
                 self._post_analyze_plugin("entropy_analyzer")
+            elif path == "/api/alerts/batch":
+                self._post_alerts_batch()
+            elif path.startswith("/api/alerts/") and path.endswith("/comment"):
+                self._post_alert_comment(path)
             elif path.startswith("/api/alerts/") and "/" in path.removeprefix("/api/alerts/"):
                 self._post_alert_action(path)
             else:
@@ -431,6 +446,7 @@ def _make_handler(
             severity_str = params.get("severity")
             status_str = params.get("status")
             source = params.get("source")
+            rule_id = params.get("rule_id")
             since = params.get("since")
             try:
                 limit = int(params.get("limit", "50"))
@@ -456,10 +472,22 @@ def _make_handler(
                 severity=severity,
                 status=status,
                 source=source,
+                rule_id=rule_id,
                 since=since,
                 limit=limit,
                 offset=offset,
             )
+            # Filtro textual opcional (q) sobre title/target
+            q = params.get("q", "").lower()
+            if q:
+                alerts = [
+                    a
+                    for a in alerts
+                    if q in (a.title or "").lower()
+                    or q in (a.target or "").lower()
+                    or q in (a.alert_id or "").lower()
+                    or q in (a.source or "").lower()
+                ]
             self._send_json(
                 {
                     "alerts": [a.to_dict() for a in alerts],
@@ -521,6 +549,47 @@ def _make_handler(
                 }
             )
 
+        def _post_alerts_batch(self) -> None:
+            """Executar ação em lote sobre múltiplos alertas.
+
+            Body: {"alert_ids": [...], "action": "ack|resolve|suppress", "note": "..."}
+            """
+            try:
+                payload = self._read_json()
+            except ValueError:
+                self._send_error(HTTPStatus.BAD_REQUEST, "JSON inválido")
+                return
+
+            alert_ids: list[str] = payload.get("alert_ids", []) if isinstance(payload, dict) else []
+            action: str = payload.get("action", "") if isinstance(payload, dict) else ""
+            note: str = payload.get("note", "") if isinstance(payload, dict) else ""
+            by: str = payload.get("by", "webui") if isinstance(payload, dict) else "webui"
+
+            if not alert_ids or not action:
+                self._send_error(HTTPStatus.BAD_REQUEST, "alert_ids e action são obrigatórios")
+                return
+
+            results: list[dict[str, object]] = []
+            errors: list[dict[str, str]] = []
+            for aid in alert_ids:
+                try:
+                    if action == "ack":
+                        r = app_alerts.acknowledge_alert(aid, acked_by=by, note=note)
+                    elif action == "resolve":
+                        r = app_alerts.resolve_alert(aid, resolved_by=by, resolution_note=note)
+                    elif action == "suppress":
+                        r = app_alerts.suppress_alert(aid, reason=note)
+                    elif action == "reopen":
+                        r = app_alerts.reopen_alert(aid, reason=note)
+                    else:
+                        errors.append({"alert_id": aid, "error": f"ação desconhecida: {action}"})
+                        continue
+                    results.append(r.to_dict())
+                except AlertServiceError as exc:
+                    errors.append({"alert_id": aid, "error": str(exc)})
+
+            self._send_json({"success": results, "errors": errors, "total": len(alert_ids)})
+
         def _post_alert_action(self, path: str) -> None:
             """Executar ação de ciclo de vida em um alerta (ack/resolve/suppress/reopen)."""
             parts = path.removeprefix("/api/alerts/").split("/", 1)
@@ -557,6 +626,87 @@ def _make_handler(
                 self._send_error(HTTPStatus.BAD_REQUEST, str(exc))
                 return
             self._send_json(record.to_dict())
+
+        # --- M4.4 Investigation Workspace ---
+
+        def _get_alert_comments(self, path: str) -> None:
+            """Listar comentários de investigação de um alerta."""
+            alert_id = path.removeprefix("/api/alerts/").replace("/comments", "")
+            if not alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "id ausente")
+                return
+            comments = app_alerts.get_comments(alert_id)
+            self._send_json({"comments": comments, "count": len(comments)})
+
+        def _post_alert_comment(self, path: str) -> None:
+            """Adicionar comentário de investigação a um alerta."""
+            alert_id = path.removeprefix("/api/alerts/").replace("/comment", "")
+            if not alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "id ausente")
+                return
+            try:
+                payload = self._read_json()
+            except ValueError:
+                self._send_error(HTTPStatus.BAD_REQUEST, "JSON inválido")
+                return
+            author = payload.get("author", "analyst") if isinstance(payload, dict) else "analyst"
+            body = payload.get("body", "") if isinstance(payload, dict) else ""
+            if not body:
+                self._send_error(HTTPStatus.BAD_REQUEST, "body é obrigatório")
+                return
+            comment = app_alerts.add_comment(alert_id, author, body)
+            self._send_json(comment, status=HTTPStatus.CREATED)
+
+        def _get_related_alerts(self, path: str) -> None:
+            """Listar alertas com o mesmo fingerprint (eventos correlacionados)."""
+            alert_id = path.removeprefix("/api/alerts/").replace("/related", "")
+            if not alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "id ausente")
+                return
+            record = app_alerts.get_alert(alert_id)
+            if record is None:
+                self._send_error(HTTPStatus.NOT_FOUND, "alerta não encontrado")
+                return
+            related = app_alerts.list_related_alerts(record.fingerprint, exclude_id=alert_id)
+            self._send_json({
+                "related": [r.to_dict() for r in related],
+                "count": len(related),
+            })
+
+        def _get_alert_export(self, path: str) -> None:
+            """Exportar investigação de um alerta em Markdown ou JSON.
+
+            Rota: /api/alerts/{id}/export/{format}
+            """
+            parts = path.removeprefix("/api/alerts/").split("/")
+            if len(parts) != 3 or parts[1] != "export":
+                self._send_error(HTTPStatus.BAD_REQUEST, "formato: /api/alerts/{id}/export/{md|json}")
+                return
+            alert_id, fmt = parts[0], parts[2]
+            record = app_alerts.get_alert(alert_id)
+            if record is None:
+                self._send_error(HTTPStatus.NOT_FOUND, "alerta não encontrado")
+                return
+            comments = app_alerts.get_comments(alert_id)
+            related = app_alerts.list_related_alerts(record.fingerprint, exclude_id=alert_id)
+
+            if fmt == "json":
+                self._send_json({
+                    "alert": record.to_dict(),
+                    "comments": comments,
+                    "related": [r.to_dict() for r in related],
+                })
+                return
+
+            if fmt == "md":
+                md = _build_markdown_export(record, comments, related)
+                self._send_bytes(
+                    md.encode("utf-8"),
+                    "text/markdown; charset=utf-8",
+                )
+                return
+
+            self._send_error(HTTPStatus.BAD_REQUEST, f"formato não suportado: {fmt}")
 
         def _get_health(self) -> None:
             """Retornar saúde do sistema (CPU, memória, disco, SQLite, analisadores)."""
@@ -598,7 +748,7 @@ def _make_handler(
                     },
                     "analyzers": {
                         "count": len(plugins),
-                        "names": list(plugins.keys()) if isinstance(plugins, dict) else [],
+                        "names": [p["name"] for p in plugins] if isinstance(plugins, list) else [],
                     },
                     "alert_engine": {
                         "events_processed": engine_stats.get("events_processed", 0),
@@ -726,8 +876,10 @@ def _make_handler(
             self._send_bytes(resolved.read_bytes(), ct)
 
         def _read_json(self) -> dict[str, Any]:
-            """Ler e decodificar o corpo JSON da requisição."""
+            """Ler e decodificar o corpo JSON da requisição (limitado a 1MB)."""
             length = int(self.headers.get("Content-Length", "0"))
+            if length > 1024 * 1024:
+                raise ValueError("payload excede o limite de 1MB")
             raw = self.rfile.read(length) if length else b""
             if not raw:
                 return {}
@@ -747,11 +899,27 @@ def _make_handler(
             content_type: str,
             status: HTTPStatus = HTTPStatus.OK,
         ) -> None:
-            """Responder com bytes e cabeçalhos padrão."""
+            """Responder com bytes e cabeçalhos padrão + Security Headers (M4.6)."""
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            # --- Hardening M4.6: Security Headers ---
+            self.send_header(
+                "Content-Security-Policy",
+                "default-src 'self'; script-src 'self' 'unsafe-inline'; "
+                "style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+                "connect-src 'self'; font-src 'self'; frame-ancestors 'none'; "
+                "base-uri 'self'; form-action 'self'",
+            )
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("X-Frame-Options", "DENY")
+            self.send_header("Referrer-Policy", "no-referrer")
+            self.send_header(
+                "Permissions-Policy",
+                "geolocation=(), microphone=(), camera=(), usb=()",
+            )
+            self.send_header("X-XSS-Protection", "1; mode=block")
             self.end_headers()
             self.wfile.write(body)
 
@@ -763,6 +931,63 @@ def _make_handler(
             )
 
     return EdyShieldHandler
+
+
+def _build_markdown_export(
+    record: AlertRecord,
+    comments: list[dict[str, Any]],
+    related: list[AlertRecord],
+) -> str:
+    """Construir relatório Markdown de investigação de um alerta."""
+    lines: list[str] = []
+    lines.append(f"# Investigação — Alerta {record.alert_id}")
+    lines.append("")
+    lines.append(f"**Título:** {record.title}")
+    lines.append(f"**Severidade:** {record.severity.value}")
+    lines.append(f"**Status:** {record.status.value}")
+    lines.append(f"**Origem:** {record.source}")
+    lines.append(f"**Regra:** {record.rule_id}")
+    lines.append(f"**Alvo:** {record.target}")
+    lines.append(f"**Fingerprint:** `{record.fingerprint}`")
+    lines.append(f"**Count:** {record.count}")
+    lines.append(f"**Primeira Ocorrência:** {record.first_seen_at}")
+    lines.append(f"**Última Ocorrência:** {record.last_seen_at}")
+    lines.append("")
+    if record.description:
+        lines.append("## Descrição")
+        lines.append(record.description)
+        lines.append("")
+    lines.append("## Detalhes / Evidências")
+    lines.append("```json")
+    lines.append(json.dumps(record.details, indent=2, ensure_ascii=False, default=str))
+    lines.append("```")
+    lines.append("")
+    if comments:
+        lines.append("## Comentários de Investigação")
+        for c in comments:
+            lines.append(f"### {c.get('author', 'N/A')} — {c.get('created_at', '')}")
+            lines.append(c.get("body", ""))
+            lines.append("")
+    if related:
+        lines.append("## Alertas Semelhantes (mesmo fingerprint)")
+        for r in related:
+            lines.append(f"- **{r.alert_id}** — {r.severity.value} — {r.status.value} — {r.last_seen_at}")
+        lines.append("")
+    if record.acknowledged_at:
+        lines.append("## Reconhecimento")
+        lines.append(f"- **Por:** {record.acknowledged_by or 'N/A'}")
+        lines.append(f"- **Quando:** {record.acknowledged_at}")
+        lines.append("")
+    if record.resolved_at:
+        lines.append("## Resolução")
+        lines.append(f"- **Por:** {record.resolved_by or 'N/A'}")
+        lines.append(f"- **Quando:** {record.resolved_at}")
+        if record.resolution_note:
+            lines.append(f"- **Nota:** {record.resolution_note}")
+        lines.append("")
+    lines.append("---")
+    lines.append("*Gerado por EDY Shield — Investigation Workspace (M4.4)*")
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":
