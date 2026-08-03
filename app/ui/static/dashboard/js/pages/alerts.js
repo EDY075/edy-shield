@@ -19,16 +19,20 @@ Router.register('alerts', {
       '    <h1>Alert Center</h1>' +
       '    <p>Central de triagem e resposta a incidentes</p>' +
       '  </div>' +
-      '  <button class="btn btn-sm btn-ghost" onclick="AlertsPage.refresh()">&#10227; Atualizar</button>' +
+      '  <div style="display: flex; gap: 8px; align-items: center;">' +
+      '    <button class="btn btn-sm btn-ghost" onclick="AlertsPage.refresh()">&#10227; Atualizar</button>' +
+      '    <button class="btn btn-sm btn-ghost">&#8681; Exportar</button>' +
+      '    <button class="btn btn-sm btn-ghost">A\u00e7\u00f5es em lote</button>' +
+      '  </div>' +
       '</div>' +
 
-      // KPI Grid compacto
-      '<div class="stat-grid stat-grid-compact" id="alertsKpiGrid">' +
-      Components.skeletonHTML('card', 4) +
+      // KPI Grid — Severidade com mini-barras (referência)
+      '<div class="stat-grid stat-grid-5" id="alertsKpiGrid">' +
+      Components.skeletonHTML('card', 5) +
       '</div>' +
 
-      // Batch Bar (hidden por padrão)
-      '<div class="batch-bar" id="batchBar" style="display: none;">' +
+      // Batch Bar (visível, desabilitada quando 0 — referência)
+      '<div class="batch-bar" id="batchBar" style="display: flex; opacity: 0.5; pointer-events: none;">' +
       '  <span class="batch-bar-count"><span id="selectedCount">0</span> selecionados</span>' +
       '  <div class="batch-bar-actions">' +
       '    <button class="btn btn-sm" onclick="AlertsPage.batchAction(\'ack\')">&#10003; Reconhecer Em Lote</button>' +
@@ -72,6 +76,9 @@ Router.register('alerts', {
       '      <option value="30d">\u00daltimos 30 dias</option>' +
       '    </select>' +
       '  </div>' +
+
+      // Contador de alertas encontrados (referência)
+      '<div class="alert-results-count" id="alertsCountLine" style="display: none;"></div>' +
 
       // Tabela de Alertas
       '  <div class="card-body" style="padding: 0;">' +
@@ -169,14 +176,29 @@ var AlertsPage = (function () {
   function _loadStats() {
     EDY.api('/api/alerts/stats')
       .then(function (stats) {
-        var byStatus = stats.by_status || {};
+        var sev = stats.by_severity || {};
         var grid = document.getElementById('alertsKpiGrid');
         if (!grid) return;
-        grid.innerHTML = '' +
-          Components.statCardHTML({ label: 'Novos', value: byStatus.NEW || 0, severity: 'low' }) +
-          Components.statCardHTML({ label: 'Reconhecidos', value: byStatus.ACKNOWLEDGED || 0, severity: 'medium' }) +
-          Components.statCardHTML({ label: 'Resolvidos', value: byStatus.RESOLVED || 0, severity: 'info' }) +
-          Components.statCardHTML({ label: 'Suprimidos', value: byStatus.SUPPRESSED || 0, severity: 'info' });
+        var defs = [
+          { label: 'Cr\u00edticos', key: 'CRITICAL', sev: 'critical', icon: '\u26A0' },
+          { label: 'Altos', key: 'HIGH', sev: 'high', icon: '\u21D1' },
+          { label: 'M\u00e9dios', key: 'MEDIUM', sev: 'medium', icon: '\u25CF' },
+          { label: 'Baixos', key: 'LOW', sev: 'low', icon: '\u2193' },
+          { label: 'Resolvidos', key: 'RESOLVED', sev: 'info', icon: '\u2713' }
+        ];
+        var maxVal = Math.max(1, Math.max.apply(null, defs.map(function (d) { return sev[d.key] || 0; })));
+        grid.innerHTML = defs.map(function (d) {
+          var val = sev[d.key] || 0;
+          var pct = Math.round(val / maxVal * 100);
+          return '<div class="stat-card severity-' + d.sev + '">' +
+            '<div class="stat-card-top">' +
+            '  <div class="stat-card-icon severity-' + d.sev + '">' + d.icon + '</div>' +
+            '  <div class="stat-card-label">' + d.label + '</div>' +
+            '</div>' +
+            '<div class="stat-card-value">' + val + '</div>' +
+            '<div class="stat-card-minibar"><div class="stat-card-minibar-fill sev-' + d.sev + '" style="width: ' + pct + '%;"></div></div>' +
+            '</div>';
+        }).join('');
       })
       .catch(function () {});
   }
@@ -316,6 +338,11 @@ var AlertsPage = (function () {
     var total = state.filteredAlerts.length;
     var info = document.getElementById('paginationInfo');
     var controls = document.getElementById('paginationControls');
+    var countLine = document.getElementById('alertsCountLine');
+    if (countLine) {
+      countLine.style.display = 'flex';
+      countLine.textContent = total + (total === 1 ? ' alerta encontrado' : ' alertas encontrados');
+    }
     if (!info || !controls) return;
 
     if (total === 0) {
@@ -411,7 +438,6 @@ var AlertsPage = (function () {
     _updateBatchBar();
     _renderTable();
   }
-
   function _updateBatchBar() {
     var bar = document.getElementById('batchBar');
     var countEl = document.getElementById('selectedCount');
@@ -422,7 +448,10 @@ var AlertsPage = (function () {
       bar.style.display = 'flex';
       if (countEl) countEl.textContent = count;
     } else {
-      bar.style.display = 'none';
+      bar.style.display = 'flex';
+      bar.style.opacity = '0.5';
+      bar.style.pointerEvents = 'none';
+      if (countEl) countEl.textContent = '0';
     }
   }
 

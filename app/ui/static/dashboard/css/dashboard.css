@@ -2486,12 +2486,54 @@ h1 { letter-spacing: -0.01em; }
   gap: var(--space-3);
 }
 
+/* Alert Center: 5 KPIs de severidade (referência) */
+.stat-grid-5 {
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
 @media (max-width: 1200px) {
+  .stat-grid-5 { grid-template-columns: repeat(3, 1fr); }
   .stat-grid-compact { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (max-width: 768px) {
+  .stat-grid-5 { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 480px) {
+  .stat-grid-5 { grid-template-columns: 1fr; }
   .stat-grid-compact { grid-template-columns: 1fr; }
+}
+
+/* Mini-barras nos KPIs (referência) */
+.stat-card-minibar {
+  height: 4px;
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.stat-card-minibar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 400ms ease;
+}
+
+.stat-card-minibar-fill.sev-critical { background: var(--sev-critical); }
+.stat-card-minibar-fill.sev-high { background: var(--sev-high); }
+.stat-card-minibar-fill.sev-medium { background: var(--sev-medium); }
+.stat-card-minibar-fill.sev-low { background: var(--sev-low); }
+.stat-card-minibar-fill.sev-info { background: var(--accent-secondary); }
+
+/* Contador de alertas encontrados (referência) */
+.alert-results-count {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 0 var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 /* Cards menores e mais elegantes (referência: KPI compactos) */
