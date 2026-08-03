@@ -4,7 +4,7 @@
 
 Modern defensive security toolkit for file integrity, hash analysis and incident investigation.
 
-![EDY Shield Banner](brand/banner_github.svg)
+![EDY Shield Banner](docs/screenshots/banner-edy-shield.png)
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
