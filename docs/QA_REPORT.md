@@ -7,7 +7,7 @@
 | **Versão do produto** | 1.1.0 (release oficial — `app/__init__.py`) |
 | **Analista** | ARES (Cybersecurity Sênior + QA) — TITAN AI SQUAD |
 | **Data** | 01/08/2026 |
-| **Runtime de validação** | Python 3.12 (C:\Users\edmil\AppData\Local\Programs\Python\Python312\python.exe) |
+| **Runtime de validação** | Python 3.12 (C:\Users\user\AppData\Local\Programs\Python\Python312\python.exe) |
 | **Suíte de testes** | ✅ 24/24 passed (`pytest` em 0.07s) |
 
 ---
@@ -191,7 +191,7 @@ compute(str(base/'nao_existe_por_engano.txt'), 'sha256')
 |---|---|
 | **Analista** | ARES (Cybersecurity Sênior + QA) — TITAN AI SQUAD |
 | **Data** | 01/08/2026 |
-| **Runtime de validação** | Python 3.12 (`C:\Users\edmil\AppData\Local\Programs\Python\Python312\python.exe`) |
+| **Runtime de validação** | Python 3.12 (`C:\Users\user\AppData\Local\Programs\Python\Python312\python.exe`) |
 | **Método** | Leitura de código atualizado + suíte completa + 10 smoke tests manuais de segurança + grep de confirmação |
 
 ### 8.1 Resultado da suíte de testes
