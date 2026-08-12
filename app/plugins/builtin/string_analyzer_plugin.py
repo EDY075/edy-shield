@@ -44,7 +44,7 @@ class StringAnalyzerPlugin(Plugin):
     """
 
     name = "string_analyzer"
-    version = "2.0.0"
+    version = "2.3.0"
     description = (
         "Analisa strings de arquivos de texto/scripts/logs e detecta URLs, IPs, "
         "hashes, chaves de API, tokens, comandos suspeitos e credenciais aparentes."

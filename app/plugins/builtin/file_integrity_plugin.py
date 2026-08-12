@@ -25,6 +25,10 @@ Mapeamento mudança → evidência (spec FIM, seção 5):
 
 from __future__ import annotations
 
+import time
+import uuid
+from collections.abc import Callable
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -32,6 +36,7 @@ from app.core.exceptions import EDYShieldError
 from app.core.filesystem.safe_path import resolve_safe_path
 from app.core.fim import FimStore, compare_baseline_snapshot, create_baseline, scan_snapshot
 from app.core.fim.models import Baseline, BaselineEntry, FimDiff, Snapshot
+from app.core.logging import get_logger
 from app.plugins.contracts import Evidence, ScanContext, ScanResult, Severity
 from app.plugins.plugin_base import Plugin
 from app.plugins.plugin_errors import PluginExecutionError
@@ -41,6 +46,10 @@ _ACTIONS = frozenset({"baseline", "scan", "compare"})
 
 #: Algoritmos aceitos (whitelist do Core).
 _ALGORITHMS = frozenset({"SHA256", "SHA1", "MD5"})
+
+BaselineSink = Callable[[Baseline], object]
+FimScanSink = Callable[[Baseline, Snapshot, FimDiff, str, int], object]
+_logger = get_logger("plugins.file_integrity")
 
 
 class FileIntegrityPlugin(Plugin):
@@ -58,14 +67,20 @@ class FileIntegrityPlugin(Plugin):
     """
 
     name = "file_integrity"
-    version = "2.0.0"
+    version = "2.3.0"
     description = (
         "Cria baseline de integridade (hashes + metadados) e detecta "
         "modificação, criação e remoção de arquivos em varreduras posteriores."
     )
     author = "EDY Shield Contributors"
 
-    def __init__(self, store: FimStore | None = None) -> None:
+    def __init__(
+        self,
+        store: FimStore | None = None,
+        *,
+        baseline_sink: BaselineSink | None = None,
+        scan_sink: FimScanSink | None = None,
+    ) -> None:
         """Initialize the plugin with an optional FimStore.
 
         Args:
@@ -73,6 +88,8 @@ class FileIntegrityPlugin(Plugin):
                 padrão (``~/.edyshield/fim``).
         """
         self._store = store if store is not None else FimStore()
+        self._baseline_sink = baseline_sink
+        self._scan_sink = scan_sink
 
     @property
     def store(self) -> FimStore:
@@ -191,6 +208,11 @@ class FileIntegrityPlugin(Plugin):
                 plugin_name=self.name,
             ) from exc
 
+        persisted = baseline if baseline.baseline_id == baseline_id else replace(
+            baseline, baseline_id=baseline_id
+        )
+        self._notify_baseline(persisted)
+
         return ScanResult(
             plugin_name=self.name,
             plugin_version=self.version,
@@ -217,6 +239,7 @@ class FileIntegrityPlugin(Plugin):
         baseline = self._load_baseline(baseline_id)
 
         target = Path(str(context.target))
+        started = time.perf_counter()
         try:
             snapshot = scan_snapshot(
                 target,
@@ -232,6 +255,15 @@ class FileIntegrityPlugin(Plugin):
                 f"falha ao executar scan: {exc}",
                 plugin_name=self.name,
             ) from exc
+
+        duration_ms = max(0, int((time.perf_counter() - started) * 1000))
+        self._notify_scan(
+            baseline,
+            snapshot,
+            diff,
+            f"scan-{uuid.uuid4()}",
+            duration_ms,
+        )
 
         findings, observations = self._diff_to_findings(diff, baseline, snapshot)
         stats = {
@@ -253,6 +285,33 @@ class FileIntegrityPlugin(Plugin):
             stats=stats,
             observations=tuple(observations),
         )
+
+    def _notify_baseline(self, baseline: Baseline) -> None:
+        """Notify an optional durable telemetry sink without breaking FIM."""
+
+        if self._baseline_sink is None:
+            return
+        try:
+            self._baseline_sink(baseline)
+        except Exception:
+            _logger.exception("EDY SIEM baseline enqueue failed; local result was preserved")
+
+    def _notify_scan(
+        self,
+        baseline: Baseline,
+        snapshot: Snapshot,
+        diff: FimDiff,
+        scan_id: str,
+        duration_ms: int,
+    ) -> None:
+        """Notify an optional durable telemetry sink without waiting for HTTP."""
+
+        if self._scan_sink is None:
+            return
+        try:
+            self._scan_sink(baseline, snapshot, diff, scan_id, duration_ms)
+        except Exception:
+            _logger.exception("EDY SIEM FIM enqueue failed; local result was preserved")
 
     def _execute_compare(self, context: ScanContext) -> ScanResult:
         """Comparar duas baselines persistidas (antes/depois)."""

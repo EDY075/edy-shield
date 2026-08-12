@@ -220,5 +220,5 @@ class TestHealth:
 
     def test_metadata(self, plugin: FileIntegrityPlugin) -> None:
         assert plugin.name == "file_integrity"
-        assert plugin.version == "2.0.0"
+        assert plugin.version == "2.3.0"
         assert plugin.author == "EDY Shield Contributors"

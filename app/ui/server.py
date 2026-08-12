@@ -35,6 +35,12 @@ from typing import Any, cast
 from app import __version__
 from app.core.alerts.models import AlertRecord
 from app.core.fim import DEFAULT_FIM_DIR, FimStore
+from app.integrations.edy_siem import (
+    IntegrationRuntime,
+    SiemProducer,
+    build_runtime,
+    investigation_url,
+)
 from app.plugins import PluginManager, PluginRegistry, ScanContext
 from app.plugins.builtin import (
     EntropyAnalyzerPlugin,
@@ -62,6 +68,7 @@ DASHBOARD_DIR = STATIC_DIR / "dashboard"
 def build_default_manager(
     fim_dir: Path | None = None,
     db_path: Path | None = None,
+    siem_producer: SiemProducer | None = None,
 ) -> PluginManager:
     """Construir o PluginManager padrão com os plugins built-in.
 
@@ -78,14 +85,24 @@ def build_default_manager(
     """
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
-    registry.register(HashCheckerPlugin())
+    registry.register(
+        HashCheckerPlugin(
+            telemetry_sink=siem_producer.enqueue_hash_scan if siem_producer else None
+        )
+    )
     registry.register(StringAnalyzerPlugin())
     registry.register(EntropyAnalyzerPlugin())
     store = FimStore(
         fim_dir if fim_dir is not None else DEFAULT_FIM_DIR,
         db_path=db_path,
     )
-    registry.register(FileIntegrityPlugin(store))
+    registry.register(
+        FileIntegrityPlugin(
+            store,
+            baseline_sink=siem_producer.enqueue_baseline if siem_producer else None,
+            scan_sink=siem_producer.enqueue_fim_scan if siem_producer else None,
+        )
+    )
     return PluginManager(registry)
 
 
@@ -94,6 +111,7 @@ def create_server(
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
     alert_service: AlertService | None = None,
+    siem_runtime: IntegrationRuntime | None = None,
     static_dir: Path = STATIC_DIR,
 ) -> ThreadingHTTPServer:
     """Criar o servidor HTTP (ThreadingHTTPServer) com os handlers.
@@ -107,7 +125,7 @@ def create_server(
     Returns:
         Servidor HTTP pronto para ``serve_forever()``.
     """
-    handler = _make_handler(manager, history, alert_service, static_dir)
+    handler = _make_handler(manager, history, alert_service, static_dir, siem_runtime)
     return ThreadingHTTPServer(("127.0.0.1", 0), handler)
 
 
@@ -118,6 +136,7 @@ def serve(
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
     alert_service: AlertService | None = None,
+    siem_runtime: IntegrationRuntime | None = None,
 ) -> None:
     """Iniciar o servidor HTTP em primeiro plano (bloqueante).
 
@@ -128,15 +147,22 @@ def serve(
         history: HistoryStore a usar (padrão: ``~/.edyshield``).
         alert_service: AlertService a usar (padrão: instância nova).
     """
-    handler = _make_handler(manager, history, alert_service, STATIC_DIR)
-    server = ThreadingHTTPServer((host, port), handler)
-    print(f"EDY Shield UI em http://{host}:{server.server_port} (v{__version__})")
+    runtime = siem_runtime if siem_runtime is not None else build_runtime()
+    server: ThreadingHTTPServer | None = None
     try:
+        if runtime is not None:
+            runtime.start()
+        handler = _make_handler(manager, history, alert_service, STATIC_DIR, runtime)
+        server = ThreadingHTTPServer((host, port), handler)
+        print(f"EDY Shield UI em http://{host}:{server.server_port} (v{__version__})")
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
-        server.server_close()
+        if server is not None:
+            server.server_close()
+        if runtime is not None:
+            runtime.close()
 
 
 def _default_history_dir() -> Path:
@@ -156,10 +182,16 @@ def _make_handler(
     history: HistoryStore | None,
     alert_service: AlertService | None,
     static_dir: Path,
+    siem_runtime: IntegrationRuntime | None,
 ) -> type[BaseHTTPRequestHandler]:
     """Criar uma classe handler fechando o contexto da aplicação."""
 
-    app_manager = manager if manager is not None else build_default_manager()
+    siem_producer = siem_runtime.producer if siem_runtime is not None else None
+    app_manager = (
+        manager
+        if manager is not None
+        else build_default_manager(siem_producer=siem_producer)
+    )
     app_history = history if history is not None else HistoryStore(_default_history_dir())
     app_analysis = AnalysisService(manager=app_manager)
     # AlertService: injetável (testes) ou instância nova (produção).
@@ -168,7 +200,10 @@ def _make_handler(
         app_alerts = alert_service
     else:
         env_db = os.environ.get("EDYSHIELD_DB_PATH")
-        app_alerts = AlertService(db_path=Path(env_db) if env_db else None)
+        app_alerts = AlertService(
+            db_path=Path(env_db) if env_db else None,
+            telemetry_sink=siem_producer.enqueue_alert if siem_producer else None,
+        )
     assets = static_dir
     start_time = _START_TIME
 
@@ -220,6 +255,8 @@ def _make_handler(
                 self._get_alert_export(path)
             elif path.startswith("/api/alerts/"):
                 self._get_alert_detail(path)
+            elif path.startswith("/api/integrations/edy-siem/alerts/"):
+                self._get_siem_alert_context(path)
             elif path == "/api/health":
                 self._get_health()
             elif path == "/api/fim/baselines":
@@ -525,6 +562,91 @@ def _make_handler(
                 return
             self._send_json(record.to_dict())
 
+        def _get_siem_alert_context(self, path: str) -> None:
+            """Expose non-secret delivery state and a safe SIEM deep link."""
+
+            alert_id = path.removeprefix("/api/integrations/edy-siem/alerts/")
+            if not alert_id or "/" in alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "alert_id inv\u00e1lido")
+                return
+            if siem_runtime is None:
+                self._send_json(
+                    {
+                        "delivery_state": "disabled",
+                        "label": "Integra\u00e7\u00e3o desativada",
+                        "description": "O envio ao EDY SIEM n\u00e3o est\u00e1 habilitado neste endpoint.",
+                        "event_id": None,
+                        "investigation_url": None,
+                        "can_investigate": False,
+                    }
+                )
+                return
+
+            item = siem_runtime.producer.repository.latest_for_alert(alert_id)
+            if item is None:
+                self._send_json(
+                    {
+                        "delivery_state": "unavailable",
+                        "label": "Evento ainda indispon\u00edvel",
+                        "description": "Nenhum evento SIEM foi correlacionado a este alerta.",
+                        "event_id": None,
+                        "investigation_url": None,
+                        "can_investigate": False,
+                    }
+                )
+                return
+
+            status = str(item.get("status", "pending"))
+            has_error = bool(item.get("last_error"))
+            state = "pending"
+            label = "Pendente de envio"
+            description = "O evento est\u00e1 preservado na fila local do Shield."
+            if status == "sent":
+                state = "delivered"
+                label = "Entregue ao SIEM"
+                description = "O EDY SIEM confirmou o recebimento deste evento."
+            elif status == "dead_letter":
+                state = "failed"
+                label = "Falha de entrega"
+                description = "O evento exige revis\u00e3o antes de poder ser investigado no SIEM."
+            elif has_error:
+                state = "temporary_failure"
+                label = "Falha temporária"
+                description = "O Shield manter\u00e1 o evento na fila e tentar\u00e1 novamente."
+            elif status == "in_flight":
+                label = "Enviando ao SIEM"
+                description = "A entrega deste evento est\u00e1 em andamento."
+
+            event_id = str(item["event_id"])
+            deep_link = investigation_url(event_id) if state == "delivered" else None
+            if state == "delivered" and deep_link is None:
+                description = "Evento entregue; configure EDY_SIEM_UI_URL para abrir a investiga\u00e7\u00e3o."
+            payload = item.get("payload")
+            event_timestamp = payload.get("timestamp") if isinstance(payload, dict) else None
+            queued_at = item.get("created_at")
+            delivered_at = item.get("updated_at") if status == "sent" else None
+            self._send_json(
+                {
+                    "delivery_state": state,
+                    "label": label,
+                    "description": description,
+                    "event_id": event_id,
+                    "investigation_url": deep_link,
+                    "can_investigate": deep_link is not None,
+                    "updated_at": item.get("updated_at"),
+                    "event_timestamp": event_timestamp
+                    if isinstance(event_timestamp, str)
+                    else None,
+                    "queued_at": queued_at if isinstance(queued_at, str) else None,
+                    "last_attempt_at": item.get("last_attempt_at")
+                    if isinstance(item.get("last_attempt_at"), str)
+                    else None,
+                    "delivered_at": delivered_at
+                    if isinstance(delivered_at, str)
+                    else None,
+                }
+            )
+
         def _get_alert_rules(self) -> None:
             """Listar regras ativas do motor de alertas."""
             rules = app_alerts.list_rules()
@@ -744,6 +866,7 @@ def _make_handler(
             self._send_json(
                 {
                     "status": "online" if sqlite_ok else "degraded",
+                    "hostname": platform.node() or None,
                     "uptime_seconds": round(uptime_seconds, 1),
                     "python_version": sys.version.split()[0],
                     "platform": platform.platform(),

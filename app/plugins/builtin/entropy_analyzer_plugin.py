@@ -44,7 +44,7 @@ class EntropyAnalyzerPlugin(Plugin):
     """
 
     name = "entropy_analyzer"
-    version = "2.0.0"
+    version = "2.3.0"
     description = (
         "Mede a entropia de Shannon de arquivos de texto e sinaliza "
         "conteúdos de alta aleatoriedade (dados codificados, compactados, "
