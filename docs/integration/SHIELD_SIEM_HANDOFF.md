@@ -47,9 +47,9 @@ produção nesta etapa.
 - cobertura: 86,78%;
 - Ruff, MyPy, build e `git diff --check`: PASS.
 
-O SIEM obteve 928 testes e 95,15% de cobertura, com Ruff/MyPy aprovados. Seu build de
-pacote precisa ser repetido em ambiente com `hatchling`; a dependência não estava
-instalada e a rede atingiu timeout.
+O SIEM obteve 928 testes e 95,15% de cobertura, com Ruff/MyPy aprovados. O build oficial
+também passou após instalar o `hatchling` declarado em `[build-system]`, gerando wheel e
+sdist 0.2.0.
 
 ## Decisões e limitações
 
@@ -61,9 +61,12 @@ instalada e a rede atingiu timeout.
 
 ## Próximo passo exato
 
-1. Repetir `python -m build` no SIEM em CI/ambiente com `hatchling`.
-2. Implementar a UX “Investigar no EDY SIEM” no Shield.
-3. Apresentar eventos Shield na experiência de investigação do SIEM.
+**UX INTEGRATION V1**:
+
+1. No Shield, adicionar a ação “Investigar no EDY SIEM” ao evento/alerta.
+2. No SIEM, abrir diretamente a investigação correspondente.
+3. Exibir origem EDY Shield, ativo, evidências, hashes, timeline, MITRE quando aplicável
+   e permitir criação de caso.
 
 Não fazer merge em `main`, não implementar WAR_ROOM e não iniciar o worker downstream
 da inbox sem nova etapa aprovada.

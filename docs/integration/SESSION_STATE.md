@@ -14,12 +14,12 @@
 - 122 eventos `sent` comparados com a inbox; 0 diferenças.
 - Regressão Shield: 45 focados; 680 completos, 2 skipped; cobertura 86,78%;
   Ruff/MyPy/build PASS.
-- Documentação está em commit local (`git log -1`); push pendente porque a credencial
-  salva para `EDY075` está inválida. Após `gh auth login -h github.com`, executar
-  `git push origin codex/siem-producer-outbox-v1`.
+- Checkpoint E2E `82ad8a3` publicado em
+  `origin/codex/siem-producer-outbox-v1`.
+- Build oficial do SIEM também passou após instalar o `hatchling` declarado no projeto.
 - Nenhum código de produção ou frontend foi alterado.
-- Próximo passo: depois de repetir o build do SIEM com `hatchling`, implementar UX
-  “Investigar no EDY SIEM”.
+- Próximo passo: **UX INTEGRATION V1** — ação “Investigar no EDY SIEM” para eventos e
+  alertas, abrindo diretamente a investigação correspondente.
 
 Atualizado em: 2026-08-11
 
