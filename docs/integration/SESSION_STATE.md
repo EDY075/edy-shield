@@ -343,7 +343,7 @@ Evidências salvas em `outputs/sprint-a3-event-detail/` no workspace Codex:
 
 - branch: `codex/siem-producer-outbox-v1`;
 - checkpoint anterior preservado: `5019ee9`;
-- commits desta etapa: registrar após o fechamento Git;
+- commit funcional e documental da etapa: `9649efd`;
 - merge em `main`: não realizado.
 
 # Sprint B — EDY SIEM SOC Decision Center

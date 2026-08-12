@@ -186,6 +186,7 @@ integridade, baseline, scan e decisão local; o SIEM só é oferecido após `del
 - `tests/integration/test_siem_ux_integration.py`: contrato da URL, estados e hardening;
 - `docs/integration/SESSION_STATE.md`: relatório canônico completo e reconciliação A2;
 - screenshots: `outputs/sprint-a3-event-detail/` no workspace Codex.
+- commit da implementação e fechamento: `9649efd`.
 
 ### Decisões importantes
 
