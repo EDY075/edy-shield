@@ -397,7 +397,7 @@ var Dashboard = {
   },
 
   _renderError: function (err) {
-    var description = err && err.message ? err.message : 'Tente novamente em alguns instantes.';
+    var description = 'A API local não respondeu. Verifique se o serviço está online e tente novamente.';
     var status = document.getElementById('integrityStatusBody');
     var facts = document.getElementById('endpointFactsBody');
     var signals = document.getElementById('integritySignals');

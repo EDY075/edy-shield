@@ -152,3 +152,16 @@ alterar contratos do SIEM ou iniciar a Sprint A2.
 Próximo escopo permitido: **Sprint A2 — FIM / Baseline / Scan Experience** no EDY
 Shield. Criar a experiência dedicada de baseline/scan sem antecipar mudanças no EDY
 SIEM, nas Sprints B/C/D ou em `main`.
+
+## Handoff — validação visual complementar da Sprint A1 (2026-08-12)
+
+A aplicação foi aberta e percorrida novamente em 1920x1080, 1366x768 e 390x844. Foram
+validados loading, baseline ausente, baseline + scan sem drift, alteração crítica, fila
+vazia, erro da API, SIEM disponível e SIEM indisponível. O Alert Center, seus filtros,
+tabela e drawer também foram usados como usuário.
+
+Correções resultantes: remoção do toast interno de boas-vindas, cabeçalho do drawer em
+duas linhas, nome acessível no botão fechar, KPIs móveis em faixa horizontal, ações em
+lote com scroll interno e mensagem de falha da API em português. Após as correções, não
+houve overflow horizontal, texto corrompido ou erro/warning novo no console. O gate do
+deep link permanece inalterado: CTA somente quando `delivered`.

@@ -1977,21 +1977,28 @@ body {
 .alert-side-panel.open { transform: translateX(0); }
 
 .alert-side-panel-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title close"
+    "meta close";
   align-items: center;
-  justify-content: space-between;
+  column-gap: var(--space-3);
+  row-gap: 6px;
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
 }
 
 .alert-side-panel-title {
+  grid-area: title;
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .alert-side-panel-close {
+  grid-area: close;
   width: 32px;
   height: 32px;
   border: none;
@@ -2158,6 +2165,7 @@ body {
 .alert-side-panel-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-2);
   font-size: var(--font-size-sm);
   min-width: 0;
@@ -2171,13 +2179,14 @@ body {
 
 /* ========== Investigation Workspace (M4.4.6) ========== */
 .alert-side-panel-meta {
+  grid-area: meta;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-tertiary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 100%;
 }
 
 .alert-side-panel-tabs {
@@ -2537,7 +2546,37 @@ h1 { letter-spacing: -0.01em; }
 }
 
 @media (max-width: 480px) {
-  .stat-grid-5 { grid-template-columns: 1fr; }
+  .stat-grid-5 {
+    grid-template-columns: repeat(5, minmax(124px, 1fr));
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    padding-bottom: var(--space-2);
+  }
+
+  .stat-grid-5 .stat-card {
+    min-height: 104px;
+    scroll-snap-align: start;
+  }
+
+  .batch-bar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .batch-bar-actions {
+    width: 100%;
+    margin-left: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: var(--space-1);
+  }
+
+  .batch-bar-actions .btn {
+    flex: 0 0 auto;
+  }
+
   .stat-grid-compact { grid-template-columns: 1fr; }
 }
 

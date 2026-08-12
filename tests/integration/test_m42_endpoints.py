@@ -287,6 +287,7 @@ class TestDashboardM42CssAndJs:
         assert "integrity-review-list" in text
         assert "next-action-card" in text
         assert "prefers-reduced-motion" in text
+        assert "scroll-snap-type: inline proximity" in text
 
     def test_dashboard_js_app_contains_theme_toggle(self, m42_api) -> None:
         status, body = m42_api("GET", "/dashboard/js/app.js")
@@ -296,6 +297,7 @@ class TestDashboardM42CssAndJs:
         assert "localStorage" in text
         assert "EDY" in text
         assert "auto" in text.lower() or "AUTO_REFRESH" in text
+        assert "EDY Shield M4.2" not in text
 
     def test_dashboard_js_page_dashboard_has_real_api(self, m42_api) -> None:
         status, body = m42_api("GET", "/dashboard/js/pages/dashboard.js")
@@ -313,6 +315,7 @@ class TestDashboardM42CssAndJs:
         assert "Alteração crítica detectada" in text
         assert "Mudanças que exigem revisão" in text
         assert "Investigar no EDY SIEM" in text
+        assert "A API local não respondeu" in text
         assert 'data-alert-id="' in text
         assert "Dashboard.openAlert(this.dataset.alertId)" in text
 

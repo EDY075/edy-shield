@@ -119,10 +119,6 @@
       }
     });
 
-    // --- Toast de boas-vindas ---
-    setTimeout(function () {
-      Toast.info('Dados reais carregados via API. Auto-refresh a cada 30s.', 'EDY Shield M4.2');
-    }, 800);
   });
 
   // --- Tema helpers ---

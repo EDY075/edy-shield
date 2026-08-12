@@ -118,10 +118,8 @@ Router.register('alerts', {
       '<aside class="alert-side-panel" id="alertSidePanel">' +
       '  <div class="alert-side-panel-header">' +
       '    <div class="alert-side-panel-title" id="panelTitle">Detalhes do Alerta</div>' +
-      '    <div style="display: flex; align-items: center; gap: 8px;">' +
-      '      <span class="alert-side-panel-meta" id="panelFingerprint"></span>' +
-      '      <button class="alert-side-panel-close" onclick="AlertsPage.closePanel()">&times;</button>' +
-      '    </div>' +
+      '    <span class="alert-side-panel-meta" id="panelFingerprint"></span>' +
+      '    <button class="alert-side-panel-close" onclick="AlertsPage.closePanel()" aria-label="Fechar detalhes do alerta">&times;</button>' +
       '  </div>' +
       '  <div class="alert-side-panel-tabs" id="panelTabs">' +
       '    <button class="alert-side-panel-tab active" data-tab="summary" onclick="AlertsPage.switchTab(\'summary\')">Summary</button>' +

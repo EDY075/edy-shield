@@ -221,3 +221,37 @@ setuptools.
 
 **Sprint A2 — FIM / Baseline / Scan Experience.** Não iniciar sem novo prompt. Não
 alterar o EDY SIEM, não iniciar as Sprints B/C/D e não fazer merge em `main`.
+
+## Validação obrigatória no navegador — checkpoint complementar (2026-08-12)
+
+A Sprint A1 foi novamente percorrida na aplicação real antes do commit complementar,
+com dados E2E e instâncias isoladas do próprio servidor para estados FIM distintos.
+
+### Rotas e estados inspecionados
+
+- `http://127.0.0.1:8011/dashboard`: Home crítica, loading, navegação para o alerta e
+  SIEM desativado;
+- `http://127.0.0.1:8000/dashboard`: alerta entregue e CTA **Investigar no EDY SIEM**;
+- `/dashboard#/alerts`: fila, filtros, tabela e drawer de investigação;
+- instância isolada sem baseline: baseline ausente, fila vazia e áreas protegidas vazias;
+- instância isolada com baseline + scan FIM real sem drift: integridade estável;
+- instância isolada interrompida após o carregamento: estado de erro da API e retry.
+
+Viewports revisados: 1920x1080, 1366x768 e 390x844. Não foi encontrado overflow
+horizontal de documento, caracteres corrompidos ou erro/warning novo no console.
+
+### Problemas encontrados e corrigidos
+
+- toast automático de boas-vindas cobria a próxima ação em notebook e expunha o rótulo
+  interno `M4.2`; removido sem afetar toasts operacionais;
+- cabeçalho do drawer comprimia badges, título e fingerprint; reorganizado em grade de
+  duas linhas e botão de fechar ganhou nome acessível;
+- cinco KPIs em coluna ocultavam filtros/tabela no mobile; convertidos em faixa
+  horizontal compacta com scroll interno;
+- ações em lote cortavam o viewport móvel; passaram a usar scroll interno restrito;
+- falha da API exibia `Failed to fetch`; substituída por orientação operacional em
+  português.
+
+Evidências finais foram salvas em
+`outputs/sprint-a1-browser-validation/` no workspace Codex da sessão. A próxima etapa
+continua sendo somente a **Sprint A2 — FIM / Baseline / Scan Experience**.
