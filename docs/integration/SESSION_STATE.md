@@ -375,3 +375,14 @@ módulos), sintaxe JavaScript, wheel/sdist e `git diff --check`: PASS.
 
 **FINAL — Release Readiness / final product sign-off.** Não iniciar automaticamente e não
 fazer merge em `main`.
+
+## RELEASE COMPLETE — v2.3.0 (2026-08-12)
+
+- Produção: merge não destrutivo em `main` no commit `4547f0a`; remoto confirmado em 0/0.
+- Qualidade: 687 passed, 2 skipped, 86,68% coverage; Ruff, MyPy, JavaScript, wheel/sdist e
+  `git diff --check` aprovados.
+- E2E em processos reais: evento FIM entregue com `event_id` estável, case idempotente,
+  recuperação após indisponibilidade do SIEM, zero eventos perdidos e zero duplicatas lógicas.
+- Chrome externo: Alert Center, Overview, War Room, Case Center e recuperação de rota
+  verificados; sem erro da aplicação ou overflow horizontal.
+- Próxima manutenção: partir de `main`; a tag de release é `v2.3.0`.

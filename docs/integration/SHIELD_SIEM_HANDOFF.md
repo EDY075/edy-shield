@@ -250,3 +250,22 @@ integração nova.
 
 **FINAL — Release Readiness / sign-off.** Não iniciar automaticamente e não fazer merge
 em `main`.
+
+## HANDOFF — Release complete v2.3.0 (2026-08-12)
+
+### Contexto
+
+O EDY Shield foi integrado em produção ao EDY SIEM. O contrato v1 permanece local-first:
+o outbox retém eventos enquanto o receptor está indisponível e o deep link só usa o
+`event_id` confirmado.
+
+### Evidências finais
+
+- Merge de produção: `4547f0a` em `main`, remoto 0/0.
+- E2E pós-merge: `event_id` `22bb2bd7-980a-471e-9be7-717ba7f5038b`, case idempotente,
+  recuperação offline e contagens de perda/duplicata iguais a zero.
+- Release: `v2.3.0`; notas em `docs/RELEASE_NOTES_v2.3.md`.
+
+### Próximo passo
+
+Manutenção corretiva somente a partir de `main`; não iniciar Sprint D sem novo escopo.
