@@ -90,3 +90,10 @@ Arquivos centrais: `app/ui/server.py`,
 O E2E real confirmou o alerta `ALT-UX-E2E-003`, evento
 `fa3f171e-bb8e-43f2-9bd3-ae716d7316da`, entrega e abertura contextual no SIEM. Proximo
 passo: **PRODUCT REDESIGN V1**. Nao iniciar ainda.
+
+## Revalidacao de retomada - 2026-08-12
+
+Nenhuma alteracao parcial foi encontrada no worktree. A UX Integration V1 foi
+revalidada com 11 testes focados e 684 testes completos (2 ignorados, 86,67%),
+Ruff, MyPy, build e verificacao de diff. A acao continua condicionada ao estado
+`delivered` da outbox e o deep link continua sem token ou evidencia na URL.

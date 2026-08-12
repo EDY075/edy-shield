@@ -129,6 +129,15 @@ já exista sem essas colunas. Nenhum banco é compartilhado com o SIEM.
 - Qualidade: 684 testes, 2 skipped, 86,67%, Ruff/MyPy/build aprovados.
 - Proximo passo salvo: **PRODUCT REDESIGN V1**. Nao iniciar sem novo prompt.
 
+## Revalidacao de retomada - 2026-08-12
+
+- Estado recuperado sem alteracoes locais pendentes; o checkpoint UX permanece em `4fa8e78`.
+- Testes focados: 11 aprovados; suite completa: 684 aprovados, 2 ignorados, 86,67%.
+- Ruff, MyPy, build e `git diff --check`: aprovados.
+- Revisao de seguranca confirmou que o deep link contem somente `event_id`, valida a URL
+  configurada e abre com `noopener,noreferrer`.
+- Sincronizacao local/remoto confirmada apos o checkpoint documental desta retomada.
+
 Executar, em ambiente local isolado, o primeiro E2E real com EDY SIEM na branch
 `codex/shield-siem-integration-architecture`: configurar tokens de laboratório nos dois
 processos, iniciar o receptor, gerar um FIM real no Shield, confirmar `202`, inbox e
