@@ -22,6 +22,7 @@ apenas chamam este service.
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -66,6 +67,7 @@ class AlertService:
         db_path: Path | None = None,
         rules: list[AlertRule] | None = None,
         channels: list[BaseAlertChannel] | None = None,
+        telemetry_sink: Callable[[AlertRecord, str, str | None], object] | None = None,
     ) -> None:
         # Respeitar env var EDYSHIELD_DB_PATH se db_path nao foi explicitado
         if db_path is None:
@@ -77,6 +79,7 @@ class AlertService:
             rules=rules,
             channels=channels if channels is not None else [ConsoleChannel()],
         )
+        self._telemetry_sink = telemetry_sink
         # Hidratar cache de dedup com alertas ativos do banco
         self._hydrate_dedup_cache()
 
@@ -141,6 +144,8 @@ class AlertService:
                 result.alert.count,
             )
 
+        self._emit_telemetry(result.alert, result.action)
+
         return result.alert
 
     def process_scan_evidences(
@@ -170,6 +175,7 @@ class AlertService:
             if r.alert is not None:
                 if r.action == "created" or r.action == "updated":
                     self._store.save(r.alert)
+                    self._emit_telemetry(r.alert, r.action)
                 alerts.append(r.alert)
         return alerts
 
@@ -200,6 +206,7 @@ class AlertService:
 
         from app.core.alerts.models import now_iso
 
+        previous_status = record.status.value
         record.status = AlertStatus.ACKNOWLEDGED
         record.acknowledged_at = now_iso()
         record.acknowledged_by = acked_by
@@ -208,6 +215,7 @@ class AlertService:
         self._store.save(record)
         self._engine.dedup_cache.update(record)
         _logger.info("Alerta %s reconhecido por %s", alert_id, acked_by)
+        self._emit_telemetry(record, "updated", previous_status)
         return record
 
     def resolve_alert(
@@ -238,6 +246,7 @@ class AlertService:
 
         from app.core.alerts.models import now_iso
 
+        previous_status = record.status.value
         record.status = AlertStatus.RESOLVED
         record.resolved_at = now_iso()
         record.resolved_by = resolved_by
@@ -247,6 +256,7 @@ class AlertService:
         # Remover do cache de dedup (alerta resolvido nao acumula mais)
         self._engine.dedup_cache.forget(record.fingerprint)
         _logger.info("Alerta %s resolvido por %s", alert_id, resolved_by)
+        self._emit_telemetry(record, "updated", previous_status)
         return record
 
     def suppress_alert(self, alert_id: str, reason: str = "") -> AlertRecord:
@@ -269,6 +279,7 @@ class AlertService:
         if record is None:
             raise AlertServiceError(f"Alerta nao encontrado: {alert_id}")
 
+        previous_status = record.status.value
         record.status = AlertStatus.SUPPRESSED
         if reason:
             record.resolution_note = reason
@@ -276,6 +287,7 @@ class AlertService:
         # Remover do cache de dedup (alerta suprimido para de contar)
         self._engine.dedup_cache.forget(record.fingerprint)
         _logger.info("Alerta %s suprimido: %s", alert_id, reason)
+        self._emit_telemetry(record, "updated", previous_status)
         return record
 
     def reopen_alert(self, alert_id: str, reason: str = "") -> AlertRecord:
@@ -302,6 +314,7 @@ class AlertService:
 
         from app.core.alerts.models import now_iso
 
+        previous_status = record.status.value
         record.status = AlertStatus.NEW
         record.resolved_at = None
         record.resolved_by = None
@@ -315,7 +328,23 @@ class AlertService:
         # Re-adicionar ao cache de dedup
         self._engine.dedup_cache.remember(record)
         _logger.info("Alerta %s reaberto", alert_id)
+        self._emit_telemetry(record, "updated", previous_status)
         return record
+
+    def _emit_telemetry(
+        self,
+        record: AlertRecord,
+        action: str,
+        previous_status: str | None = None,
+    ) -> None:
+        """Persist optional SIEM telemetry without changing local alert semantics."""
+
+        if self._telemetry_sink is None:
+            return
+        try:
+            self._telemetry_sink(record, action, previous_status)
+        except Exception:
+            _logger.exception("EDY SIEM alert enqueue failed; local alert was preserved")
 
     # --- Consultas ------------------------------------------------- #
 

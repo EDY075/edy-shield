@@ -18,10 +18,12 @@ from __future__ import annotations
 
 import sqlite3
 import threading
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
+
+T = TypeVar("T")
 
 #: Caminho padrão do banco de dados único do EDY Shield.
 DEFAULT_DB_PATH = Path.home() / ".edyshield" / "edy_shield.db"
@@ -113,6 +115,39 @@ CREATE TABLE IF NOT EXISTS alert_comments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_comments_alert ON alert_comments(alert_id);
+
+CREATE TABLE IF NOT EXISTS siem_integration_state (
+    state_id      INTEGER PRIMARY KEY CHECK (state_id = 1),
+    instance_id   TEXT NOT NULL UNIQUE,
+    next_sequence INTEGER NOT NULL CHECK (next_sequence >= 1),
+    dropped_count INTEGER NOT NULL DEFAULT 0,
+    last_enqueue_error TEXT
+);
+
+CREATE TABLE IF NOT EXISTS siem_outbox (
+    event_id        TEXT PRIMARY KEY,
+    sequence        INTEGER NOT NULL UNIQUE,
+    event_type      TEXT NOT NULL,
+    severity        TEXT NOT NULL,
+    payload         TEXT NOT NULL,
+    payload_bytes   INTEGER NOT NULL,
+    status          TEXT NOT NULL CHECK (
+        status IN ('pending', 'in_flight', 'sent', 'dead_letter')
+    ),
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL,
+    attempt_count   INTEGER NOT NULL DEFAULT 0,
+    next_attempt_at TEXT NOT NULL,
+    last_attempt_at TEXT,
+    lease_expires_at TEXT,
+    batch_id        TEXT,
+    last_error      TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_siem_outbox_eligible
+    ON siem_outbox(status, next_attempt_at, severity, created_at);
+CREATE INDEX IF NOT EXISTS idx_siem_outbox_lease
+    ON siem_outbox(status, lease_expires_at);
 """
 
 
@@ -152,6 +187,22 @@ class SQLiteDb:
         """Criar o schema (idempotente) se o banco ainda não existir."""
         with self._lock:
             self._conn.executescript(_SCHEMA)
+            columns = {
+                str(row[1])
+                for row in self._conn.execute(
+                    "PRAGMA table_info(siem_integration_state)"
+                ).fetchall()
+            }
+            if "dropped_count" not in columns:
+                self._conn.execute(
+                    "ALTER TABLE siem_integration_state "
+                    "ADD COLUMN dropped_count INTEGER NOT NULL DEFAULT 0"
+                )
+            if "last_enqueue_error" not in columns:
+                self._conn.execute(
+                    "ALTER TABLE siem_integration_state ADD COLUMN last_enqueue_error TEXT"
+                )
+            self._conn.commit()
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -197,6 +248,12 @@ class SQLiteDb:
         with self._connect() as conn:
             for sql, params in operations:
                 conn.execute(sql, params)
+
+    def run_transaction(self, operation: Callable[[sqlite3.Connection], T]) -> T:
+        """Run a typed callback inside the database lock and transaction."""
+
+        with self._connect() as conn:
+            return operation(conn)
 
     def query(self, sql: str, params: tuple[Any, ...] = ()) -> list[dict[str, Any]]:
         """Executar um SELECT e retornar lista de dicionários."""

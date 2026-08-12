@@ -18,6 +18,7 @@ O plugin aceita no ``ScanContext``:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -30,9 +31,13 @@ from app.core.config.settings import DEFAULT_ENCODING
 from app.core.crypto import normalize_algorithm, safe_compare
 from app.core.exceptions import EDYShieldError
 from app.core.filesystem.safe_path import resolve_safe_path
+from app.core.logging import get_logger
 from app.plugins.contracts import Evidence, ScanContext, ScanResult, Severity
 from app.plugins.plugin_base import Plugin
 from app.plugins.plugin_errors import PluginExecutionError
+
+HashTelemetrySink = Callable[[ScanContext, ScanResult], object]
+_logger = get_logger("plugins.hash_checker")
 
 
 class HashCheckerPlugin(Plugin):
@@ -45,6 +50,9 @@ class HashCheckerPlugin(Plugin):
         "arquivo e verifica integridade contra um digest esperado."
     )
     author = "EDY Shield Contributors"
+
+    def __init__(self, telemetry_sink: HashTelemetrySink | None = None) -> None:
+        self._telemetry_sink = telemetry_sink
 
     def validate(self, context: ScanContext) -> None:
         """Validar o contexto antes da execução.
@@ -157,7 +165,7 @@ class HashCheckerPlugin(Plugin):
                 )
             )
 
-        return ScanResult(
+        scan_result = ScanResult(
             plugin_name=self.name,
             plugin_version=self.version,
             timestamp=datetime.now(UTC),
@@ -169,6 +177,12 @@ class HashCheckerPlugin(Plugin):
             stats={"bytes": result.size_bytes} if result.size_bytes is not None else {},
             observations=tuple(observations),
         )
+        if self._telemetry_sink is not None:
+            try:
+                self._telemetry_sink(context, scan_result)
+            except Exception:
+                _logger.exception("EDY SIEM hash enqueue failed; local result was preserved")
+        return scan_result
 
     def health_check(self) -> bool:
         """O plugin está sempre pronto para executar (sem estado externo)."""

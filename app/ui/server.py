@@ -35,6 +35,7 @@ from typing import Any, cast
 from app import __version__
 from app.core.alerts.models import AlertRecord
 from app.core.fim import DEFAULT_FIM_DIR, FimStore
+from app.integrations.edy_siem import IntegrationRuntime, SiemProducer, build_runtime
 from app.plugins import PluginManager, PluginRegistry, ScanContext
 from app.plugins.builtin import (
     EntropyAnalyzerPlugin,
@@ -62,6 +63,7 @@ DASHBOARD_DIR = STATIC_DIR / "dashboard"
 def build_default_manager(
     fim_dir: Path | None = None,
     db_path: Path | None = None,
+    siem_producer: SiemProducer | None = None,
 ) -> PluginManager:
     """Construir o PluginManager padrão com os plugins built-in.
 
@@ -78,14 +80,24 @@ def build_default_manager(
     """
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
-    registry.register(HashCheckerPlugin())
+    registry.register(
+        HashCheckerPlugin(
+            telemetry_sink=siem_producer.enqueue_hash_scan if siem_producer else None
+        )
+    )
     registry.register(StringAnalyzerPlugin())
     registry.register(EntropyAnalyzerPlugin())
     store = FimStore(
         fim_dir if fim_dir is not None else DEFAULT_FIM_DIR,
         db_path=db_path,
     )
-    registry.register(FileIntegrityPlugin(store))
+    registry.register(
+        FileIntegrityPlugin(
+            store,
+            baseline_sink=siem_producer.enqueue_baseline if siem_producer else None,
+            scan_sink=siem_producer.enqueue_fim_scan if siem_producer else None,
+        )
+    )
     return PluginManager(registry)
 
 
@@ -94,6 +106,7 @@ def create_server(
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
     alert_service: AlertService | None = None,
+    siem_runtime: IntegrationRuntime | None = None,
     static_dir: Path = STATIC_DIR,
 ) -> ThreadingHTTPServer:
     """Criar o servidor HTTP (ThreadingHTTPServer) com os handlers.
@@ -107,7 +120,7 @@ def create_server(
     Returns:
         Servidor HTTP pronto para ``serve_forever()``.
     """
-    handler = _make_handler(manager, history, alert_service, static_dir)
+    handler = _make_handler(manager, history, alert_service, static_dir, siem_runtime)
     return ThreadingHTTPServer(("127.0.0.1", 0), handler)
 
 
@@ -118,6 +131,7 @@ def serve(
     manager: PluginManager | None = None,
     history: HistoryStore | None = None,
     alert_service: AlertService | None = None,
+    siem_runtime: IntegrationRuntime | None = None,
 ) -> None:
     """Iniciar o servidor HTTP em primeiro plano (bloqueante).
 
@@ -128,15 +142,22 @@ def serve(
         history: HistoryStore a usar (padrão: ``~/.edyshield``).
         alert_service: AlertService a usar (padrão: instância nova).
     """
-    handler = _make_handler(manager, history, alert_service, STATIC_DIR)
-    server = ThreadingHTTPServer((host, port), handler)
-    print(f"EDY Shield UI em http://{host}:{server.server_port} (v{__version__})")
+    runtime = siem_runtime if siem_runtime is not None else build_runtime()
+    server: ThreadingHTTPServer | None = None
     try:
+        if runtime is not None:
+            runtime.start()
+        handler = _make_handler(manager, history, alert_service, STATIC_DIR, runtime)
+        server = ThreadingHTTPServer((host, port), handler)
+        print(f"EDY Shield UI em http://{host}:{server.server_port} (v{__version__})")
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
-        server.server_close()
+        if server is not None:
+            server.server_close()
+        if runtime is not None:
+            runtime.close()
 
 
 def _default_history_dir() -> Path:
@@ -156,10 +177,16 @@ def _make_handler(
     history: HistoryStore | None,
     alert_service: AlertService | None,
     static_dir: Path,
+    siem_runtime: IntegrationRuntime | None,
 ) -> type[BaseHTTPRequestHandler]:
     """Criar uma classe handler fechando o contexto da aplicação."""
 
-    app_manager = manager if manager is not None else build_default_manager()
+    siem_producer = siem_runtime.producer if siem_runtime is not None else None
+    app_manager = (
+        manager
+        if manager is not None
+        else build_default_manager(siem_producer=siem_producer)
+    )
     app_history = history if history is not None else HistoryStore(_default_history_dir())
     app_analysis = AnalysisService(manager=app_manager)
     # AlertService: injetável (testes) ou instância nova (produção).
@@ -168,7 +195,10 @@ def _make_handler(
         app_alerts = alert_service
     else:
         env_db = os.environ.get("EDYSHIELD_DB_PATH")
-        app_alerts = AlertService(db_path=Path(env_db) if env_db else None)
+        app_alerts = AlertService(
+            db_path=Path(env_db) if env_db else None,
+            telemetry_sink=siem_producer.enqueue_alert if siem_producer else None,
+        )
     assets = static_dir
     start_time = _START_TIME
 
