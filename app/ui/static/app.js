@@ -87,8 +87,8 @@
       el('stat-plugins').textContent = String((plugins.plugins || []).length);
       el('stat-scans').textContent = String((history.entries || []).length);
       el('stat-status').textContent = 'Online';
-      el('engine-version').textContent = 'v' + (plugins.version || '2.0.0');
-      el('footer-version').textContent = 'v' + (plugins.version || '2.0.0');
+      el('engine-version').textContent = 'v' + (plugins.version || '2.3.0');
+      el('footer-version').textContent = 'v' + (plugins.version || '2.3.0');
       setStatus(true, 'SYSTEM ONLINE');
       renderModuleGrid(el('dashboard-modules'), plugins.plugins || []);
     } catch (err) {

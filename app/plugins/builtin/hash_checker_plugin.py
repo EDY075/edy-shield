@@ -44,7 +44,7 @@ class HashCheckerPlugin(Plugin):
     """Plugin que calcula e verifica hashes usando o Core do EDY Shield."""
 
     name = "hash_checker"
-    version = "2.0.0"
+    version = "2.3.0"
     description = (
         "Calcula hashes criptográficos (SHA-256, SHA-1, MD5) de texto ou "
         "arquivo e verifica integridade contra um digest esperado."

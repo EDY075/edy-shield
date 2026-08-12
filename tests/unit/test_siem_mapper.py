@@ -6,6 +6,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
+from app import __version__
 from app.core.alerts.models import AlertRecord
 from app.core.alerts.models import Severity as AlertSeverity
 from app.core.fim.models import Baseline, BaselineEntry, FimDiff, Snapshot
@@ -59,7 +60,7 @@ def _assert_common(event: dict[str, object], event_type: str) -> None:
     assert event["severity"] in {"info", "low", "medium", "high", "critical"}
     assert event["source"] == {
         "product": "edy-shield",
-        "product_version": "2.0.0",
+            "product_version": __version__,
         "instance_id": "00000000-0000-4000-8000-000000000001",
         "component": str(event_type).split(".")[1]
         if event_type.startswith("shield.hash")

@@ -67,7 +67,7 @@ class FileIntegrityPlugin(Plugin):
     """
 
     name = "file_integrity"
-    version = "2.0.0"
+    version = "2.3.0"
     description = (
         "Cria baseline de integridade (hashes + metadados) e detecta "
         "modificação, criação e remoção de arquivos em varreduras posteriores."

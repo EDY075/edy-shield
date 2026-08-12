@@ -9,6 +9,31 @@ segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-08-12
+
+### Added
+
+- **Shield → SIEM Event Contract v1**: local-first mapper, SQLite outbox, delivery worker,
+  idempotent receiver acknowledgements and safe investigation deep link after confirmed
+  delivery.
+- **Endpoint Integrity Center**: baseline and scan context, factual FIM change workflow,
+  hash comparison, delivery truth and operational local actions.
+- **Release visual baseline**: teal/green endpoint identity, accessible focus treatment,
+  reduced-motion support and lighter dashboard decoration.
+
+### Changed
+
+- EDY Shield is documented as **Endpoint Integrity & Defense**. Its local FIM, baseline,
+  scan and alert workflow remain operational while the SIEM is offline; queued events are
+  recovered after the receiver returns.
+
+### Quality
+
+- Real-process E2E validated stable `event_id`, idempotent case handoff, offline recovery,
+  zero lost events and zero logical duplicates.
+- Release suite: 687 passed, 2 skipped, 86.68% coverage; Ruff, MyPy, dashboard JavaScript
+  syntax, wheel/sdist and browser QA passed.
+
 ### v2.2 — Release Candidate (UI Enterprise + Hardening)
 
 #### Added

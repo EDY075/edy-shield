@@ -1,6 +1,6 @@
 <div align="center">
 
-# EDY Shield
+# EDY Shield — Endpoint Integrity & Defense
 
 Modern defensive security toolkit for file integrity, hash analysis and incident investigation.
 
@@ -8,9 +8,9 @@ Modern defensive security toolkit for file integrity, hash analysis and incident
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v2.2.0--rc-blue)](https://github.com/EDY075/edy-shield/releases)
-[![Tests](https://img.shields.io/badge/Tests-635%20passed-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/Coverage-91.92%25-success)]()
+[![Release](https://img.shields.io/badge/Release-v2.3.0-0f766e)](https://github.com/EDY075/edy-shield/releases)
+[![Tests](https://img.shields.io/badge/Tests-687%20passed-brightgreen)]()
+[![Coverage](https://img.shields.io/badge/Coverage-86.68%25-success)]()
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)]()
 
 </div>
@@ -19,28 +19,30 @@ Modern defensive security toolkit for file integrity, hash analysis and incident
 
 ## Overview
 
-EDY Shield is a modular defensive security platform written in **Python 3.12** with a **100% standard-library core** (zero runtime dependencies). It combines file integrity monitoring, hash analysis, log analysis and a configurable alert engine behind a professional SOC-style web dashboard.
+EDY Shield is an **Endpoint Integrity & Defense** platform written in **Python 3.12** with a **100% standard-library core** (zero runtime dependencies). It is local-first: FIM, baselines, scans, hash analysis and the local alert workflow remain available even when the SIEM receiver is unavailable.
 
 It solves a practical problem: small security teams and blue-team operators need a lightweight, self-contained toolkit — no cloud, no agents, no license fees — to monitor critical files, triage alerts and investigate indicators of compromise on their own infrastructure.
 
 **Capabilities**
 
-- File Integrity Monitoring with baseline and scan
+- File Integrity Monitoring with baseline and comparative scan
 - Hash verification (MD5, SHA-1, SHA-256, SHA-512)
 - Log analysis and entropy/string analysis plugins
 - Configurable alert engine with deduplication
-- SOC dashboard with dark/light themes
+- Endpoint Integrity Center with evidence, hash comparison and factual timeline
+- Durable SQLite outbox for optional EDY SIEM Event Contract v1 delivery
+- Safe EDY SIEM investigation handoff only after confirmed delivery
 - REST API for automation and integration
 
 ---
 
 ## Features
 
-**Dashboard** — Real-time KPIs, health monitoring, severity charts and activity timeline.
+**Endpoint Integrity Center** — Operational posture, baseline state, scan context and changes requiring review.
 
 **Alert Center** — Triage table with filters, sorting, pagination and batch actions (ACK, resolve, suppress, reopen).
 
-**Investigation Workspace** — Slide-out panel with Summary, Timeline, Evidence, Comments and History tabs.
+**Change investigation** — Factual change → evidence → impact → decision flow with hash comparison, baseline context and delivery state.
 
 **Rules** — View active alert engine rules with severity and thresholds.
 
@@ -62,14 +64,11 @@ It solves a practical problem: small security teams and blue-team operators need
 
 ---
 
-## Screenshots
+## Release screenshots
 
-| | |
+| Endpoint Integrity Center | Delivered change with SIEM handoff |
 |---|---|
-| ![Dashboard](docs/screenshots/dashboard.png) | ![Alert Center](docs/screenshots/alert-center.png) |
-| ![System Health](docs/screenshots/system-health.png) | ![Rules](docs/screenshots/rules.png) |
-| ![Settings](docs/screenshots/settings.png) | ![Assets](docs/screenshots/assets.png) |
-| ![Logs](docs/screenshots/logs.png) | ![IOC Manager](docs/screenshots/ioc-manager.png) |
+| ![Endpoint Integrity Center](docs/screenshots/release-endpoint-integrity.png) | ![FIM change with confirmed EDY SIEM handoff](docs/screenshots/release-fim-siem-handoff.png) |
 
 ---
 
@@ -193,6 +192,10 @@ Configuration is environment-driven (prefix `EDY_`):
 |---|---|---|
 | `EDYSHIELD_DB_PATH` | SQLite database file path | `~/.edyshield/edy_shield.db` |
 | `EDYSHIELD_LOG_LEVEL` | Logging verbosity | `INFO` |
+| `EDY_SIEM_ENABLED` | Enables the optional Shield → SIEM delivery worker | disabled |
+| `EDY_SIEM_URL` | SIEM receiver URL; HTTP is accepted only on loopback | — |
+| `EDY_SIEM_TOKEN` | M2M ingestion token supplied only at runtime | — |
+| `EDY_SIEM_UI_URL` | Safe SIEM UI base URL used for investigation handoff | — |
 
 **SQLite** — All persistence (alerts, history, analysis, FIM baselines) lives in a single SQLite database.
 
@@ -216,7 +219,17 @@ coverage run -m pytest       # coverage
 coverage report              # coverage report
 ```
 
-Current gates: **635 tests passing**, **91.92% coverage**, **mypy strict clean**, **ruff clean**.
+Current release gates: **687 tests passing, 2 skipped**, **86.68% coverage**, **mypy strict clean**, **ruff clean**, JavaScript syntax checks and wheel/sdist build.
+
+---
+
+## EDY security ecosystem
+
+- **EDY Shield** owns endpoint telemetry, FIM, baselines, scans, hashes and durable local delivery.
+- **EDY SIEM** owns correlation, investigation and response after receiving Shield telemetry.
+- **WAR_ROOM** remains an evolving context and threat-intelligence surface; it is not a separate integrated service in this release.
+
+Release details: [EDY Shield 2.3.0 notes](docs/RELEASE_NOTES_v2.3.md).
 
 ---
 

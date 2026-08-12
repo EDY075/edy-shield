@@ -19,7 +19,7 @@ class TestEntropyAnalyzerPlugin:
     def test_metadata(self) -> None:
         plugin = EntropyAnalyzerPlugin()
         assert plugin.name == "entropy_analyzer"
-        assert plugin.version == "2.0.0"
+        assert plugin.version == "2.3.0"
         assert plugin.author == "EDY Shield Contributors"
 
     def test_validate_missing_target_raises(self) -> None:
