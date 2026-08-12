@@ -1,8 +1,9 @@
-# Session State — EDY Shield → EDY SIEM producer v1
+# Session State — EDY Shield Product Redesign V1
 
-> **ESTADO CANÔNICO MAIS RECENTE — 2026-08-11 23:27 BRT.** O primeiro E2E real com o
-> receptor SIEM passou. Leia também `SHIELD_SIEM_HANDOFF.md` neste repositório e
-> `docs/integration/E2E_SHIELD_SIEM_V1_REPORT.md` no EDYSIEM.
+> **ESTADO CANÔNICO MAIS RECENTE — 2026-08-12.** A Sprint A1 foi concluída no Shield:
+> a Home agora é o **Endpoint Integrity Center**. O deep link já aprovado para o SIEM
+> foi preservado e a próxima etapa autorizável é exclusivamente a **Sprint A2 — FIM /
+> Baseline / Scan Experience**. Leia também `SHIELD_SIEM_HANDOFF.md`.
 
 ## Checkpoint E2E v1
 
@@ -164,3 +165,59 @@ Executar, em ambiente local isolado, o primeiro E2E real com EDY SIEM na branch
 processos, iniciar o receptor, gerar um FIM real no Shield, confirmar `202`, inbox e
 normalização no SIEM, derrubar/religar o SIEM para provar o replay e então documentar as
 evidências. Não iniciar WAR_ROOM nem frontend antes desse gate.
+
+## Sprint A1 — Endpoint Integrity Center concluída (2026-08-12)
+
+Escopo implementado somente no EDY Shield, branch
+`codex/siem-producer-outbox-v1`; nenhum arquivo do EDY SIEM foi alterado e não houve
+merge em `main`.
+
+### Home resultante
+
+- identidade reposicionada para **Endpoint Integrity & Defense**;
+- hero operacional por endpoint com baseline ativa, último scan, áreas protegidas e
+  estado do agente;
+- três sinais compactos: arquivos na baseline, mudanças no último scan e revisões
+  pendentes;
+- fila **Mudanças que exigem revisão**, limitada aos alertas críticos/altos/médios não
+  resolvidos e ordenada por severidade/recência;
+- rail **Próxima ação** derivado do estado real: baseline ausente, scan necessário,
+  revisão, crítico ou estável;
+- ações da fila abrem o alerta exato no painel já existente;
+- estado e ação **Investigar no EDY SIEM** preservados, condicionados ao evento
+  confirmado como `delivered` e com abertura `noopener,noreferrer`;
+- loading, erro, ausência de baseline, ausência de scan e fila vazia tratados sem dados
+  inventados;
+- textos legados conhecidos com `?`/mojibake são reparados somente na apresentação,
+  antes do escape HTML; os registros persistidos não são reescritos.
+
+### Dados e limites da A1
+
+- a Home compõe apenas APIs existentes: `/api/health`, `/api/fim/baselines`,
+  `/api/history`, `/api/alerts` e o contexto de entrega SIEM;
+- `/api/health` passou a expor somente o hostname local já disponível no sistema;
+- a área protegida representa a baseline ativa mais recente, não o histórico inteiro;
+- criação de baseline e execução de scan continuam nas ferramentas existentes; uma
+  experiência FIM dedicada pertence à Sprint A2.
+
+### Validação final
+
+- focados: 52 aprovados;
+- suíte completa: 686 aprovados, 2 ignorados, cobertura global 86,67%;
+- Ruff: aprovado;
+- MyPy: aprovado em 80 arquivos de código;
+- build: wheel e sdist `edy_shield-2.0.0` gerados;
+- JavaScript: `node --check` aprovado nos arquivos modificados;
+- revisão visual real: 1920x1080, notebook 1366x768 e mobile 390x844, sem overflow
+  horizontal; fila, detalhe exato, texto reparado e estado SIEM confirmados;
+- revisão de segurança: toda saída dinâmica usa escape HTML; o ID do alerta é passado
+  via `data-alert-id`; o deep link aceita somente HTTP(S), não contém token/evidência e
+  abre com `noopener,noreferrer`.
+
+Warnings remanescentes são preexistentes: SHA-1/MD5 nos testes e metadata de licença do
+setuptools.
+
+## Próximo passo exato
+
+**Sprint A2 — FIM / Baseline / Scan Experience.** Não iniciar sem novo prompt. Não
+alterar o EDY SIEM, não iniciar as Sprints B/C/D e não fazer merge em `main`.

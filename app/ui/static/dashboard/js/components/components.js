@@ -195,8 +195,19 @@ var Components = (function () {
   function _escape(text) {
     if (text === null || text === undefined) return '';
     var div = document.createElement('div');
-    div.textContent = String(text);
+    div.textContent = _repairKnownText(String(text));
     return div.innerHTML;
+  }
+
+  /** Corrige somente corrupções conhecidas em registros legados persistidos. */
+  function _repairKnownText(text) {
+    return text
+      .replace(/Arquivo cr\?tico/g, 'Arquivo crítico')
+      .replace(/arquivo cr\?tico/g, 'arquivo crítico')
+      .replace(/Altera\?\?o/g, 'Alteração')
+      .replace(/altera\?\?o/g, 'alteração')
+      .replace(/laborat\?rio/g, 'laboratório')
+      .replace(/temporÃ¡ria/g, 'temporária');
   }
 
   return {
@@ -208,6 +219,7 @@ var Components = (function () {
     severityBadgeHTML: severityBadgeHTML,
     statusBadgeHTML: statusBadgeHTML,
     tableHTML: tableHTML,
+    cleanText: _repairKnownText,
     escape: _escape
   };
 })();

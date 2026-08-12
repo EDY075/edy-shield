@@ -222,6 +222,7 @@ var AlertsPage = (function () {
         _renderTable();
         _renderPagination();
         _updateBatchBar();
+        _openPendingAlert();
       })
       .catch(function (err) {
         if (err.name === 'AbortError') return;
@@ -525,6 +526,15 @@ var AlertsPage = (function () {
     if (backdrop) backdrop.classList.add('open');
     switchTab('summary');
     _loadSiemInvestigation(alert.alert_id);
+  }
+
+  function _openPendingAlert() {
+    var alertId = sessionStorage.getItem('edy-shield-open-alert');
+    if (!alertId) return;
+    var alert = state.alerts.find(function (item) { return item.alert_id === alertId; });
+    if (!alert) return;
+    sessionStorage.removeItem('edy-shield-open-alert');
+    openPanel(alert);
   }
 
   function _loadSiemInvestigation(alertId) {

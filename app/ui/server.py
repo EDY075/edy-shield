@@ -611,7 +611,7 @@ def _make_handler(
                 description = "O evento exige revis\u00e3o antes de poder ser investigado no SIEM."
             elif has_error:
                 state = "temporary_failure"
-                label = "Falha temporÃ¡ria"
+                label = "Falha temporária"
                 description = "O Shield manter\u00e1 o evento na fila e tentar\u00e1 novamente."
             elif status == "in_flight":
                 label = "Enviando ao SIEM"
@@ -852,6 +852,7 @@ def _make_handler(
             self._send_json(
                 {
                     "status": "online" if sqlite_ok else "degraded",
+                    "hostname": platform.node() or None,
                     "uptime_seconds": round(uptime_seconds, 1),
                     "python_version": sys.version.split()[0],
                     "platform": platform.platform(),

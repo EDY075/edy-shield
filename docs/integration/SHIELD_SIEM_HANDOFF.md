@@ -1,6 +1,6 @@
 # Handoff — EDY Shield → EDY SIEM v1
 
-Atualizado em: 2026-08-11 23:27 BRT
+Atualizado em: 2026-08-12 — Sprint A1 concluída
 
 ## Estado atual
 
@@ -105,3 +105,50 @@ e reposiciona-lo como **Endpoint Integrity & Defense**, nao um SOC generico: a H
 orientar por host, postura/baseline, mudancas criticas e proxima acao. Manter a tabela,
 o painel de evidencia e o gate de entrega SIEM; reduzir cartoes de telemetria repetidos e
 acoes rapidas concorrentes. A Sprint A depende de aprovacao explicita do plano.
+
+## Handoff — Sprint A1 Endpoint Integrity Center concluída (2026-08-12)
+
+### Contexto
+
+A primeira entrega do Product Redesign V1 foi implementada somente no EDY Shield. A
+Home genérica foi substituída por um centro de decisão de integridade do endpoint, sem
+alterar contratos do SIEM ou iniciar a Sprint A2.
+
+### Artefatos principais
+
+- `app/ui/static/dashboard/js/pages/dashboard.js`: composição real da postura,
+  prioridade e próxima ação;
+- `app/ui/static/dashboard/css/dashboard.css`: layout responsivo da A1;
+- `app/ui/static/dashboard/index.html`: identidade Endpoint Integrity & Defense;
+- `app/ui/static/dashboard/js/components/components.js`: reparo visual limitado aos
+  textos legados conhecidos, sempre antes do escape HTML;
+- `app/ui/static/dashboard/js/pages/alerts.js`: abertura automática do alerta exato
+  selecionado na Home;
+- `app/ui/server.py`: hostname no health e correção do rótulo de falha temporária;
+- `tests/integration/test_m42_endpoints.py`: contrato estático/HTTP da nova Home e
+  hardening do ID do alerta.
+
+### Decisões preservadas
+
+- a ação **Investigar no EDY SIEM** continua disponível somente quando a outbox confirma
+  `delivered`;
+- o deep link continua em `/investigate/shield/{event_id}`, sem token, hashes ou
+  evidências na URL;
+- indisponibilidade do SIEM não afeta o fluxo local do Shield;
+- dados dinâmicos são escapados; IDs de alerta não são interpolados como código;
+- a A1 não cria score, cobertura, SLA ou automação sem fonte real.
+
+### Qualidade
+
+- 52 testes focados aprovados;
+- 686 testes completos aprovados, 2 ignorados, cobertura 86,67%;
+- Ruff, MyPy, build, JavaScript syntax check e `git diff --check` aprovados;
+- revisão real em 1920x1080, 1366x768 e 390x844 sem overflow horizontal;
+- um alerta entregue exibiu o CTA SIEM; um alerta não entregue manteve apenas o estado
+  operacional, como esperado.
+
+### Pendências / próximo responsável
+
+Próximo escopo permitido: **Sprint A2 — FIM / Baseline / Scan Experience** no EDY
+Shield. Criar a experiência dedicada de baseline/scan sem antecipar mudanças no EDY
+SIEM, nas Sprints B/C/D ou em `main`.

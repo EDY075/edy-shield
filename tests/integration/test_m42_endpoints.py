@@ -225,6 +225,12 @@ class TestHealthEndpoint:
         assert "python_version" in data
         assert len(data["python_version"]) > 0
 
+    def test_health_exposes_real_hostname(self, m42_api) -> None:
+        status, data = m42_api("GET", "/api/health")
+        assert status == 200
+        assert "hostname" in data
+        assert data["hostname"] is None or isinstance(data["hostname"], str)
+
     def test_health_analyzers_count(self, m42_api) -> None:
         status, data = m42_api("GET", "/api/health")
         assert status == 200
@@ -277,9 +283,10 @@ class TestDashboardM42CssAndJs:
         text = body.decode("utf-8") if isinstance(body, bytes) else body
         assert '[data-theme="light"]' in text
         assert "theme-toggle" in text
-        assert "quick-actions" in text
-        assert "bar-chart" in text
-        assert "timeline" in text
+        assert "integrity-hero" in text
+        assert "integrity-review-list" in text
+        assert "next-action-card" in text
+        assert "prefers-reduced-motion" in text
 
     def test_dashboard_js_app_contains_theme_toggle(self, m42_api) -> None:
         status, body = m42_api("GET", "/dashboard/js/app.js")
@@ -294,12 +301,29 @@ class TestDashboardM42CssAndJs:
         status, body = m42_api("GET", "/dashboard/js/pages/dashboard.js")
         assert status == 200
         text = body.decode("utf-8") if isinstance(body, bytes) else body
-        assert "/api/alerts/stats" in text
         assert "/api/health" in text
-        assert "quick-actions" in text
-        assert "bar-chart" in text
-        assert "timeline" in text
-        assert "critical-banner" in text
+        assert "/api/fim/baselines" in text
+        assert "/api/history" in text
+        assert "/api/alerts?limit=50" in text
+        assert "/api/integrations/edy-siem/alerts/" in text
+        assert "Endpoint Integrity Center" in text
+        assert "Baseline ausente" in text
+        assert "Scan necessário" in text
+        assert "Integridade estável" in text
+        assert "Alteração crítica detectada" in text
+        assert "Mudanças que exigem revisão" in text
+        assert "Investigar no EDY SIEM" in text
+        assert 'data-alert-id="' in text
+        assert "Dashboard.openAlert(this.dataset.alertId)" in text
+
+    def test_dashboard_components_repair_only_known_legacy_text(self, m42_api) -> None:
+        status, body = m42_api("GET", "/dashboard/js/components/components.js")
+        assert status == 200
+        text = body.decode("utf-8") if isinstance(body, bytes) else body
+        assert "_repairKnownText" in text
+        assert "Arquivo crítico" in text
+        assert "Alteração" in text
+        assert "laboratório" in text
 
     def test_dashboard_js_page_alerts_has_real_api(self, m42_api) -> None:
         status, body = m42_api("GET", "/dashboard/js/pages/alerts.js")
@@ -335,6 +359,8 @@ class TestDashboardM42CssAndJs:
         text = body.decode("utf-8") if isinstance(body, bytes) else body
         assert "themeToggle" in text
         assert "onlineIndicator" in text
+        assert "Endpoint Integrity &amp; Defense" in text
+        assert ">Integridade<" in text
 
 
 class TestNoRegressionM42:
