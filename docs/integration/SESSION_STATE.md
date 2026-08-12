@@ -77,8 +77,22 @@ já exista sem essas colunas. Nenhum banco é compartilhado com o SIEM.
 ## Git
 
 - Branch: `codex/siem-producer-outbox-v1`
-- Commits: consultar os dois commits mais recentes desta branch (implementação e estado).
+- Commit funcional publicado: `6e25619` (`feat: add durable EDY SIEM producer outbox`).
+- Remote: `origin/codex/siem-producer-outbox-v1`; sincronizado após o commit funcional.
+- Handoff correspondente no EDYSIEM: commit `a56ee81`, branch
+  `codex/shield-siem-integration-architecture`.
 - Merge em `main`: não realizado.
+
+## Como retomar em outra conta
+
+1. Abrir o repositório EDY Shield e permanecer em
+   `codex/siem-producer-outbox-v1`.
+2. Ler este arquivo e `docs/integration/EDY_SIEM_INTEGRATION.md` integralmente.
+3. No EDYSIEM, permanecer em `codex/shield-siem-integration-architecture` e ler
+   `docs/integration/SHIELD_SIEM_HANDOFF.md`, `docs/integration/SESSION_STATE.md` e
+   `docs/integration/EVENT_CONTRACT_V1.md`.
+4. Confirmar que os dois working trees estão limpos e sincronizados antes de iniciar o
+   E2E. Não fazer merge em `main` e não alterar frontend nesta próxima etapa.
 
 ## Próximo passo exato
 
