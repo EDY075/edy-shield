@@ -97,3 +97,11 @@ Nenhuma alteracao parcial foi encontrada no worktree. A UX Integration V1 foi
 revalidada com 11 testes focados e 684 testes completos (2 ignorados, 86,67%),
 Ruff, MyPy, build e verificacao de diff. A acao continua condicionada ao estado
 `delivered` da outbox e o deep link continua sem token ou evidencia na URL.
+
+## Handoff - Product Redesign V1 (auditoria, sem implementacao)
+
+O Shield foi revisado em Dashboard, Alert Center, detalhe de alerta e Assets. A proposta
+e reposiciona-lo como **Endpoint Integrity & Defense**, nao um SOC generico: a Home deve
+orientar por host, postura/baseline, mudancas criticas e proxima acao. Manter a tabela,
+o painel de evidencia e o gate de entrega SIEM; reduzir cartoes de telemetria repetidos e
+acoes rapidas concorrentes. A Sprint A depende de aprovacao explicita do plano.

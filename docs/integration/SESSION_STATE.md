@@ -138,6 +138,27 @@ já exista sem essas colunas. Nenhum banco é compartilhado com o SIEM.
   configurada e abre com `noopener,noreferrer`.
 - Sincronizacao local/remoto confirmada apos o checkpoint documental desta retomada.
 
+## Product Redesign V1 - auditoria concluida (2026-08-12)
+
+Escopo somente de auditoria visual e produto; nenhum codigo, configuracao ou dependencia
+foi alterado. Telas reais revisadas em desktop 1920x1080: Dashboard, Alert Center,
+detalhe de alerta com estado SIEM e Assets.
+
+- O Shield tem tabela, evidencias e alertas reais, mas a Home ainda prioriza KPIs e
+  saude generica em vez de integridade do endpoint.
+- Problemas: cartoes repetidos, linguagem SOC generica, FIM/baseline/host pouco
+  proeminentes, acoes rapidas concorrentes e integracao SIEM pouco contextual no detalhe.
+- Preservar: tabela/filtros, painel de evidencia e timeline, badges de severidade e gate
+  da acao SIEM em `delivered`.
+- Proposta: **Endpoint Integrity Center** com postura do host, baseline, mudancas criticas
+  e proxima acao no topo; reduzir telemetria repetida.
+- Sprints: A Shield Endpoint Integrity Center; B SIEM SOC Decision Center; C Investigation
+  Workflow; D Shared Design System/refinamento.
+- Evidencias: `outputs/product-redesign-v1/shield/01-dashboard-1920x1080.png`,
+  `02-alert-center-1920x1080.png` e `03-alert-detail-siem-status-1920x1080.png` no
+  workspace da sessao Codex.
+- Proximo passo: revisar e aprovar a proposta antes da Sprint A. Nao implementar ainda.
+
 Executar, em ambiente local isolado, o primeiro E2E real com EDY SIEM na branch
 `codex/shield-siem-integration-architecture`: configurar tokens de laboratório nos dois
 processos, iniciar o receptor, gerar um FIM real no Shield, confirmar `202`, inbox e
