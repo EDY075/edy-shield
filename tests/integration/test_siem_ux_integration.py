@@ -79,6 +79,9 @@ def test_delivered_alert_exposes_only_safe_configured_deep_link(
     assert body["can_investigate"] is True
     assert body["event_id"] == event_id
     assert body["investigation_url"] == f"http://127.0.0.1:5173/investigate/shield/{event_id}"
+    assert body["event_timestamp"] == "2026-08-12T12:00:00.000Z"
+    assert body["queued_at"] == "2026-08-12T12:00:00.000Z"
+    assert body["delivered_at"] == "2026-08-12T12:00:00.000Z"
     assert "secret-token" not in json.dumps(body)
 
 
@@ -153,8 +156,22 @@ def test_frontend_shows_real_delivery_states_and_opens_only_http_links() -> None
         "delivery_state",
         "can_investigate",
         "Investigar no EDY SIEM",
+        "Marcar como revisado",
+        "Executar novo scan",
+        "Hash anterior",
+        "Hash atual",
+        "Contexto da baseline",
+        "Mudan\\u00e7a registrada pelo Shield",
         "^https?",
         "noopener,noreferrer",
     ):
         assert marker in source
+    assert "Components.escape(_safeJSON(d))" in source
+    assert "_safeDeliveryState(context.delivery_state)" in source
+    assert "data-copy-value=\"' + Components.escape" in source
+    assert "onRowClick(event, this.dataset.id)" in source
+    assert "toggleSelect(this.value)" in source
+    assert "onRowClick(event, \\'" not in source
     assert "state-temporary_failure" in styles
+    assert ".event-detail-flow" in styles
+    assert "font-family: var(--font-mono)" in styles

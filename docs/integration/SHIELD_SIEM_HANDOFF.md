@@ -1,6 +1,6 @@
 # Handoff — EDY Shield → EDY SIEM v1
 
-Atualizado em: 2026-08-12 — Sprint A1 concluída
+Atualizado em: 2026-08-12 — Sprint A concluída
 
 ## Estado atual
 
@@ -165,3 +165,59 @@ duas linhas, nome acessível no botão fechar, KPIs móveis em faixa horizontal,
 lote com scroll interno e mensagem de falha da API em português. Após as correções, não
 houve overflow horizontal, texto corrompido ou erro/warning novo no console. O gate do
 deep link permanece inalterado: CTA somente quando `delivered`.
+
+## HANDOFF: EDY Shield Sprint A → EDY SIEM Sprint B
+
+### Contexto
+
+# Sprint A — Endpoint Integrity Center: COMPLETE
+
+O detalhe de mudança do Shield agora segue **Mudança → Evidência → Impacto → Decisão** e
+é a ponte operacional para a investigação multi-sinal. O Shield continua responsável por
+integridade, baseline, scan e decisão local; o SIEM só é oferecido após `delivered`.
+
+### Artefatos
+
+- `app/ui/static/dashboard/js/pages/alerts.js`: workspace linear, hash comparison,
+  baseline, impacto factual, decisões, timeline e estados SIEM;
+- `app/ui/static/dashboard/css/dashboard.css`: hierarquia visual e responsividade de
+  390px a 1920px;
+- `app/ui/server.py`: timestamps não secretos da outbox para timeline;
+- `tests/integration/test_siem_ux_integration.py`: contrato da URL, estados e hardening;
+- `docs/integration/SESSION_STATE.md`: relatório canônico completo e reconciliação A2;
+- screenshots: `outputs/sprint-a3-event-detail/` no workspace Codex.
+
+### Decisões importantes
+
+- não transportar arquivo, hashes, metadata, hostname ou token no deep link;
+- liberar **Investigar no EDY SIEM** somente quando `can_investigate=true` e URL HTTP(S);
+- não inferir comprometimento, criticidade de arquivo ou relação com baseline sem campo
+  real que sustente a afirmação;
+- não inventar timestamps; omitir etapas ausentes;
+- tratar toda evidência como texto não confiável e escapar antes de inserir no DOM.
+
+### Qualidade
+
+- 52 testes focados;
+- 686 testes completos, 2 ignorados, cobertura 86,68%;
+- Ruff, MyPy, JavaScript, build e `git diff --check` aprovados;
+- navegador: desktop 1920x1080, notebook 1366x768 e mobile 390x844;
+- estados: normal, crítico, hashes completos, hash anterior ausente, baseline, pending,
+  delivered, disabled, falha temporária e consulta indisponível;
+- payload XSS exercitado, console limpo e zero overflow horizontal.
+
+### Limitações / decisões em aberto
+
+- a retomada não encontrou commit/handoff dedicado da Sprint A2; FIM, baseline e scan
+  foram validados nas capacidades reais já existentes em `/#fim` e essa reconciliação
+  está explícita no `SESSION_STATE.md`;
+- uma futura experiência FIM dedicada no shell novo exige escopo próprio se o produto
+  não aceitar a ferramenta existente;
+- a Sprint B não foi iniciada e nenhum arquivo do EDY SIEM foi modificado.
+
+### Próximo passo
+
+# Sprint B — EDY SIEM SOC Decision Center
+
+Redesenhar somente o EDY SIEM a partir de seu próprio handoff. Não fazer merge em
+`main` e não alterar novamente o Shield sem novo escopo.

@@ -114,25 +114,16 @@ Router.register('alerts', {
       // Backdrop do Painel Lateral
       '<div class="alert-side-panel-backdrop" id="sidePanelBackdrop" onclick="AlertsPage.closePanel()"></div>' +
 
-      // Painel Lateral (Investigation Workspace M4.4.6)
-      '<aside class="alert-side-panel" id="alertSidePanel">' +
+      // Detalhe operacional da mudan\u00e7a (Product Redesign V1 / Sprint A3)
+      '<aside class="alert-side-panel event-detail-panel" id="alertSidePanel" aria-label="Detalhe da mudan\u00e7a">' +
       '  <div class="alert-side-panel-header">' +
       '    <div class="alert-side-panel-title" id="panelTitle">Detalhes do Alerta</div>' +
       '    <span class="alert-side-panel-meta" id="panelFingerprint"></span>' +
       '    <button class="alert-side-panel-close" onclick="AlertsPage.closePanel()" aria-label="Fechar detalhes do alerta">&times;</button>' +
       '  </div>' +
-      '  <div class="alert-side-panel-tabs" id="panelTabs">' +
-      '    <button class="alert-side-panel-tab active" data-tab="summary" onclick="AlertsPage.switchTab(\'summary\')">Summary</button>' +
-      '    <button class="alert-side-panel-tab" data-tab="timeline" onclick="AlertsPage.switchTab(\'timeline\')">Timeline</button>' +
-      '    <button class="alert-side-panel-tab" data-tab="evidence" onclick="AlertsPage.switchTab(\'evidence\')">Evidence</button>' +
-      '    <button class="alert-side-panel-tab" data-tab="comments" onclick="AlertsPage.switchTab(\'comments\')">Comments</button>' +
-      '    <button class="alert-side-panel-tab" data-tab="history" onclick="AlertsPage.switchTab(\'history\')">History</button>' +
-      '  </div>' +
       '  <div class="alert-side-panel-body" id="panelBody">' +
       '    <p style="color: var(--text-tertiary);">Selecione um alerta para investigar.</p>' +
       '  </div>' +
-      '  <div class="siem-investigation-context" id="siemInvestigationAction" aria-live="polite"></div>' +
-      '  <div class="alert-side-panel-actions" id="panelActions"></div>' +
       '</aside>'
     );
   },
@@ -165,7 +156,8 @@ var AlertsPage = (function () {
     page: 1,
     pageSize: 15,
     searchDebounce: null,
-    siemContext: null
+    siemContext: null,
+    hostname: null
   };
 
   function refresh(silent) {
@@ -315,11 +307,12 @@ var AlertsPage = (function () {
       var isSelectedRow = state.selectedIds.has(a.alert_id) ? 'selected' : '';
       var rowClass = (a.severity === 'CRITICAL' ? 'alert-row-critical ' : '') + isSelectedRow;
       var timeStr = a.last_seen_at ? a.last_seen_at.slice(0, 19).replace('T', ' ') : '-';
+      var safeAlertId = Components.escape(a.alert_id || '');
 
       return '' +
-        '<tr class="' + rowClass + '" data-id="' + a.alert_id + '" onclick="AlertsPage.onRowClick(event, \'' + a.alert_id + '\')">' +
+        '<tr class="' + rowClass + '" data-id="' + safeAlertId + '" onclick="AlertsPage.onRowClick(event, this.dataset.id)">' +
         '  <td class="col-checkbox" onclick="event.stopPropagation()">' +
-        '    <input type="checkbox" class="row-checkbox" value="' + a.alert_id + '" ' + isChecked + ' onchange="AlertsPage.toggleSelect(\'' + a.alert_id + '\')">' +
+        '    <input type="checkbox" class="row-checkbox" value="' + safeAlertId + '" ' + isChecked + ' onchange="AlertsPage.toggleSelect(this.value)">' +
         '  </td>' +
         '  <td class="col-sev">' + Components.severityBadgeHTML(a.severity) + '</td>' +
         '  <td class="col-status">' + Components.statusBadgeHTML(a.status) + '</td>' +
@@ -327,7 +320,7 @@ var AlertsPage = (function () {
         '  <td><span class="badge badge-status-ack">' + Components.escape(a.rule_id || '-') + '</span></td>' +
         '  <td>' + Components.escape(a.source || '-') + '</td>' +
         '  <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis;">' + Components.escape(a.target || '-') + '</td>' +
-        '  <td class="col-count"><strong>' + (a.count || 1) + '</strong></td>' +
+        '  <td class="col-count"><strong>' + Components.escape(String(a.count || 1)) + '</strong></td>' +
         '  <td class="col-time">' + Components.escape(timeStr) + '</td>' +
         '</tr>';
     }).join('');
@@ -491,39 +484,34 @@ var AlertsPage = (function () {
 
   function openPanel(alert) {
     state.activeAlert = alert;
+    state.siemContext = {
+      delivery_state: 'loading',
+      label: 'Consultando entrega ao SIEM',
+      description: 'Validando o estado real do evento na fila local.'
+    };
+    state.hostname = _detailValue(alert.details || {}, ['hostname', 'host', 'asset_hostname']) || null;
     var panel = document.getElementById('alertSidePanel');
     var backdrop = document.getElementById('sidePanelBackdrop');
     var title = document.getElementById('panelTitle');
     var fp = document.getElementById('panelFingerprint');
-    var actions = document.getElementById('panelActions');
 
     if (!panel) return;
 
     if (title) {
       title.innerHTML = Components.severityBadgeHTML(alert.severity) +
         Components.statusBadgeHTML(alert.status) +
-        ' <span style="font-size: 14px;">' + Components.escape(alert.title || alert.alert_id) + '</span>';
+        ' <span class="event-detail-title-copy">' + Components.escape(_changeLabel(alert)) + '</span>';
     }
     if (fp) {
-      fp.textContent = (alert.fingerprint || '').slice(0, 20) + ' · ' + (alert.last_seen_at || '').slice(0, 16);
-      fp.title = 'Fingerprint: ' + (alert.fingerprint || '');
-    }
-
-    // Rodapé — Ghost buttons (M4.4.6)
-    if (actions) {
-      actions.innerHTML = '' +
-        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'ack\')">&#10003; ACK</button>' +
-        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'resolve\')">&#10004; Resolver</button>' +
-        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'suppress\')">&#128683; Suprimir</button>' +
-        (alert.status === 'RESOLVED' || alert.status === 'SUPPRESSED' ?
-          '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualAction(\'' + alert.alert_id + '\', \'reopen\')">&#10227; Reabrir</button>' : '') +
-        '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.exportJSON()" style="margin-left: auto;">&#8681; JSON</button>';
+      fp.textContent = _filePath(alert) + '  ·  ' + _formatDate(alert.last_seen_at);
+      fp.title = 'Alerta: ' + (alert.alert_id || '') + ' | Fingerprint: ' + (alert.fingerprint || '');
     }
 
     panel.classList.add('open');
     if (backdrop) backdrop.classList.add('open');
-    switchTab('summary');
+    _renderDecisionWorkspace();
     _loadSiemInvestigation(alert.alert_id);
+    _loadEndpointContext(alert.alert_id);
   }
 
   function _openPendingAlert() {
@@ -536,30 +524,35 @@ var AlertsPage = (function () {
   }
 
   function _loadSiemInvestigation(alertId) {
-    var container = document.getElementById('siemInvestigationAction');
-    state.siemContext = null;
-    if (!container) return;
-    container.className = 'siem-investigation-context is-loading';
-    container.innerHTML = '<span class="siem-state-dot"></span><span>Consultando entrega ao EDY SIEM...</span>';
-
     EDY.api('/api/integrations/edy-siem/alerts/' + encodeURIComponent(alertId))
       .then(function (context) {
         if (!state.activeAlert || state.activeAlert.alert_id !== alertId) return;
         state.siemContext = context;
-        var stateClass = 'state-' + String(context.delivery_state || 'unavailable');
-        var action = context.can_investigate ?
-          '<button type="button" class="btn btn-sm btn-primary siem-investigate-btn" onclick="AlertsPage.openSiemInvestigation()">Investigar no EDY SIEM <span aria-hidden="true">&#8599;</span></button>' : '';
-        container.className = 'siem-investigation-context ' + stateClass;
-        container.innerHTML = '<span class="siem-state-dot" aria-hidden="true"></span>' +
-          '<span class="siem-state-copy"><strong>' + Components.escape(context.label || 'EDY SIEM') + '</strong>' +
-          '<small>' + Components.escape(context.description || '') + '</small></span>' + action;
+        _renderDecisionWorkspace();
       })
       .catch(function () {
         if (!state.activeAlert || state.activeAlert.alert_id !== alertId) return;
-        container.className = 'siem-investigation-context state-unavailable';
-        container.innerHTML = '<span class="siem-state-dot" aria-hidden="true"></span>' +
-          '<span class="siem-state-copy"><strong>Status do SIEM indispon\u00edvel</strong>' +
-          '<small>N\u00e3o foi poss\u00edvel consultar a entrega agora.</small></span>';
+        state.siemContext = {
+          delivery_state: 'temporary_failure',
+          label: 'Falha tempor\u00e1ria',
+          description: 'N\u00e3o foi poss\u00edvel consultar a entrega agora.',
+          can_investigate: false
+        };
+        _renderDecisionWorkspace();
+      });
+  }
+
+  function _loadEndpointContext(alertId) {
+    EDY.api('/api/health')
+      .then(function (health) {
+        if (!state.activeAlert || state.activeAlert.alert_id !== alertId) return;
+        if (!state.hostname && typeof health.hostname === 'string' && health.hostname.trim()) {
+          state.hostname = health.hostname;
+          _renderDecisionWorkspace();
+        }
+      })
+      .catch(function () {
+        // O detalhe continua utiliz\u00e1vel sem o hostname do endpoint.
       });
   }
 
@@ -568,6 +561,246 @@ var AlertsPage = (function () {
     if (!context || !context.can_investigate || typeof context.investigation_url !== 'string') return;
     if (!/^https?:\/\//i.test(context.investigation_url)) return;
     window.open(context.investigation_url, '_blank', 'noopener,noreferrer');
+  }
+
+  function _renderDecisionWorkspace() {
+    var body = document.getElementById('panelBody');
+    var a = state.activeAlert;
+    if (!body || !a) return;
+    var d = a.details || {};
+    var hostname = state.hostname || 'N\u00e3o informado';
+    var sourceLabel = a.source === 'fim' ? 'File Integrity Monitor' : (a.source || 'Evento local');
+
+    body.innerHTML = '<div class="event-detail-flow">' +
+      '<section class="event-change-summary" aria-labelledby="eventChangeHeading">' +
+      '  <div class="event-section-heading"><span class="event-step-index">01</span><div><span class="page-eyebrow">Mudan\u00e7a</span><h2 id="eventChangeHeading">' + Components.escape(_changeLabel(a)) + '</h2></div></div>' +
+      '  <p class="event-change-description">' + Components.escape(a.description || 'Evento registrado pelo EDY Shield.') + '</p>' +
+      '  <dl class="event-header-facts">' +
+      _detailFact('Severidade', a.severity || 'N\u00e3o informada') +
+      _detailFact('Hostname', hostname, true) +
+      _detailFact('Arquivo afetado', _filePath(a), true) +
+      _detailFact('Timestamp', _formatDate(a.last_seen_at)) +
+      _detailFact('Origem', sourceLabel) +
+      _detailFact('Estado local', _statusLabel(a.status)) +
+      '  </dl>' +
+      _siemStatusHTML() +
+      '</section>' +
+
+      '<section class="event-flow-section event-evidence-section" aria-labelledby="eventEvidenceHeading">' +
+      '  <div class="event-section-heading"><span class="event-step-index">02</span><div><span class="page-eyebrow">Evid\u00eancia</span><h2 id="eventEvidenceHeading">O que mudou</h2></div></div>' +
+      '  <div class="event-primary-path"><span>File path</span><code>' + Components.escape(_filePath(a)) + '</code></div>' +
+      _hashComparisonHTML(d) +
+      _baselineContextHTML(a) +
+      '  <details class="event-technical-context" id="eventTechnicalContext">' +
+      '    <summary>Metadata t\u00e9cnica do evento</summary>' +
+      '    <pre class="alert-evidence-json">' + Components.escape(_safeJSON(d)) + '</pre>' +
+      '  </details>' +
+      '</section>' +
+
+      '<section class="event-flow-section event-impact-section" aria-labelledby="eventImpactHeading">' +
+      '  <div class="event-section-heading"><span class="event-step-index">03</span><div><span class="page-eyebrow">Impacto</span><h2 id="eventImpactHeading">Leitura baseada nos fatos</h2></div></div>' +
+      _impactHTML(a) +
+      '</section>' +
+
+      '<section class="event-flow-section event-decision-section" aria-labelledby="eventDecisionHeading">' +
+      '  <div class="event-section-heading"><span class="event-step-index">04</span><div><span class="page-eyebrow">Decis\u00e3o</span><h2 id="eventDecisionHeading">Pr\u00f3xima a\u00e7\u00e3o operacional</h2></div></div>' +
+      _decisionHTML(a) +
+      '</section>' +
+
+      '<section class="event-flow-section event-timeline-section" aria-labelledby="eventTimelineHeading">' +
+      '  <div class="event-section-heading event-section-heading-compact"><span class="event-step-index">\u00b7</span><div><span class="page-eyebrow">Timeline</span><h2 id="eventTimelineHeading">Cadeia do evento</h2></div></div>' +
+      _operationalTimelineHTML(a) +
+      '</section>' +
+      '</div>';
+  }
+
+  function _detailFact(label, value, mono) {
+    return '<div><dt>' + Components.escape(label) + '</dt><dd' + (mono ? ' class="mono"' : '') + '>' + Components.escape(String(value || 'N\u00e3o informado')) + '</dd></div>';
+  }
+
+  function _changeLabel(a) {
+    var d = a.details || {};
+    var raw = String(d.change_type || d.event_type || a.title || '').toLowerCase();
+    var labels = {
+      added: 'Arquivo adicionado', file_added: 'Arquivo adicionado',
+      modified: 'Arquivo modificado', file_modified: 'Arquivo modificado',
+      removed: 'Arquivo removido', deleted: 'Arquivo removido', file_removed: 'Arquivo removido',
+      hash_changed: 'Hash divergente', hash_mismatch: 'Hash divergente'
+    };
+    return labels[raw] || a.title || 'Mudan\u00e7a de integridade';
+  }
+
+  function _filePath(a) {
+    var d = a.details || {};
+    return _detailValue(d, ['file_path', 'path', 'target']) || a.target || 'N\u00e3o informado';
+  }
+
+  function _detailValue(details, keys) {
+    for (var i = 0; i < keys.length; i += 1) {
+      var value = details[keys[i]];
+      if (value !== undefined && value !== null && String(value).trim()) return String(value);
+    }
+    return '';
+  }
+
+  function _formatDate(value) {
+    if (!value) return 'N\u00e3o informado';
+    var parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value).slice(0, 25).replace('T', ' ');
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).format(parsed);
+  }
+
+  function _statusLabel(status) {
+    var labels = { NEW: 'Aguardando revis\u00e3o', ACKNOWLEDGED: 'Revisado', RESOLVED: 'Resolvido', SUPPRESSED: 'Suprimido' };
+    return labels[status] || status || 'N\u00e3o informado';
+  }
+
+  function _safeDeliveryState(value) {
+    var allowed = ['loading', 'delivered', 'pending', 'disabled', 'temporary_failure', 'failed', 'unavailable'];
+    var normalized = String(value || 'unavailable');
+    return allowed.indexOf(normalized) >= 0 ? normalized : 'unavailable';
+  }
+
+  function _siemStatusHTML() {
+    var context = state.siemContext || {};
+    var delivery = _safeDeliveryState(context.delivery_state);
+    return '<div class="siem-investigation-context state-' + delivery + '" id="siemInvestigationAction" aria-live="polite">' +
+      '<span class="siem-state-dot" aria-hidden="true"></span>' +
+      '<span class="siem-state-copy"><small>Entrega ao EDY SIEM</small><strong>' + Components.escape(context.label || 'Estado indispon\u00edvel') + '</strong>' +
+      '<span>' + Components.escape(context.description || '') + '</span></span></div>';
+  }
+
+  function _hashComparisonHTML(d) {
+    var previous = _detailValue(d, ['previous_hash', 'old_hash', 'old_digest', 'expected_hash']);
+    var current = _detailValue(d, ['current_hash', 'new_hash', 'new_digest', 'actual_hash', 'hash', 'sha256']);
+    var algorithm = _detailValue(d, ['hash_algorithm', 'algorithm']) || 'Algoritmo n\u00e3o informado';
+    var previousCopy = previous ? '<button type="button" class="hash-copy-button" data-copy-value="' + Components.escape(previous) + '" onclick="AlertsPage.copyEvidence(this.dataset.copyValue)">Copiar</button>' : '';
+    var currentCopy = current ? '<button type="button" class="hash-copy-button" data-copy-value="' + Components.escape(current) + '" onclick="AlertsPage.copyEvidence(this.dataset.copyValue)">Copiar</button>' : '';
+    return '<div class="hash-comparison" aria-label="Compara\u00e7\u00e3o de hashes">' +
+      '<div class="hash-comparison-head"><h3>Compara\u00e7\u00e3o criptogr\u00e1fica</h3><span>' + Components.escape(algorithm.toUpperCase()) + '</span></div>' +
+      '<div class="hash-comparison-grid">' +
+      '<div class="hash-value-block"><div><span>Hash anterior</span>' + previousCopy + '</div><code>' + Components.escape(previous || 'N\u00e3o dispon\u00edvel para este evento') + '</code></div>' +
+      '<div class="hash-compare-arrow" aria-hidden="true">\u2192</div>' +
+      '<div class="hash-value-block hash-value-current"><div><span>Hash atual</span>' + currentCopy + '</div><code>' + Components.escape(current || 'N\u00e3o dispon\u00edvel para este evento') + '</code></div>' +
+      '</div></div>';
+  }
+
+  function _baselineContextHTML(a) {
+    var d = a.details || {};
+    var baselineId = _detailValue(d, ['baseline_id']);
+    var baselineState = _detailValue(d, ['baseline_status', 'change_type']);
+    var scanId = _detailValue(d, ['scan_id', 'correlation_id']);
+    var presence = 'N\u00e3o informado';
+    var stateLabel = baselineState || 'N\u00e3o classificado';
+    if (baselineState === 'added') presence = 'N\u00e3o constava';
+    else if (baselineState === 'modified' || baselineState === 'removed') presence = 'Sim';
+    else if (baselineState === 'not_applicable') presence = 'N\u00e3o se aplica';
+    var labels = { added: 'Adicionado ap\u00f3s a baseline', modified: 'Modificado desde a baseline', removed: 'Ausente no scan atual', created: 'Baseline criada', not_applicable: 'Sem baseline FIM' };
+    stateLabel = labels[baselineState] || stateLabel;
+    return '<div class="baseline-context"><div class="hash-comparison-head"><h3>Contexto da baseline</h3><span>' + Components.escape(baselineId || 'Sem baseline associada') + '</span></div>' +
+      '<dl class="baseline-context-grid">' +
+      _detailFact('Estava na baseline?', presence) +
+      _detailFact('Primeiro registro', _formatDate(a.first_seen_at)) +
+      _detailFact('Estado atual', stateLabel) +
+      _detailFact('Scan relacionado', scanId || 'N\u00e3o informado', true) +
+      '</dl></div>';
+  }
+
+  function _impactHTML(a) {
+    var d = a.details || {};
+    var facts = [];
+    var baselineState = _detailValue(d, ['baseline_status', 'change_type']);
+    var previous = _detailValue(d, ['previous_hash', 'old_hash', 'old_digest', 'expected_hash']);
+    var current = _detailValue(d, ['current_hash', 'new_hash', 'new_digest', 'actual_hash', 'hash', 'sha256']);
+    if (a.severity === 'CRITICAL') facts.push('A regra local classificou este evento com severidade cr\u00edtica.');
+    if (baselineState === 'added') facts.push('O arquivo n\u00e3o constava na baseline associada.');
+    if (baselineState === 'modified') facts.push('O arquivo consta na baseline e foi registrado como modificado.');
+    if (baselineState === 'removed') facts.push('O arquivo constava na baseline e n\u00e3o foi encontrado no scan atual.');
+    if (previous && current && previous !== current) facts.push('Os hashes anterior e atual s\u00e3o diferentes.');
+    if ((previous && !current) || (!previous && current)) facts.push('A compara\u00e7\u00e3o criptogr\u00e1fica est\u00e1 parcial porque um dos hashes n\u00e3o foi registrado.');
+    if (facts.length === 0) facts.push('A altera\u00e7\u00e3o ainda n\u00e3o possui classifica\u00e7\u00e3o adicional nos dados do evento.');
+    return '<ul class="event-impact-list">' + facts.map(function (fact) {
+      return '<li><span aria-hidden="true">\u2022</span><p>' + Components.escape(fact) + '</p></li>';
+    }).join('') + '</ul><p class="event-impact-note">Orienta\u00e7\u00e3o limitada aos fatos registrados pelo Shield; nenhuma conclus\u00e3o de comprometimento foi inferida.</p>';
+  }
+
+  function _decisionHTML(a) {
+    var context = state.siemContext || {};
+    var canReview = a.status === 'NEW';
+    var canResolve = a.status === 'NEW' || a.status === 'ACKNOWLEDGED';
+    var canReopen = a.status === 'RESOLVED' || a.status === 'SUPPRESSED';
+    var localPrimary = canReview
+      ? '<button class="btn btn-primary" onclick="AlertsPage.individualActiveAction(\'ack\')">Marcar como revisado</button>'
+      : '<span class="decision-state-label">Estado local: ' + Components.escape(_statusLabel(a.status)) + '</span>';
+    var lifecycle = canResolve
+      ? '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualActiveAction(\'resolve\')">Resolver alerta</button>'
+      : (canReopen ? '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.individualActiveAction(\'reopen\')">Reabrir alerta</button>' : '');
+    var fimAction = a.source === 'fim' || _detailValue(a.details || {}, ['baseline_id'])
+      ? '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.openFimTools()">Executar novo scan</button>' : '';
+    var siemAction = '';
+    if (context.can_investigate) {
+      siemAction = '<button type="button" class="btn btn-primary siem-decision-button" onclick="AlertsPage.openSiemInvestigation()">Investigar no EDY SIEM <span aria-hidden="true">\u2197</span></button>';
+    } else {
+      siemAction = '<div class="siem-decision-unavailable"><strong>' + Components.escape(context.label || 'Investiga\u00e7\u00e3o indispon\u00edvel') + '</strong><span>' + Components.escape(context.description || 'A CTA ser\u00e1 liberada somente ap\u00f3s a entrega confirmada.') + '</span></div>';
+    }
+    return '<div class="decision-local-actions"><div><span class="decision-group-label">No Shield</span><div class="decision-button-row">' + localPrimary + lifecycle + fimAction + '<button class="btn btn-sm btn-ghost" onclick="AlertsPage.focusTechnicalContext()">Abrir contexto relacionado</button><button class="btn btn-sm btn-ghost" onclick="AlertsPage.exportJSON()">Exportar JSON</button></div></div>' +
+      '<div class="decision-siem-lane"><span class="decision-group-label">Investiga\u00e7\u00e3o multi-sinal</span>' + siemAction + '</div></div>';
+  }
+
+  function _operationalTimelineHTML(a) {
+    var context = state.siemContext || {};
+    var items = [];
+    function add(time, label, tone) {
+      if (!time) return;
+      items.push({ time: time, label: label, tone: tone });
+    }
+    add(context.event_timestamp || a.last_seen_at, 'Mudan\u00e7a registrada pelo Shield', 'local');
+    if (a.first_seen_at && !_sameInstant(a.first_seen_at, context.event_timestamp || a.last_seen_at)) add(a.first_seen_at, 'Primeiro registro local deste alerta', 'local');
+    add(context.queued_at, 'Evento enfileirado para o EDY SIEM', 'queued');
+    if (context.last_attempt_at && !_sameInstant(context.last_attempt_at, context.delivered_at)) add(context.last_attempt_at, 'Tentativa de entrega ao EDY SIEM', 'queued');
+    add(context.delivered_at, 'Recebimento confirmado pelo EDY SIEM', 'delivered');
+    if (items.length === 0) return Components.emptyStateHTML('\u2205', 'Timeline indispon\u00edvel', 'Nenhum timestamp real foi registrado para este evento.');
+    return '<ol class="event-operational-timeline">' + items.map(function (item) {
+      return '<li class="timeline-tone-' + item.tone + '"><span class="event-timeline-dot" aria-hidden="true"></span><div><strong>' + Components.escape(item.label) + '</strong><time>' + Components.escape(_formatDate(item.time)) + '</time></div></li>';
+    }).join('') + '</ol>';
+  }
+
+  function _sameInstant(first, second) {
+    if (!first || !second) return false;
+    var firstTime = new Date(first).getTime();
+    var secondTime = new Date(second).getTime();
+    if (!Number.isNaN(firstTime) && !Number.isNaN(secondTime)) return firstTime === secondTime;
+    return String(first) === String(second);
+  }
+
+  function copyEvidence(value) {
+    if (typeof value !== 'string' || !value) return;
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+      Toast.error('C\u00f3pia n\u00e3o dispon\u00edvel neste navegador.');
+      return;
+    }
+    navigator.clipboard.writeText(value)
+      .then(function () { Toast.success('Hash copiado.'); })
+      .catch(function () { Toast.error('N\u00e3o foi poss\u00edvel copiar o hash.'); });
+  }
+
+  function individualActiveAction(action) {
+    if (!state.activeAlert) return;
+    individualAction(state.activeAlert.alert_id, action);
+  }
+
+  function openFimTools() {
+    window.location.assign('/#fim');
+  }
+
+  function focusTechnicalContext() {
+    var details = document.getElementById('eventTechnicalContext');
+    if (!details) return;
+    details.open = true;
+    details.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // --- Investigation Workspace: Tabs (M4.4.6) ---
@@ -742,6 +975,7 @@ var AlertsPage = (function () {
     if (backdrop) backdrop.classList.remove('open');
     state.activeAlert = null;
     state.siemContext = null;
+    state.hostname = null;
   }
 
   function individualAction(id, action) {
@@ -778,6 +1012,10 @@ var AlertsPage = (function () {
     switchTab: switchTab,
     addComment: addComment,
     exportJSON: exportJSON,
-    openSiemInvestigation: openSiemInvestigation
+    openSiemInvestigation: openSiemInvestigation,
+    copyEvidence: copyEvidence,
+    individualActiveAction: individualActiveAction,
+    openFimTools: openFimTools,
+    focusTechnicalContext: focusTechnicalContext
   };
 })();

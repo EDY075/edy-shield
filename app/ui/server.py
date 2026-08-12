@@ -621,6 +621,10 @@ def _make_handler(
             deep_link = investigation_url(event_id) if state == "delivered" else None
             if state == "delivered" and deep_link is None:
                 description = "Evento entregue; configure EDY_SIEM_UI_URL para abrir a investiga\u00e7\u00e3o."
+            payload = item.get("payload")
+            event_timestamp = payload.get("timestamp") if isinstance(payload, dict) else None
+            queued_at = item.get("created_at")
+            delivered_at = item.get("updated_at") if status == "sent" else None
             self._send_json(
                 {
                     "delivery_state": state,
@@ -630,6 +634,16 @@ def _make_handler(
                     "investigation_url": deep_link,
                     "can_investigate": deep_link is not None,
                     "updated_at": item.get("updated_at"),
+                    "event_timestamp": event_timestamp
+                    if isinstance(event_timestamp, str)
+                    else None,
+                    "queued_at": queued_at if isinstance(queued_at, str) else None,
+                    "last_attempt_at": item.get("last_attempt_at")
+                    if isinstance(item.get("last_attempt_at"), str)
+                    else None,
+                    "delivered_at": delivered_at
+                    if isinstance(delivered_at, str)
+                    else None,
                 }
             )
 

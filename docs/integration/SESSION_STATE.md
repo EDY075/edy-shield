@@ -1,9 +1,10 @@
 # Session State — EDY Shield Product Redesign V1
 
-> **ESTADO CANÔNICO MAIS RECENTE — 2026-08-12.** A Sprint A1 foi concluída no Shield:
-> a Home agora é o **Endpoint Integrity Center**. O deep link já aprovado para o SIEM
-> foi preservado e a próxima etapa autorizável é exclusivamente a **Sprint A2 — FIM /
-> Baseline / Scan Experience**. Leia também `SHIELD_SIEM_HANDOFF.md`.
+> **ESTADO CANÔNICO MAIS RECENTE — 2026-08-12.** A Sprint A do EDY Shield está
+> concluída no escopo funcional validado: Home de integridade, ferramentas reais de FIM /
+> baseline / scan, detalhe operacional da mudança e handoff seguro para o SIEM. A
+> próxima etapa exata é **Sprint B — EDY SIEM SOC Decision Center**; não foi iniciada.
+> Leia também `SHIELD_SIEM_HANDOFF.md`.
 
 ## Checkpoint E2E v1
 
@@ -255,3 +256,96 @@ horizontal de documento, caracteres corrompidos ou erro/warning novo no console.
 Evidências finais foram salvas em
 `outputs/sprint-a1-browser-validation/` no workspace Codex da sessão. A próxima etapa
 continua sendo somente a **Sprint A2 — FIM / Baseline / Scan Experience**.
+
+# Sprint A — Endpoint Integrity Center: COMPLETE
+
+Concluída em 2026-08-12 somente no EDY Shield, branch
+`codex/siem-producer-outbox-v1`, sem merge em `main` e sem alteração no EDY SIEM.
+
+## Escopo consolidado
+
+- **Home:** Endpoint Integrity Center com postura por host, baseline ativa, último scan,
+  mudanças que exigem revisão e próxima ação, implementada na Sprint A1;
+- **FIM / baseline / scan:** domínio, API e ferramenta real existentes em `/#fim`, com
+  criação de baseline e scan comparativo; a ação do detalhe abre essa ferramenta, sem
+  simular execução;
+- **detalhe:** fluxo linear **Mudança → Evidência → Impacto → Decisão**, substituindo as
+  abas técnicas como eixo primário de leitura;
+- **hash comparison:** hash anterior e atual em monospace, seleção e cópia, com estado
+  explícito quando um dos valores não existe;
+- **baseline context:** presença na baseline, primeiro registro, estado real e scan
+  relacionado, sempre derivados dos campos persistidos;
+- **impacto:** somente fatos disponíveis (severidade atribuída, relação com baseline e
+  divergência/parcialidade de hashes), sem diagnóstico de comprometimento inventado;
+- **decisão:** marcar como revisado, resolver/reabrir quando permitido, abrir contexto
+  técnico, exportar JSON e executar novo scan na ferramenta FIM real;
+- **SIEM:** estados `delivered`, `pending`, `disabled`, `temporary_failure`, `failed` e
+  indisponível; a CTA **Investigar no EDY SIEM** existe somente com entrega confirmada e
+  deep link HTTP(S) contendo apenas o `event_id`;
+- **timeline:** usa somente timestamps reais do alerta e da outbox (evento, enqueue,
+  tentativa quando existente e confirmação de entrega), normalizando instantes
+  equivalentes para não duplicar etapas;
+- **segurança:** metadata, caminhos, nomes, hashes e evidências passam por escape HTML;
+  estado CSS da entrega usa allowlist; IDs da tabela usam `data-*`, não interpolação em
+  código; payload malicioso foi exercitado sem criar script, imagem ou handler no DOM.
+
+## Reconciliação do checkpoint A2
+
+Na retomada, `git status`, refs locais/remotas, log e handoffs não continham commit nem
+documentação dedicada com o nome **Sprint A2**; o checkpoint anterior ainda apontava A2
+como próximo passo. O fechamento acima não inventa esse commit: registra como escopo
+funcional as capacidades reais de FIM, baseline e scan já presentes e novamente
+validadas em `http://127.0.0.1:8020/#fim`. Uma experiência FIM dedicada dentro do shell
+novo continua sendo limitação conhecida, caso seja exigida como redesign separado.
+
+## Validação
+
+- focados: 52 aprovados;
+- suíte completa: 686 aprovados, 2 ignorados;
+- cobertura global: 86,68% (gate mínimo 85%);
+- Ruff: aprovado;
+- MyPy: aprovado em 80 arquivos;
+- JavaScript syntax check: aprovado em todos os arquivos do dashboard;
+- build: wheel e sdist `edy_shield-2.0.0` gerados;
+- `git diff --check`: aprovado;
+- navegador real: 1920x1080, 1366x768 e 390x844, sem overflow horizontal;
+- console: sem erro ou warning novo.
+
+## Estados e rotas percorridos
+
+- `http://127.0.0.1:8020/dashboard#/alerts`: `file_modified` crítico entregue,
+  `hash_changed` pendente e sem hash anterior, falha temporária e evento normal;
+- `http://127.0.0.1:8021/dashboard#/alerts`: integração SIEM desativada e falha real de
+  consulta após interrupção do servidor isolado;
+- `http://127.0.0.1:8020/#fim`: ferramenta real de baseline/scan aberta pela decisão;
+- CTA SIEM validada contra `/investigate/shield/{event_id}`; popups são bloqueados pelo
+  navegador de teste, enquanto o contrato HTTP e a URL exata são cobertos pela suíte.
+
+## Screenshots finais
+
+Evidências salvas em `outputs/sprint-a3-event-detail/` no workspace Codex:
+
+- `01-file-modified-delivered-desktop.png`;
+- `02-hash-changed-pending-desktop.png`;
+- `03-critical-decision-timeline-desktop.png`;
+- `04-critical-notebook-1366x768.png`;
+- `05-critical-mobile-390x844.png`.
+
+## Limitações
+
+- o Alert Center continua sendo a fila existente; a A3 redesenha o detalhe, não a fila;
+- timestamps ausentes não são sintetizados e etapas correspondentes não aparecem;
+- dados legados sem hashes/baseline/scan exibem “não informado”, sem inferência;
+- o redesign dedicado de FIM dentro do novo shell não foi localizado como entrega A2,
+  conforme reconciliação acima.
+
+## Git
+
+- branch: `codex/siem-producer-outbox-v1`;
+- checkpoint anterior preservado: `5019ee9`;
+- commits desta etapa: registrar após o fechamento Git;
+- merge em `main`: não realizado.
+
+# Sprint B — EDY SIEM SOC Decision Center
+
+Próximo passo exato. Não implementar nesta sessão.
