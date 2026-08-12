@@ -144,14 +144,15 @@ def test_pending_temporary_failure_and_dead_letter_are_reported_truthfully(
     assert all(item["can_investigate"] is False for item in states)
     assert all(item["investigation_url"] is None for item in states)
 
+
 def test_frontend_shows_real_delivery_states_and_opens_only_http_links() -> None:
     root = Path(__file__).resolve().parents[2]
     source = (
         root / "app" / "ui" / "static" / "dashboard" / "js" / "pages" / "alerts.js"
     ).read_text(encoding="utf-8")
-    styles = (
-        root / "app" / "ui" / "static" / "dashboard" / "css" / "dashboard.css"
-    ).read_text(encoding="utf-8")
+    styles = (root / "app" / "ui" / "static" / "dashboard" / "css" / "dashboard.css").read_text(
+        encoding="utf-8"
+    )
     for marker in (
         "delivery_state",
         "can_investigate",

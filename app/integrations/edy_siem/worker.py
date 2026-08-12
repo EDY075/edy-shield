@@ -114,9 +114,7 @@ class DeliveryWorker:
         self.repository.mark_dead_letter(ids, f"unexpected HTTP {response.status}", now=current)
 
     @staticmethod
-    def _is_duplicate_ack(
-        batch: LeasedBatch, payload: dict[str, Any] | None
-    ) -> bool:
+    def _is_duplicate_ack(batch: LeasedBatch, payload: dict[str, Any] | None) -> bool:
         """Accept a 409 only when every expected item is explicitly duplicate."""
 
         if payload is None or payload.get("batch_id") != batch.batch_id:

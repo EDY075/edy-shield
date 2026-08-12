@@ -51,6 +51,7 @@ class SiemProducer:
             ("removed", diff.removed),
         ):
             for path in paths:
+
                 def build_change(
                     sequence: int,
                     change_value: str = change,
@@ -67,9 +68,7 @@ class SiemProducer:
 
                 builders.append(build_change)
         builders.append(
-            lambda sequence: self.mapper.scan_completed(
-                diff, scan_id, duration_ms, sequence
-            )
+            lambda sequence: self.mapper.scan_completed(diff, scan_id, duration_ms, sequence)
         )
         ids = self.repository.enqueue(builders)
         _logger.info("Queued %d EDY SIEM FIM event(s)", len(ids))
@@ -157,9 +156,7 @@ def build_runtime(db_path: Path | None = None) -> IntegrationRuntime | None:
     try:
         config = SiemConfig.from_env()
     except ValueError:
-        _logger.error(
-            "EDY SIEM delivery is paused because URL/token configuration is invalid"
-        )
+        _logger.error("EDY SIEM delivery is paused because URL/token configuration is invalid")
         return IntegrationRuntime(producer, None)
     worker = DeliveryWorker(repository, SiemClient(config), config)
     return IntegrationRuntime(producer, worker)

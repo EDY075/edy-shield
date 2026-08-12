@@ -81,9 +81,7 @@ def _response_for(client: FakeClient, status: str, *, http_status: int = 202) ->
             {
                 "batch_id": envelope["batch_id"],
                 "sent_at": "2026-08-11T20:00:00Z",
-                "results": [
-                    {"event_id": event["event_id"], "status": status} for event in events
-                ],
+                "results": [{"event_id": event["event_id"], "status": status} for event in events],
             },
             None,
         )
@@ -92,9 +90,7 @@ def _response_for(client: FakeClient, status: str, *, http_status: int = 202) ->
 
 
 @pytest.mark.parametrize("item_status", ["accepted", "duplicate"])
-def test_202_accepted_and_duplicate_are_delivered(
-    tmp_path: Path, item_status: str
-) -> None:
+def test_202_accepted_and_duplicate_are_delivered(tmp_path: Path, item_status: str) -> None:
     repo = OutboxRepository(tmp_path / "shield.db")
     event_id = _enqueue(repo)[0]
     client = FakeClient([InvalidResponseError("prepare acknowledgement")])
@@ -123,9 +119,7 @@ def test_explicit_409_duplicate_is_delivered(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("status", [401, 403])
-def test_auth_rejection_preserves_event_without_retry_storm(
-    tmp_path: Path, status: int
-) -> None:
+def test_auth_rejection_preserves_event_without_retry_storm(tmp_path: Path, status: int) -> None:
     repo = OutboxRepository(tmp_path / "shield.db")
     event_id = _enqueue(repo)[0]
     worker = DeliveryWorker(
@@ -181,9 +175,7 @@ def test_retryable_http_errors_are_rescheduled(tmp_path: Path, status: int) -> N
         InvalidResponseError("invalid JSON"),
     ],
 )
-def test_transport_and_invalid_response_are_retryable(
-    tmp_path: Path, error: Exception
-) -> None:
+def test_transport_and_invalid_response_are_retryable(tmp_path: Path, error: Exception) -> None:
     repo = OutboxRepository(tmp_path / "shield.db")
     event_id = _enqueue(repo)[0]
     worker = DeliveryWorker(
@@ -203,6 +195,7 @@ def test_partially_accepted_batch_updates_each_item(tmp_path: Path) -> None:
     client = FakeClient([InvalidResponseError("prepare acknowledgement")])
     worker = DeliveryWorker(repo, cast(SiemClient, client), CONFIG, random_source=random.Random(0))
     worker.run_once(now=NOW)
+
     def partial(envelope: dict[str, object]) -> SiemResponse:
         return SiemResponse(
             202,
@@ -299,9 +292,7 @@ def test_valid_config_accepts_https_and_loopback_http(
         ("https://siem.example.test", "s" * 31 + "\n"),
     ],
 )
-def test_invalid_config_is_rejected(
-    monkeypatch: pytest.MonkeyPatch, url: str, token: str
-) -> None:
+def test_invalid_config_is_rejected(monkeypatch: pytest.MonkeyPatch, url: str, token: str) -> None:
     monkeypatch.setenv("EDY_SIEM_ENABLED", "true")
     monkeypatch.setenv("EDY_SIEM_URL", url)
     monkeypatch.setenv("EDY_SIEM_TOKEN", token)

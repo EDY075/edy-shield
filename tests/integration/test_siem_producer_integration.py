@@ -64,9 +64,7 @@ def test_real_fim_hash_and_alert_flows_persist_offline(tmp_path: Path) -> None:
     assert alert is not None
     alerts.acknowledge_alert(alert.alert_id, acked_by="analyst")
 
-    event_types = [
-        row["event_type"] for row in repository.list_status("pending")
-    ]
+    event_types = [row["event_type"] for row in repository.list_status("pending")]
     assert "shield.fim.baseline.created" in event_types
     assert "shield.fim.file.modified" in event_types
     assert "shield.fim.scan.completed" in event_types

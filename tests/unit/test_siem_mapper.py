@@ -60,7 +60,7 @@ def _assert_common(event: dict[str, object], event_type: str) -> None:
     assert event["severity"] in {"info", "low", "medium", "high", "critical"}
     assert event["source"] == {
         "product": "edy-shield",
-            "product_version": __version__,
+        "product_version": __version__,
         "instance_id": "00000000-0000-4000-8000-000000000001",
         "component": str(event_type).split(".")[1]
         if event_type.startswith("shield.hash")
@@ -141,9 +141,7 @@ def test_maps_scan_completed() -> None:
 
 def test_maps_file_hash_mismatch_only(tmp_path: Path) -> None:
     repo = OutboxRepository(tmp_path / "shield.db")
-    producer = SiemProducer(
-        repo, EventMapper(repo.instance_id(), "host-1")
-    )
+    producer = SiemProducer(repo, EventMapper(repo.instance_id(), "host-1"))
     context = ScanContext(
         target=tmp_path / "artifact.bin",
         options={"algorithm": "SHA256", "expected": A_HASH},
@@ -188,9 +186,12 @@ def test_does_not_export_hash_mismatch_for_text_input(tmp_path: Path) -> None:
             Evidence(Severity.HIGH, "MISMATCH"),
         ),
     )
-    assert producer.enqueue_hash_scan(
-        ScanContext(target="plain text", options={"expected": A_HASH}), result
-    ) == []
+    assert (
+        producer.enqueue_hash_scan(
+            ScanContext(target="plain text", options={"expected": A_HASH}), result
+        )
+        == []
+    )
     repo.close()
 
 

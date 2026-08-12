@@ -208,8 +208,10 @@ class FileIntegrityPlugin(Plugin):
                 plugin_name=self.name,
             ) from exc
 
-        persisted = baseline if baseline.baseline_id == baseline_id else replace(
-            baseline, baseline_id=baseline_id
+        persisted = (
+            baseline
+            if baseline.baseline_id == baseline_id
+            else replace(baseline, baseline_id=baseline_id)
         )
         self._notify_baseline(persisted)
 

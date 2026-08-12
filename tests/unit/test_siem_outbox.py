@@ -55,9 +55,7 @@ def test_instance_id_persists_across_restart(tmp_path: Path) -> None:
 def test_enqueue_lease_retry_sent_and_dead_letter(tmp_path: Path) -> None:
     repo = OutboxRepository(tmp_path / "shield.db")
     mapper = EventMapper(repo.instance_id(), "host-1")
-    first_id, second_id = repo.enqueue(
-        [_builder(mapper, "one"), _builder(mapper, "two")], now=NOW
-    )
+    first_id, second_id = repo.enqueue([_builder(mapper, "one"), _builder(mapper, "two")], now=NOW)
     assert repo.count("pending") == 2
     original_payload = repo.get(first_id)["payload"]  # type: ignore[index]
 

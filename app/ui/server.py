@@ -86,9 +86,7 @@ def build_default_manager(
     registry = PluginRegistry()
     registry.register(LogAnalyzer())
     registry.register(
-        HashCheckerPlugin(
-            telemetry_sink=siem_producer.enqueue_hash_scan if siem_producer else None
-        )
+        HashCheckerPlugin(telemetry_sink=siem_producer.enqueue_hash_scan if siem_producer else None)
     )
     registry.register(StringAnalyzerPlugin())
     registry.register(EntropyAnalyzerPlugin())
@@ -188,9 +186,7 @@ def _make_handler(
 
     siem_producer = siem_runtime.producer if siem_runtime is not None else None
     app_manager = (
-        manager
-        if manager is not None
-        else build_default_manager(siem_producer=siem_producer)
+        manager if manager is not None else build_default_manager(siem_producer=siem_producer)
     )
     app_history = history if history is not None else HistoryStore(_default_history_dir())
     app_analysis = AnalysisService(manager=app_manager)
@@ -641,9 +637,7 @@ def _make_handler(
                     "last_attempt_at": item.get("last_attempt_at")
                     if isinstance(item.get("last_attempt_at"), str)
                     else None,
-                    "delivered_at": delivered_at
-                    if isinstance(delivered_at, str)
-                    else None,
+                    "delivered_at": delivered_at if isinstance(delivered_at, str) else None,
                 }
             )
 

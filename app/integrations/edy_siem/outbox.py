@@ -140,9 +140,8 @@ class OutboxRepository:
                     (len(prepared), "outbox capacity reached"),
                 )
                 return None
-            if (
-                projected_events >= int(MAX_OUTBOX_EVENTS * 0.8)
-                or projected_bytes >= int(MAX_OUTBOX_BYTES * 0.8)
+            if projected_events >= int(MAX_OUTBOX_EVENTS * 0.8) or projected_bytes >= int(
+                MAX_OUTBOX_BYTES * 0.8
             ):
                 _logger.warning("EDY SIEM outbox usage is above 80%% of its local limit")
 
@@ -343,10 +342,13 @@ class OutboxRepository:
     def integration_state(self) -> dict[str, Any]:
         """Return non-secret connector state for health/audit surfaces."""
 
-        return self._db.query_one(
-            "SELECT instance_id, next_sequence, dropped_count, last_enqueue_error "
-            "FROM siem_integration_state WHERE state_id = 1"
-        ) or {}
+        return (
+            self._db.query_one(
+                "SELECT instance_id, next_sequence, dropped_count, last_enqueue_error "
+                "FROM siem_integration_state WHERE state_id = 1"
+            )
+            or {}
+        )
 
 
 __all__ = [
