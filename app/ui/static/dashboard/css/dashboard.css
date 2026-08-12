@@ -2058,6 +2058,41 @@ body {
   flex-shrink: 0;
 }
 
+.siem-investigation-context {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px var(--space-5);
+  border-top: 1px solid var(--border-light);
+  background: color-mix(in srgb, var(--accent-primary) 5%, var(--bg-surface-2));
+}
+
+.siem-state-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--text-tertiary) 14%, transparent);
+}
+
+.siem-state-copy { min-width: 0; }
+.siem-state-copy strong,
+.siem-state-copy small { display: block; }
+.siem-state-copy strong { color: var(--text-primary); font-size: 12px; }
+.siem-state-copy small { margin-top: 2px; color: var(--text-tertiary); font-size: 10px; line-height: 1.35; }
+.state-delivered .siem-state-dot { background: var(--status-resolved); box-shadow: 0 0 0 4px rgba(16, 185, 129, .14); }
+.state-pending .siem-state-dot,
+.is-loading .siem-state-dot { background: var(--sev-medium); box-shadow: 0 0 0 4px rgba(234, 179, 8, .14); }
+.state-temporary_failure .siem-state-dot,
+.state-failed .siem-state-dot { background: var(--sev-high); box-shadow: 0 0 0 4px rgba(249, 115, 22, .14); }
+.siem-investigate-btn { white-space: nowrap; }
+
+@media (max-width: 520px) {
+  .siem-investigation-context { grid-template-columns: auto minmax(0, 1fr); }
+  .siem-investigate-btn { grid-column: 1 / -1; width: 100%; min-height: 42px; }
+}
+
 .alert-side-panel-comment-input {
   display: flex;
   gap: var(--space-2);

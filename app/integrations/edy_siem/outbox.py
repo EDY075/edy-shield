@@ -310,6 +310,24 @@ class OutboxRepository:
             row["payload"] = json.loads(str(row["payload"]))
         return row
 
+    def latest_for_alert(self, alert_id: str) -> dict[str, Any] | None:
+        """Return the newest telemetry item tied to one local Shield alert."""
+
+        rows = self._db.query(
+            "SELECT * FROM siem_outbox WHERE event_type LIKE 'shield.alert.%' "
+            "ORDER BY sequence DESC"
+        )
+        for row in rows:
+            try:
+                payload = json.loads(str(row["payload"]))
+            except (TypeError, ValueError):
+                continue
+            metadata = payload.get("metadata") if isinstance(payload, dict) else None
+            if isinstance(metadata, dict) and metadata.get("shield_alert_id") == alert_id:
+                row["payload"] = payload
+                return row
+        return None
+
     def list_status(self, status: str) -> list[dict[str, Any]]:
         return self._db.query(
             "SELECT * FROM siem_outbox WHERE status = ? ORDER BY sequence", (status,)

@@ -133,6 +133,7 @@ Router.register('alerts', {
       '  <div class="alert-side-panel-body" id="panelBody">' +
       '    <p style="color: var(--text-tertiary);">Selecione um alerta para investigar.</p>' +
       '  </div>' +
+      '  <div class="siem-investigation-context" id="siemInvestigationAction" aria-live="polite"></div>' +
       '  <div class="alert-side-panel-actions" id="panelActions"></div>' +
       '</aside>'
     );
@@ -165,7 +166,8 @@ var AlertsPage = (function () {
     sortAsc: false,
     page: 1,
     pageSize: 15,
-    searchDebounce: null
+    searchDebounce: null,
+    siemContext: null
   };
 
   function refresh(silent) {
@@ -522,6 +524,42 @@ var AlertsPage = (function () {
     panel.classList.add('open');
     if (backdrop) backdrop.classList.add('open');
     switchTab('summary');
+    _loadSiemInvestigation(alert.alert_id);
+  }
+
+  function _loadSiemInvestigation(alertId) {
+    var container = document.getElementById('siemInvestigationAction');
+    state.siemContext = null;
+    if (!container) return;
+    container.className = 'siem-investigation-context is-loading';
+    container.innerHTML = '<span class="siem-state-dot"></span><span>Consultando entrega ao EDY SIEM...</span>';
+
+    EDY.api('/api/integrations/edy-siem/alerts/' + encodeURIComponent(alertId))
+      .then(function (context) {
+        if (!state.activeAlert || state.activeAlert.alert_id !== alertId) return;
+        state.siemContext = context;
+        var stateClass = 'state-' + String(context.delivery_state || 'unavailable');
+        var action = context.can_investigate ?
+          '<button type="button" class="btn btn-sm btn-primary siem-investigate-btn" onclick="AlertsPage.openSiemInvestigation()">Investigar no EDY SIEM <span aria-hidden="true">&#8599;</span></button>' : '';
+        container.className = 'siem-investigation-context ' + stateClass;
+        container.innerHTML = '<span class="siem-state-dot" aria-hidden="true"></span>' +
+          '<span class="siem-state-copy"><strong>' + Components.escape(context.label || 'EDY SIEM') + '</strong>' +
+          '<small>' + Components.escape(context.description || '') + '</small></span>' + action;
+      })
+      .catch(function () {
+        if (!state.activeAlert || state.activeAlert.alert_id !== alertId) return;
+        container.className = 'siem-investigation-context state-unavailable';
+        container.innerHTML = '<span class="siem-state-dot" aria-hidden="true"></span>' +
+          '<span class="siem-state-copy"><strong>Status do SIEM indispon\u00edvel</strong>' +
+          '<small>N\u00e3o foi poss\u00edvel consultar a entrega agora.</small></span>';
+      });
+  }
+
+  function openSiemInvestigation() {
+    var context = state.siemContext;
+    if (!context || !context.can_investigate || typeof context.investigation_url !== 'string') return;
+    if (!/^https?:\/\//i.test(context.investigation_url)) return;
+    window.open(context.investigation_url, '_blank', 'noopener,noreferrer');
   }
 
   // --- Investigation Workspace: Tabs (M4.4.6) ---
@@ -695,6 +733,7 @@ var AlertsPage = (function () {
     if (panel) panel.classList.remove('open');
     if (backdrop) backdrop.classList.remove('open');
     state.activeAlert = null;
+    state.siemContext = null;
   }
 
   function individualAction(id, action) {
@@ -730,6 +769,7 @@ var AlertsPage = (function () {
     individualAction: individualAction,
     switchTab: switchTab,
     addComment: addComment,
-    exportJSON: exportJSON
+    exportJSON: exportJSON,
+    openSiemInvestigation: openSiemInvestigation
   };
 })();

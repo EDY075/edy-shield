@@ -35,7 +35,12 @@ from typing import Any, cast
 from app import __version__
 from app.core.alerts.models import AlertRecord
 from app.core.fim import DEFAULT_FIM_DIR, FimStore
-from app.integrations.edy_siem import IntegrationRuntime, SiemProducer, build_runtime
+from app.integrations.edy_siem import (
+    IntegrationRuntime,
+    SiemProducer,
+    build_runtime,
+    investigation_url,
+)
 from app.plugins import PluginManager, PluginRegistry, ScanContext
 from app.plugins.builtin import (
     EntropyAnalyzerPlugin,
@@ -250,6 +255,8 @@ def _make_handler(
                 self._get_alert_export(path)
             elif path.startswith("/api/alerts/"):
                 self._get_alert_detail(path)
+            elif path.startswith("/api/integrations/edy-siem/alerts/"):
+                self._get_siem_alert_context(path)
             elif path == "/api/health":
                 self._get_health()
             elif path == "/api/fim/baselines":
@@ -554,6 +561,77 @@ def _make_handler(
                 self._send_error(HTTPStatus.NOT_FOUND, "alerta não encontrado")
                 return
             self._send_json(record.to_dict())
+
+        def _get_siem_alert_context(self, path: str) -> None:
+            """Expose non-secret delivery state and a safe SIEM deep link."""
+
+            alert_id = path.removeprefix("/api/integrations/edy-siem/alerts/")
+            if not alert_id or "/" in alert_id:
+                self._send_error(HTTPStatus.BAD_REQUEST, "alert_id inv\u00e1lido")
+                return
+            if siem_runtime is None:
+                self._send_json(
+                    {
+                        "delivery_state": "disabled",
+                        "label": "Integra\u00e7\u00e3o desativada",
+                        "description": "O envio ao EDY SIEM n\u00e3o est\u00e1 habilitado neste endpoint.",
+                        "event_id": None,
+                        "investigation_url": None,
+                        "can_investigate": False,
+                    }
+                )
+                return
+
+            item = siem_runtime.producer.repository.latest_for_alert(alert_id)
+            if item is None:
+                self._send_json(
+                    {
+                        "delivery_state": "unavailable",
+                        "label": "Evento ainda indispon\u00edvel",
+                        "description": "Nenhum evento SIEM foi correlacionado a este alerta.",
+                        "event_id": None,
+                        "investigation_url": None,
+                        "can_investigate": False,
+                    }
+                )
+                return
+
+            status = str(item.get("status", "pending"))
+            has_error = bool(item.get("last_error"))
+            state = "pending"
+            label = "Pendente de envio"
+            description = "O evento est\u00e1 preservado na fila local do Shield."
+            if status == "sent":
+                state = "delivered"
+                label = "Entregue ao SIEM"
+                description = "O EDY SIEM confirmou o recebimento deste evento."
+            elif status == "dead_letter":
+                state = "failed"
+                label = "Falha de entrega"
+                description = "O evento exige revis\u00e3o antes de poder ser investigado no SIEM."
+            elif has_error:
+                state = "temporary_failure"
+                label = "Falha temporÃ¡ria"
+                description = "O Shield manter\u00e1 o evento na fila e tentar\u00e1 novamente."
+            elif status == "in_flight":
+                label = "Enviando ao SIEM"
+                description = "A entrega deste evento est\u00e1 em andamento."
+
+            event_id = str(item["event_id"])
+            deep_link = investigation_url(event_id) if state == "delivered" else None
+            if state == "delivered" and deep_link is None:
+                description = "Evento entregue; configure EDY_SIEM_UI_URL para abrir a investiga\u00e7\u00e3o."
+            self._send_json(
+                {
+                    "delivery_state": state,
+                    "label": label,
+                    "description": description,
+                    "event_id": event_id,
+                    "investigation_url": deep_link,
+                    "can_investigate": deep_link is not None,
+                    "updated_at": item.get("updated_at"),
+                }
+            )
 
         def _get_alert_rules(self) -> None:
             """Listar regras ativas do motor de alertas."""

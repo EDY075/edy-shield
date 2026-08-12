@@ -117,6 +117,17 @@ já exista sem essas colunas. Nenhum banco é compartilhado com o SIEM.
 
 ## Próximo passo exato
 
+## Checkpoint UX Integration V1 - 2026-08-12
+
+- Branch: `codex/siem-producer-outbox-v1`.
+- O detalhe do alerta consulta o estado real do evento na outbox.
+- A acao **Investigar no EDY SIEM** aparece somente apos entrega confirmada.
+- A URL e configurada por `EDY_SIEM_UI_URL` e usa somente o `event_id` no deep link.
+- E2E real: alerta `ALT-UX-E2E-003`, evento
+  `fa3f171e-bb8e-43f2-9bd3-ae716d7316da`, entregue e aberto no SIEM.
+- Qualidade: 684 testes, 2 skipped, 86,67%, Ruff/MyPy/build aprovados.
+- Proximo passo salvo: **PRODUCT REDESIGN V1**. Nao iniciar sem novo prompt.
+
 Executar, em ambiente local isolado, o primeiro E2E real com EDY SIEM na branch
 `codex/shield-siem-integration-architecture`: configurar tokens de laboratório nos dois
 processos, iniciar o receptor, gerar um FIM real no Shield, confirmar `202`, inbox e

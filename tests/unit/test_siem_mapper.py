@@ -205,12 +205,21 @@ def test_maps_security_alert_created_and_updated() -> None:
         severity=AlertSeverity.CRITICAL,
         first_seen_at=NOW,
         last_seen_at=NOW,
+        details={
+            "file_path": "config/app.ini",
+            "previous_hash": "a" * 64,
+            "current_hash": "b" * 64,
+            "baseline_status": "modified",
+            "mitre": ["T1565.001"],
+        },
     )
     created = mapper.security_alert(alert, 1)
     updated = mapper.security_alert(alert, 2, action="updated", previous_status="NEW")
     _assert_common(created, "shield.alert.created")
     _assert_common(updated, "shield.alert.updated")
     assert created["severity"] == "critical"
+    assert created["evidence"]["file_path"] == "config/app.ini"  # type: ignore[index]
+    assert created["metadata"]["x_mitre"] == ["T1565.001"]  # type: ignore[index]
     assert updated["evidence"]["details"]["previous_status"] == "NEW"  # type: ignore[index]
 
 

@@ -193,6 +193,32 @@ class EventMapper:
             "title": record.title[:1024],
             "description": record.description[:1024],
         }
+        evidence: dict[str, Any] = {"details": details}
+        for key in (
+            "file_path",
+            "previous_hash",
+            "current_hash",
+            "hash_algorithm",
+            "baseline_id",
+            "baseline_status",
+            "scan_id",
+        ):
+            value = record.details.get(key)
+            if isinstance(value, str) and value.strip():
+                evidence[key] = value[:4096]
+        metadata: dict[str, Any] = {
+            "shield_alert_id": record.alert_id,
+            "rule_id": record.rule_id,
+            "dedup_fingerprint": record.fingerprint,
+            "tags": ["alert", record.source[:64]],
+        }
+        mitre = record.details.get("mitre") or record.details.get("mitre_attack")
+        if isinstance(mitre, str) and mitre.strip():
+            metadata["x_mitre"] = [mitre[:64]]
+        elif isinstance(mitre, list):
+            techniques = [str(value)[:64] for value in mitre if isinstance(value, str) and value]
+            if techniques:
+                metadata["x_mitre"] = techniques[:32]
         event_type = "shield.alert.created"
         if action == "updated":
             event_type = "shield.alert.updated"
@@ -208,13 +234,8 @@ class EventMapper:
             event_type=event_type,
             severity=record.severity.value,
             timestamp=record.last_seen_at,
-            evidence={"details": details},
-            metadata={
-                "shield_alert_id": record.alert_id,
-                "rule_id": record.rule_id,
-                "dedup_fingerprint": record.fingerprint,
-                "tags": ["alert", record.source[:64]],
-            },
+            evidence=evidence,
+            metadata=metadata,
         )
 
 

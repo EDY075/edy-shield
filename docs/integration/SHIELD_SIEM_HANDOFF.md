@@ -70,3 +70,20 @@ sdist 0.2.0.
 
 Não fazer merge em `main`, não implementar WAR_ROOM e não iniciar o worker downstream
 da inbox sem nova etapa aprovada.
+
+## Handoff - UX Integration V1 concluida (2026-08-12)
+
+O detalhe do alerta agora exibe estado de integracao em linguagem operacional e so
+oferece **Investigar no EDY SIEM** quando a outbox registra entrega confirmada. O
+resolver local e `GET /api/integrations/edy-siem/alerts/{alert_id}`. O deep link usa
+`EDY_SIEM_UI_URL` e `/investigate/shield/{event_id}`; nenhum token ou evidencia entra
+na URL.
+
+Arquivos centrais: `app/ui/server.py`,
+`app/ui/static/dashboard/js/pages/alerts.js`,
+`app/ui/static/dashboard/css/dashboard.css`, `app/integrations/edy_siem/config.py`,
+`app/integrations/edy_siem/outbox.py` e `app/integrations/edy_siem/mapper.py`.
+
+O E2E real confirmou o alerta `ALT-UX-E2E-003`, evento
+`fa3f171e-bb8e-43f2-9bd3-ae716d7316da`, entrega e abertura contextual no SIEM. Proximo
+passo: **PRODUCT REDESIGN V1**. Nao iniciar ainda.

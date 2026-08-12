@@ -1,7 +1,7 @@
 """EDY Shield -> EDY SIEM producer/outbox integration v1."""
 
 from .client import InvalidResponseError, SiemClient, SiemResponse, TransportError
-from .config import INGEST_PATH, SiemConfig, integration_enabled
+from .config import INGEST_PATH, SiemConfig, integration_enabled, investigation_url
 from .mapper import EventMapper
 from .outbox import LeasedBatch, OutboxCapacityError, OutboxItem, OutboxRepository
 from .producer import IntegrationRuntime, SiemProducer, build_runtime
@@ -24,4 +24,5 @@ __all__ = [
     "TransportError",
     "build_runtime",
     "integration_enabled",
+    "investigation_url",
 ]
