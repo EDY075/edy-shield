@@ -222,3 +222,31 @@ integridade, baseline, scan e decisão local; o SIEM só é oferecido após `del
 
 Redesenhar somente o EDY SIEM a partir de seu próprio handoff. Não fazer merge em
 `main` e não alterar novamente o Shield sem novo escopo.
+
+## HANDOFF — Sprint D concluída (2026-08-12)
+
+### Contexto
+
+O EDY Shield recebeu somente polimento transversal de baixo risco. A linguagem visual
+permanece teal/verde, orientada a integridade do endpoint; não foi criada função, painel ou
+integração nova.
+
+### Artefatos
+
+- `app/ui/static/dashboard/css/dashboard.css`: tokens teal/verde, escala compacta de
+  raio/espaçamento, fontes de interface/monospace, foco visível, redução de movimento e
+  menor ênfase decorativa.
+- `tests/integration/test_shared_design_system.py`: regressão da identidade e acessibilidade.
+
+### Quality Gate
+
+- 687 testes aprovados, 2 ignorados, cobertura 86,68%.
+- Ruff, MyPy, syntax check JavaScript, wheel/sdist e diff-check: PASS.
+- Chrome externo em desktop, notebook, tablet e mobile sem overflow horizontal.
+- Alerta FIM entregue confirmou CTA **Investigar no EDY SIEM**, cadeia de entrega e o mesmo
+  `event_id`, sem token ou evidência na URL.
+
+### Próximo passo
+
+**FINAL — Release Readiness / sign-off.** Não iniciar automaticamente e não fazer merge
+em `main`.

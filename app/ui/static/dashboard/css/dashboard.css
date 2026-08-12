@@ -20,12 +20,12 @@
   --text-tertiary: #6b7280;
   --text-inverse: #0a0e14;
 
-  /* Accent — identidade azul */
-  --accent-primary: #3b82f6;
-  --accent-primary-hover: #2563eb;
-  --accent-primary-muted: #1e3a5f;
-  --accent-secondary: #60a5fa;
-  --accent-gradient: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  /* Accent — identidade teal/verde de integridade do endpoint */
+  --accent-primary: #1fb58a;
+  --accent-primary-hover: #42d1aa;
+  --accent-primary-muted: #123a35;
+  --accent-secondary: #73e0c0;
+  --accent-gradient: linear-gradient(135deg, #1fb58a, #0b7663);
 
   /* Severity colors */
   --sev-critical: #ef4444;
@@ -34,13 +34,13 @@
   --sev-high-bg: rgba(249, 115, 22, 0.12);
   --sev-medium: #eab308;
   --sev-medium-bg: rgba(234, 179, 8, 0.12);
-  --sev-low: #3b82f6;
-  --sev-low-bg: rgba(59, 130, 246, 0.12);
+  --sev-low: #35bca0;
+  --sev-low-bg: rgba(53, 188, 160, 0.12);
   --sev-info: #6b7280;
   --sev-info-bg: rgba(107, 114, 128, 0.12);
 
   /* Status colors */
-  --status-new: #3b82f6;
+  --status-new: #35bca0;
   --status-ack: #8b5cf6;
   --status-resolved: #10b981;
   --status-suppressed: #6b7280;
@@ -48,7 +48,7 @@
   /* Borders */
   --border-default: #243044;
   --border-light: #334155;
-  --border-focus: #3b82f6;
+  --border-focus: #42d1aa;
 
   /* Spacing scale */
   --space-1: 4px;
@@ -60,14 +60,14 @@
   --space-8: 48px;
 
   /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
 
   /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   --font-size-xs: 11px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
@@ -81,8 +81,8 @@
 
   /* Shadows */
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-2: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.28);
+  --shadow-3: 0 10px 26px rgba(0, 0, 0, 0.34);
 
   /* Layout */
   --sidebar-width: 240px;
@@ -104,14 +104,14 @@
   --text-tertiary: #9ca3af;
   --text-inverse: #ffffff;
 
-  --accent-primary: #2563eb;
-  --accent-primary-hover: #1d4ed8;
-  --accent-primary-muted: #dbeafe;
-  --accent-secondary: #3b82f6;
+  --accent-primary: #047857;
+  --accent-primary-hover: #065f46;
+  --accent-primary-muted: #d1fae5;
+  --accent-secondary: #0d9488;
 
   --border-default: #e5e7eb;
   --border-light: #d1d5db;
-  --border-focus: #2563eb;
+  --border-focus: #047857;
 
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.08);
   --shadow-2: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -120,7 +120,7 @@
   --sev-critical-bg: rgba(239, 68, 68, 0.08);
   --sev-high-bg: rgba(249, 115, 22, 0.08);
   --sev-medium-bg: rgba(234, 179, 8, 0.08);
-  --sev-low-bg: rgba(59, 130, 246, 0.08);
+  --sev-low-bg: rgba(13, 148, 136, 0.08);
   --sev-info-bg: rgba(107, 114, 128, 0.08);
 }
 
@@ -143,6 +143,12 @@ body {
   background: var(--bg-base);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+}
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
 
 /* ========== App Layout ========== */
@@ -418,17 +424,14 @@ body {
 
 .sidebar-status-dot.ok {
   background: #10b981;
-  box-shadow: 0 0 5px rgba(16, 185, 129, 0.6);
 }
 
 .sidebar-status-dot.degraded {
   background: #f59e0b;
-  box-shadow: 0 0 5px rgba(245, 158, 11, 0.6);
 }
 
 .sidebar-status-dot.error {
   background: #ef4444;
-  box-shadow: 0 0 5px rgba(239, 68, 68, 0.6);
 }
 
 .sidebar-status-value {
@@ -574,7 +577,7 @@ body {
 .topbar-search:focus {
   outline: none;
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--border-focus) 18%, transparent);
 }
 
 .topbar-search::placeholder {
@@ -659,7 +662,6 @@ body {
 
 .online-indicator.online .online-indicator-dot {
   background: var(--status-resolved);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
 }
 
 .online-indicator.online {
@@ -689,7 +691,7 @@ body {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-full);
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: var(--accent-gradient);
   color: white;
   font-weight: 700;
   font-size: var(--font-size-sm);
@@ -798,8 +800,8 @@ body {
 
 .stat-card:hover {
   border-color: var(--border-light);
-  box-shadow: var(--shadow-2);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-1);
+  transform: translateY(-1px);
 }
 
 .stat-card::before {
@@ -3149,6 +3151,13 @@ h1 { letter-spacing: -0.01em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
   .integrity-change-item {
     transition: none;
   }

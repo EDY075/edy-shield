@@ -349,3 +349,29 @@ Evidências salvas em `outputs/sprint-a3-event-detail/` no workspace Codex:
 # Sprint B — EDY SIEM SOC Decision Center
 
 Próximo passo exato. Não implementar nesta sessão.
+
+## Sprint D — Shared Design System & Final Product Polish: COMPLETE (2026-08-12)
+
+O Shield preservou seu papel de Endpoint Integrity Center e adotou os fundamentos visuais
+compartilhados sem assumir a identidade azul/ciano do SIEM.
+
+- `app/ui/static/dashboard/css/dashboard.css` usa teal/verde para integridade do endpoint,
+  mantém escala de espaçamento/radius compacta, tipografia de interface e mono consistente,
+  foco visível e `prefers-reduced-motion`.
+- Sombras, hover e indicadores deixaram de depender de glow decorativo; severidades críticas
+  e altas permaneceram semanticamente distintas.
+- `tests/integration/test_shared_design_system.py` mantém a identidade endpoint e os
+  requisitos básicos de acessibilidade como regressão estática.
+
+No Chrome externo, um alerta FIM entregue confirmou a cadeia Mudança → Evidência → Impacto
+→ Decisão e exibiu **Investigar no EDY SIEM** apenas após entrega confirmada, abrindo o
+mesmo `event_id`. Viewports 1920×1080, 1366×768, 820×900 e 390×844 não apresentaram
+overflow horizontal.
+
+Validação final: 687 testes aprovados, 2 ignorados, cobertura 86,68%, Ruff, MyPy (80
+módulos), sintaxe JavaScript, wheel/sdist e `git diff --check`: PASS.
+
+## Próximo passo exato
+
+**FINAL — Release Readiness / final product sign-off.** Não iniciar automaticamente e não
+fazer merge em `main`.
