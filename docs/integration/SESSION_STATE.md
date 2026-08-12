@@ -120,6 +120,7 @@ já exista sem essas colunas. Nenhum banco é compartilhado com o SIEM.
 ## Checkpoint UX Integration V1 - 2026-08-12
 
 - Branch: `codex/siem-producer-outbox-v1`.
+- Commit de implementacao: `4fa8e78`.
 - O detalhe do alerta consulta o estado real do evento na outbox.
 - A acao **Investigar no EDY SIEM** aparece somente apos entrega confirmada.
 - A URL e configurada por `EDY_SIEM_UI_URL` e usa somente o `event_id` no deep link.

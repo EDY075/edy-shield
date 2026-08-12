@@ -73,6 +73,9 @@ da inbox sem nova etapa aprovada.
 
 ## Handoff - UX Integration V1 concluida (2026-08-12)
 
+Commit de implementacao Shield: `4fa8e78` na branch
+`codex/siem-producer-outbox-v1`.
+
 O detalhe do alerta agora exibe estado de integracao em linguagem operacional e so
 oferece **Investigar no EDY SIEM** quando a outbox registra entrega confirmada. O
 resolver local e `GET /api/integrations/edy-siem/alerts/{alert_id}`. O deep link usa
