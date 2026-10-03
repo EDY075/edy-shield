@@ -17,6 +17,10 @@ Modern defensive security toolkit for file integrity, hash analysis and incident
 
 ---
 
+## Apresentação em vídeo
+
+https://github.com/user-attachments/assets/ec95a235-7bfc-4f68-8955-52bfd28fdce6
+
 ## Overview
 
 EDY Shield is an **Endpoint Integrity & Defense** platform written in **Python 3.12** with a **100% standard-library core** (zero runtime dependencies). It is local-first: FIM, baselines, scans, hash analysis and the local alert workflow remain available even when the SIEM receiver is unavailable.
